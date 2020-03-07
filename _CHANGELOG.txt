@@ -1,0 +1,16 @@
+/*******************************************************/
+/********* PROGETTO D'ESAME GIACARDI - FONTANA *********/
+/*******************************************************/
+-- Dettaglio delle modifiche --
+Per ora manca ancora tutto, lol
+Nella cartella model ci sono i modelli mongoose per l'interazione con il DB Mongo
+Nella cartella static bisognerà mettere il layout del sito (tema bootstrap, script, ecc...)
+Il file server.js è ancora da compilare, per ora c'è solo il file (XD)
+-- Stefano Fontana, 05-03-20 12:07
+Ho creato la repository, ora provo a uploadare le modifiche che ho fatto
+-- Stefano Fontana, 05-03-20 12:20
+Push eseguito con successo, file aggiornati correttamente
+-- Stefano Fontana, 05-03-20 12:28
+Modificato file server.js, aggiunto collegamento a DB su atlas.
+Installato il modulo mongoose.
+-- Stefano Fontana, 05-03-20 15:08
