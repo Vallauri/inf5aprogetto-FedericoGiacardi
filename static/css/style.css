@@ -2204,6 +2204,10 @@ ul {
   color: #ee390f;
 }
 
+.navbar-light .navbar-nav .nav-link.active{
+  color: #ff663b
+}
+
 /* line 51, E:/172 Etrain Education/172_Etrain_Education_html/sass/_menu.scss */
 .main_menu .main-menu-item ul .btn_1 {
   color: #fff;

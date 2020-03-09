@@ -14,3 +14,13 @@ Push eseguito con successo, file aggiornati correttamente
 Modificato file server.js, aggiunto collegamento a DB su atlas.
 Installato il modulo mongoose.
 -- Stefano Fontana, 05-03-20 15:08
+-- Federico Giacardi, 09-03-20 23.10
+Che bill stu file. No ok sono serio.
+Creazione pagine: login, idex, registrati e nuova password.
+Modifica classe .navbar-light .navbar-nav .nav-link.active per colore di sfondo nav selezionato
+Rimangono da fare: 
+    verifica responsive in ogni pagina (alcuni allinementi non mi convincono),
+    gestione colore di sfondo btn quando hover (per ora rimane bianco e non si vede nulla)
+    gestione footer
+    valutare l'utilizzo dei tag required e pattern per gli input
+
