@@ -80,8 +80,8 @@
                                                 <i class="fas fa-user"> </i>
                                             </span>
                                             <input type="text" id="usernameLogin" name="usernameLogin" placeholder="Username"
-                                                onfocus="this.placeholder = ''" onblur="this.placeholder = 'Username'" required
-                                                class="single-input">
+                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Username'" required
+                                                class="single-input-primary" required>
                                         </div>
                                     </div>
                                     <div class="input-group form-group">
@@ -90,17 +90,18 @@
                                                 <i class="fas fa-lock"> </i>
                                             </span>
                                             <input type="password" id="pwdLogin" name="pwdLogin" placeholder="Password"
-                                                onfocus="this.placeholder = ''" onblur="this.placeholder = 'Password'" required
-                                                class="single-input">
+                                                onfocus="this.placeholder = '';this.classList.remove('alert-danger');" onblur="this.placeholder = 'Password'" required
+                                                class="single-input-primary" required>
                                         </div>
                                     </div>
                                     <div class="msg"> </div>
+                                    <br>
                                 </div>
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="form-group">
                                         <a id="btnLogin" class="genric-btn primary circle btn-block" style="color: #fff!important;">Login</a>
-                                        <a id="btnRegistrati" class="genric-btn primary circle btn-block" style="color: #fff!important;">Registrati</a>
-                                        <a id="btnReimpostaPwd" class="genric-btn link circle btn-block" style="color: #415094!important">Password dimenticata? Reimpostala!</a>
+                                        <a id="btnRegistrati" href="registrati.html" class="genric-btn primary circle btn-block" style="color: #fff!important;">Registrati</a>
+                                        <a id="btnReimpostaPwd" href="nuovaPassword.html" class="genric-btn link circle btn-block" style="color: #415094!important">Password dimenticata? Reimpostala!</a>
                                     </div>
                                 </div>
                             </form>
@@ -203,6 +204,8 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="js/waypoints.min.js"></script>
     <!-- custom js -->
     <script src="js/custom.js"></script>
+    <script src="js/libreria.js"></script>
+    <script src="js/login.js"></script>
 </body>
 
 </html>

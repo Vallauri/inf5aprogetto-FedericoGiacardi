@@ -67,7 +67,7 @@ httpsServer.listen(8888, '127.0.0.1', function () {
 });
 
 /* ************************************************************ */
-
+app.use("/", express.static('./static'));
 // middleware
 app.use("/", bodyParser.json());
 app.use("/", bodyParser.urlencoded({ extended: true }));
@@ -90,8 +90,6 @@ app.get('/index.html', function (req, res, next) {
     controllaToken(req, res, next);
 });
 /* --------------------------------------------------------------- */
-
-app.use("/", express.static('./static'));
 
 // controllo del token
 app.use('/api', function (req, res, next) {

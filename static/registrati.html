@@ -77,8 +77,8 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-user-circle"> </i>
                                  </span>
-                                 <input type="text" name="nomeReg" placeholder="Nome"
-                                    onfocus="this.placeholder = ''" onblur="this.placeholder = 'Nome'" required
+                                 <input type="text" id="nomeReg" name="nomeReg" placeholder="Nome"
+                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Nome'" required
                                     class="single-input">
                               </div>
                            </div>
@@ -87,8 +87,8 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-lock"> </i>
                                  </span>
-                                 <input type="password" id="cognomeReg" name="cognomeReg" placeholder="Cognome"
-                                    onfocus="this.placeholder = ''" onblur="this.placeholder = 'Cognome'" required
+                                 <input type="text" id="cognomeReg" name="cognomeReg" placeholder="Cognome"
+                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Cognome'" required
                                     class="single-input">
                               </div>
                            </div>
@@ -97,7 +97,7 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-calendar-day"> </i>
                                  </span>
-                                 <input type="date" id="dataNascitaReg" name="dataNascitaReg" placeholder="Cognome" onfocus="this.placeholder = ''"
+                                 <input type="date" id="dataNascitaReg" name="dataNascitaReg" placeholder="Cognome" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                     onblur="this.placeholder = 'Data Nascita'" required class="single-input">
                               </div>
                            </div>
@@ -106,7 +106,7 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-envelope"> </i>
                                  </span>
-                                 <input type="text" id="mailReg" name="mailReg" placeholder="Mail" onfocus="this.placeholder = ''"
+                                 <input type="text" id="mailReg" name="mailReg" placeholder="Mail" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                     onblur="this.placeholder = 'Mail'" required class="single-input">
                               </div>
                            </div>
@@ -115,8 +115,8 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-phone-square-alt"> </i>
                                  </span>
-                                 <input type="tel" id="telReg" name="telReg" placeholder="Telefono" onfocus="this.placeholder = ''"
-                                    onblur="this.placeholder = 'Telefono'" required class="single-input">
+                                 <input type="tel" id="telReg" name="telReg" placeholder="Telefono Prefisso Escluso" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                    onblur="this.placeholder = 'Telefono Prefisso Escluso'" required class="single-input">
                               </div>
                            </div>
                            <div class="input-group form-group">
@@ -124,7 +124,7 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-user"> </i>
                                  </span>
-                                 <input type="text" id="usernameReg" name="usernameReg" placeholder="Username" onfocus="this.placeholder = ''"
+                                 <input type="text" id="usernameReg" name="usernameReg" placeholder="Username" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                     onblur="this.placeholder = 'Username'" required class="single-input">
                               </div>
                            </div>
@@ -133,7 +133,7 @@
                                  <span class="input-group-text">
                                     <i class="fas fa-lock"> </i>
                                  </span>
-                                 <input type="password" id="pwdReg" name="pwdReg" placeholder="Password" onfocus="this.placeholder = ''"
+                                 <input type="password" id="pwdReg" name="pwdReg" placeholder="Password" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                     onblur="this.placeholder = 'Password'" required class="single-input">
                               </div>
                            </div>
@@ -245,6 +245,8 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
      <script src="js/waypoints.min.js"></script>
      <!-- custom js -->
      <script src="js/custom.js"></script>
+     <script src="js/libreria.js"></script>
+     <script src="js/registrati.js"></script>
  </body>
  
  </html>
