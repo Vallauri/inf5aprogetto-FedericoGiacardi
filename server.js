@@ -9,7 +9,7 @@ const saltRounds = 10;
 /* CONNESSIONE AL DATABASE */
 let userDB = "dbUser";
 let pwdDB = "djNDIPkNP6skFZEP";
-mongoose.connect("mongodb+srv://"+ userDB +":"+ pwdDB +"@learnonthenet-rqmxj.mongodb.net/test?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology:true});
+mongoose.connect("mongodb+srv://"+ userDB +":"+ pwdDB +"@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology:true});
 console.log("Everything seems ok...");
 
 // code 600 - database connection error
@@ -24,6 +24,13 @@ ERRORS.create({
     code: 601,
     name: 'QUERY_EXECUTE',
     defaultMessage: 'An error occured during the query execution'
+});
+
+// code 603 - Parametri Mancanti
+ERRORS.create({
+    code: 603,
+    name: 'MISSING_PARAMS',
+    defaultMessage: 'Parametri Mancanti'
 });
 
 const HTTPS = require('https');
@@ -96,8 +103,12 @@ app.use('/api', function (req, res, next) {
     controllaToken(req, res, next);
 });
 
+app.post('/api/chkToken', function (req, res) {
+    res.send({ "id": JSON.parse(JSON.stringify(req.payload))._id});
+});
+
 function controllaToken(req, res, next) {
-    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout')
+    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd')
         next();
     else {
         let token = readCookie(req);
@@ -140,39 +151,101 @@ function readCookie(req) {
 
 app.post('/api/login', function (req, res, next) {
     let username = req.body.username;
-    utenti.findOne({"user":username}).exec.then(utente => {
-        if (utente == null)
-            error(req, res, null, JSON.stringify(new ERRORS.Http401Error({})));
-        else {
-            bcrypt.compare(req.body.password, utente.pwd, function (errC, resC) {
-                if (resC) {
-                    let token = createToken(dbUser, tipoUtente, admin);
-                    writeCookie(res, token);
-                    res.send({ "ris": "ok"});
-                } else {
-                    error(req, res, err, JSON.stringify(new ERRORS.Http401Error({})));
-                }
-            });
-        }
-    }).catch(err => {
-        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-    });
+
+    if (username != "" || req.body.password != "") {
+        utenti.findOne({ "user": username }).exec().then(utente => {
+            console.log(JSON.parse(JSON.stringify(utente)));
+            if (utente == null)
+                error(req, res, null, JSON.stringify(new ERRORS.Http401Error({})));
+            else {
+                bcrypt.compare(req.body.password, utente.pwd, function (errC, resC) {
+                    if (resC) {
+                        let token = createToken(utente);
+                        writeCookie(res, token);
+                        res.send({ "ris": "ok" });
+                    } else {
+                        error(req, res, errC, JSON.stringify(new ERRORS.Http401Error({})));
+                    }
+                });
+            }
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }else{
+        gestErrorePar(req, res);
+    }
 });
 
 app.post("/api/registrati", function (req, res) {
-    utenti.find().sort({ _id: 1 }).exec().then(results => {
-        let vet = JSON.parse(JSON.stringify(results));
-        let idUt = parseInt(vet[vet.length - 1]["_id"]) + 1;
-        bcrypt.hash(req.body.pwd, saltRounds, function (errC, hash) {
-            const utInsert = new utenti({
-
-            });
-            utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));});
-        })
-    }).catch(err => {
-        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-    });
+    if (req.body.nome != "") {
+        if (req.body.cognome != "") {
+            //FARE CONTROLLO ETA MINIMA 8 ANNI
+            if (Date.parse(req.body.dataNascita)) {
+                console.log("Prova2");
+                if (validaEmail(req.body.email)) {
+                    if (validaTelefono(req.body.telefono)) {
+                        if (req.body.username != "") {
+                            if (validaPwdReg(req.body.password)) {
+                                utenti.find().sort({ _id: 1 }).exec().then(results => {
+                                    let vet = JSON.parse(JSON.stringify(results));
+                                    bcrypt.hash(req.body.pwd, saltRounds, function (errC, hash) {
+                                        const utInsert = new utenti({
+                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                            nome: req.body.nome,
+                                            cognome: req.body.cognome,
+                                            dataNascita: req.body.dataNascita,
+                                            mail: req.body.email,
+                                            telefono: req.body.telefono,
+                                            user: req.body.username,
+                                            pwd: hash
+                                        });
+                                        utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                    });
+                                }).catch(err => {
+                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                });
+                            } else {
+                                gestErrorePar(req, res);
+                            }
+                        } else {
+                            gestErrorePar(req, res);
+                        }
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    }
+    else {
+        gestErrorePar(req, res);
+    }
 });
+
+function validaEmail(email) {
+    let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
+function validaTelefono(telefono) {
+    let re = /^[0-9]{10,10}$/;
+    return re.test(telefono);
+}
+
+function validaPwdReg(pwdReg) {
+    let re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+    return re.test(pwdReg);
+}
+
+function gestErrorePar(req, res) {
+    error(req, res, null, JSON.stringify(new ERRORS.MISSING_PARAMS({})));
+}
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

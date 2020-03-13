@@ -1,8 +1,24 @@
 "use strict";
 
 $(document).ready(function () {
+    let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        console.log(jqXHR + " " + test_status + " " + str_error);
+    });
+    chkToken.done(function (data) {
+        window.location.href = "about.html"
+    });
     $("#btnInviaReg").click(gestReg);
+    setMinDate();
 });
+
+function setMinDate() {
+    let aus = new Date();
+    aus.setDate = aus.getDate();
+    aus.setFullYear(aus.getFullYear() - 8); //imposto come data di nascita massima 8 anni fa
+    let data = aus.toISOString().split('T')[0];
+    $("#dataNascitaReg").attr("max", data);
+}
 
 function gestReg() {
     $("#nomeReg").removeClass("alert-danger");
@@ -20,12 +36,13 @@ function gestReg() {
                 if (validaEmail($("#mailReg").val())) {
                     if (validaTelefono($("#telReg").val())) {
                         if ($("#usernameReg").val() != "") {
-                            if ($("#pwdReg").val() != "") {
-                                let dataNascita = $("#dataNascitaReg").val().split('-')[2] + "/" + $("#dataNascitaReg").val().split('-')[1] + "/" + $("#dataNascitaReg").val().split('-')[0];
+                            if (validaPwdReg($("#pwdReg").val())) {
+                                // let dataNascita = $("#dataNascitaReg").val().split('-')[2] + "/" + $("#dataNascitaReg").val().split('-')[1] + "/" + $("#dataNascitaReg").val().split('-')[0];
                                 let par = {
                                     "nome": $("#nomeReg").val(),
                                     "cognome": $("#nomeReg").val(),
-                                    "dataNascita": dataNascita,
+                                    "dataNascita": $("#dataNascitaReg").val(),
+                                    "email": $("#mailReg").val(),
                                     "telefono": $("#telReg").val(),
                                     "username": $("#usernameReg").val(),
                                     "password": $("#pwdReg").val()
@@ -33,13 +50,17 @@ function gestReg() {
 
                                 let registratiRQ = inviaRichiesta('/api/registrati', 'POST', par);
                                 registratiRQ.fail(function (jqXHR, test_status, str_error) {
-                                    printErrors(jqXHR, ".msg");
+                                    if (jqXHR.status == 603) {
+                                        $(".msg").text("Credenziali Errate o Mancanti");
+                                    }
+                                    else
+                                        printErrors(jqXHR, ".msg");
                                 });
                                 registratiRQ.done(function (data) {
                                     window.location.href = "login.html"
                                 });
                             } else {
-                                gestErrori("Inserire la Password", $("#pwdReg"));
+                                gestErrori("Inserire una Password valida", $("#pwdReg"));
                             }
                         } else {
                             gestErrori("Inserire uno Username", $("#usernameReg"));
@@ -51,7 +72,7 @@ function gestReg() {
                     gestErrori("Inserire una Email valida", $("#mailReg"));
                 }
             } else {
-                gestErrori("Inserire la Data di Nascita", $("#dataNascitaReg"));
+                gestErrori("Inserire una Data di Nascita valida", $("#dataNascitaReg"));
             }
         }else{
             gestErrori("Inserire il Cognome", $("#cognomeReg"));
@@ -75,4 +96,9 @@ function validaEmail(email) {
 function validaTelefono(telefono) {
     let re = /^[0-9]{10,10}$/;
     return re.test(telefono);
+}
+
+function validaPwdReg(pwdReg) {
+    let re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+    return re.test(pwdReg);
 }

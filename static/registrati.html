@@ -98,8 +98,11 @@
                                     <i class="fas fa-calendar-day"> </i>
                                  </span>
                                  <input type="date" id="dataNascitaReg" name="dataNascitaReg" placeholder="Cognome" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Data Nascita'" required class="single-input">
+                                    onblur="this.placeholder = 'Data Nascita'" aria-describedby="descDataNascitaReg" required class="single-input">
                               </div>
+                              <small id="descDataNascitaReg" class="form-text text-muted">
+                                 Devi avere almeno 8 anni per iscriverti
+                              </small>
                            </div>
                            <div class="input-group form-group">
                               <div class="input-group-prepend">
@@ -134,8 +137,11 @@
                                     <i class="fas fa-lock"> </i>
                                  </span>
                                  <input type="password" id="pwdReg" name="pwdReg" placeholder="Password" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Password'" required class="single-input">
+                                    onblur="this.placeholder = 'Password'" aria-describedby="descPwdReg" required class="single-input">
                               </div>
+                              <small id="descPwdReg" class="form-text text-muted">
+                                 La Password deve contenere almeno 8 caratteri tra cui almeno una maiuscola, una minuscola, un numero e un carattere tra !@#$%^&*
+                              </small>
                            </div>
                            <div class="msg"> </div>
                         </div>

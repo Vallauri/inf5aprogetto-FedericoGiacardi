@@ -1,5 +1,13 @@
 "use strict";
 $(document).ready(function () {
+    let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        console.log(jqXHR + " " + test_status + " " + str_error);
+    });
+    chkToken.done(function (data) {
+        window.location.href = "about.html"
+    });
+
     $("#btnLogin").on("click", function () {
         $("#usernameLogin").removeClass("alert-danger");
         $("#pwdLogin").removeClass("alert-danger");
@@ -11,11 +19,14 @@ $(document).ready(function () {
                 loginRQ.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 401) { // unauthorized
                         $(".msg").text("Credenziali non Valide");
-                    } else
-                        error(jqXHR, test_status, str_error)
+                    } else if (jqXHR.status == 603){
+                        $(".msg").text("Credenziali Errate o Mancanti");
+                    }
+                     else
+                        printErrors(jqXHR, ".msg");
                 });
                 loginRQ.done(function (data) {
-                    window.location.href = "about.html"
+                   window.location.href = "about.html"
                 });
             }else{
                 gestErrori("Inserire la Password", $("#pwdLogin"));
