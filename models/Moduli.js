@@ -15,8 +15,7 @@ const moduli = mongoose.Schema({
     dataCreazione: { type: Date, required: true },
     codTipoModulo: { type: Number, ref:"TipiModulo", required: true },
     codMateria: { type: Number, ref:"Materie", required: true },
-    codAutore: { type: Number, ref:"Utenti", required: true },
-    dataCreazione: { type: Date, required: true },
+    codAutore: { type: Number, ref:"Moderatori", required: true },
     argomenti: [argomenti],
     lezioni: [lezioni]
 });

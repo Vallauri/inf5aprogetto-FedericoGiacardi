@@ -22,7 +22,8 @@ const svolgonoModuliUtenti = mongoose.Schema({
 const svolgonoLezioni = mongoose.Schema({
     codLez: { type: Number, ref: "Lezioni", required: true },
     dataInizio: { type: Date, required: true },
-    dataFine: { type: Date }
+    dataFine: { type: Date },
+    completata: { type: Boolean, default: false }
 });
 
 const consultanoAppunti  = mongoose.Schema({
@@ -58,7 +59,7 @@ const utenti = mongoose.Schema({
     cognome: { type: String, required: true},
     dataNascita: { type: Date, required: true},
     mail: { type: String, required: true},
-    telefono: { type: Number, required: true},
+    telefono: { type: String, required: true},
     user: { type: String, required: true},
     pwd: { type: String, required: true},
     gruppo: [parteDi],

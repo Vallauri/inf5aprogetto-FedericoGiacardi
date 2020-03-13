@@ -4,10 +4,14 @@ const argomenti = mongoose.Schema({
     codArg: { type: Number, ref: "Argomenti", required: true },
 });
 
+const moderatori = mongoose.Schema({
+    codMod : { type: Number, ref: "Moderatori", required: true }
+});
+
 const materie = mongoose.Schema({
     _id: { type: Number, required: true },
     descrizione: { type: String, required: true },
-    codMod: { type: Number, ref: "Moderatori", required: true }, //una materia può avere più moderatori
+    moderatori: [moderatori], //una materia può avere più moderatori (da controllare)
     argomenti: [argomenti]
 });
 
