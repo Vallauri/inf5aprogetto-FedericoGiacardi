@@ -10,7 +10,7 @@ const moderatori = mongoose.Schema({
     cognome: { type: String, required: true },
     dataNascita: { type: Date, required: true },
     mail: { type: String, required: true },
-    telefono: { type: Number, required: true },
+    telefono: { type: String, required: true },
     user: { type: String, required: true },
     pwd: { type: String, required: true },
     materie:[matModerate]
