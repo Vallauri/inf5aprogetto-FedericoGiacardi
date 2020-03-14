@@ -33,6 +33,34 @@ ERRORS.create({
     defaultMessage: 'Parametri Mancanti'
 });
 
+// code 604 - Email already used
+ERRORS.create({
+    code: 604,
+    name: 'EMAIL_USED',
+    defaultMessage: 'Questa Email è già stata utilizzata'
+});
+
+// code 605 - Telephone already used
+ERRORS.create({
+    code: 605,
+    name: 'TELEPHONE_USED',
+    defaultMessage: 'Questo Numero di Telefono è già stato utilizzato'
+});
+
+// code 606 - Username already used
+ERRORS.create({
+    code: 606,
+    name: 'USERNAME_USED',
+    defaultMessage: 'Questo Username è già stato utilizzato'
+});
+
+// code 607 - Password already used
+ERRORS.create({
+    code: 607,
+    name: 'PWD_USED',
+    defaultMessage: 'Questa Password è già stata utilizzata'
+});
+
 const HTTPS = require('https');
 
 // mongo
@@ -162,7 +190,7 @@ app.post('/api/login', function (req, res, next) {
                     if (resC) {
                         let token = createToken(utente);
                         writeCookie(res, token);
-                        res.send({ "ris": "ok" });
+                        res.send({ "ris": "loginOk" });
                     } else {
                         error(req, res, errC, JSON.stringify(new ERRORS.Http401Error({})));
                     }
@@ -181,28 +209,64 @@ app.post("/api/registrati", function (req, res) {
         if (req.body.cognome != "") {
             //FARE CONTROLLO ETA MINIMA 8 ANNI
             if (Date.parse(req.body.dataNascita)) {
-                console.log("Prova2");
                 if (validaEmail(req.body.email)) {
                     if (validaTelefono(req.body.telefono)) {
                         if (req.body.username != "") {
                             if (validaPwdReg(req.body.password)) {
-                                utenti.find().sort({ _id: 1 }).exec().then(results => {
-                                    let vet = JSON.parse(JSON.stringify(results));
-                                    bcrypt.hash(req.body.pwd, saltRounds, function (errC, hash) {
-                                        const utInsert = new utenti({
-                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                            nome: req.body.nome,
-                                            cognome: req.body.cognome,
-                                            dataNascita: req.body.dataNascita,
-                                            mail: req.body.email,
-                                            telefono: req.body.telefono,
-                                            user: req.body.username,
-                                            pwd: hash
+                                utenti.count({ "mail": req.body.email}).exec().then(nUtMail =>{
+                                    if (nUtMail == 0) {
+                                        utenti.count({ "telefono": req.body.telefono }).exec().then(nUtTel => {
+                                            if (nUtTel == 0) {
+                                                utenti.count({ "user": req.body.username }).exec().then(nUtUser => {
+                                                    if (nUtUser == 0) {
+                                                        //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
+                                                        bcrypt.hash(req.body.password, saltRounds, function (errUtPwd, hashUtPwd) {
+                                                            if (errUtPwd) {
+                                                                error(req, res, errUtPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                            }else{
+                                                                utenti.count({ "pwd": hashUtPwd }).exec().then(nPwdUser => {
+                                                                    if (nPwdUser == 0) {
+                                                                        utenti.find().sort({ _id: 1 }).exec().then(results => {
+                                                                            let vet = JSON.parse(JSON.stringify(results));
+                                                                            const utInsert = new utenti({
+                                                                                _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                                nome: req.body.nome,
+                                                                                cognome: req.body.cognome,
+                                                                                dataNascita: req.body.dataNascita,
+                                                                                mail: req.body.email,
+                                                                                telefono: req.body.telefono,
+                                                                                user: req.body.username,
+                                                                                pwd: hashUtPwd
+                                                                            });
+                                                                            utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                                                        }).catch(err => {
+                                                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                                        });
+                                                                    } else {
+                                                                        error(req, res, null, JSON.stringify(new ERRORS.PWD_USED({})));
+                                                                    }
+                                                                }).catch(errPwdUser => {
+                                                                    error(req, res, errPwdUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                                });
+                                                            }
+                                                        });
+                                                    } else {
+                                                        error(req, res, null, JSON.stringify(new ERRORS.USERNAME_USED({})));
+                                                    }
+                                                }).catch(errUser => {
+                                                    error(req, res, errUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                });
+                                            } else {
+                                                error(req, res, null, JSON.stringify(new ERRORS.TELEPHONE_USED({})));
+                                            }
+                                        }).catch(errTel => {
+                                            error(req, res, errTel, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                         });
-                                        utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
-                                    });
-                                }).catch(err => {
-                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                    }else{
+                                        error(req, res, null, JSON.stringify(new ERRORS.EMAIL_USED({})));
+                                    }
+                                }).catch(errMail =>{
+                                    error(req, res, errMail, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                 });
                             } else {
                                 gestErrorePar(req, res);
@@ -227,6 +291,37 @@ app.post("/api/registrati", function (req, res) {
         gestErrorePar(req, res);
     }
 });
+
+app.post("/api/reimpostaPwd", function (req, res) {
+    if (req.body.username != "") {
+        if (validaEmail(req.body.email)) {
+            if (validaTelefono(req.body.telefono)) {
+                if (validaPwdReg(req.body.password)) {
+                    //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
+                    bcrypt.hash(req.body.password, saltRounds, function (errReimpPwd, hashReimpPwd) {
+                        if (errReimpPwd) {
+                            error(req, res, errReimpPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                        }else{
+                            utenti.updateOne({ $and: [{ "user": req.body.username }, { "mail": req.body.email }, { "telefono": req.body.telefono }] }, { $set: { "pwd": hashReimpPwd } }).exec().then(results => {
+                                res.send({ "ris": "reimpPwdOk" });
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            });
+                        }
+                    });
+                }else{
+                    gestErrorePar(req, res);
+                }
+            }else{
+                gestErrorePar(req, res);
+            }
+        }else{
+            gestErrorePar(req, res);
+        }
+    }else{
+        gestErrorePar(req, res);
+    }
+})
 
 function validaEmail(email) {
     let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

@@ -70,7 +70,7 @@ function error(jqXHR, testStatus, strError) {
 function printErrors(jqXHR, par) {
 	if (jqXHR.status == 401 || jqXHR.status == 403) { // unauthorized
 		window.location = "index.html";
-	}else{
-		$(par).show().text("Server Error: " + jqXHR.status + " - " + jqXHR.responseText);
+	} else{
+		$(par).show().text("Server Error: "+JSON.parse(jqXHR.responseText)["message"]);
 	}
 }

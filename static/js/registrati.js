@@ -40,7 +40,7 @@ function gestReg() {
                                 // let dataNascita = $("#dataNascitaReg").val().split('-')[2] + "/" + $("#dataNascitaReg").val().split('-')[1] + "/" + $("#dataNascitaReg").val().split('-')[0];
                                 let par = {
                                     "nome": $("#nomeReg").val(),
-                                    "cognome": $("#nomeReg").val(),
+                                    "cognome": $("#cognomeReg").val(),
                                     "dataNascita": $("#dataNascitaReg").val(),
                                     "email": $("#mailReg").val(),
                                     "telefono": $("#telReg").val(),
@@ -53,8 +53,8 @@ function gestReg() {
                                     if (jqXHR.status == 603) {
                                         $(".msg").text("Credenziali Errate o Mancanti");
                                     }
-                                    else
-                                        printErrors(jqXHR, ".msg");
+                                    else{
+                                        printErrors(jqXHR, ".msg");}
                                 });
                                 registratiRQ.done(function (data) {
                                     window.location.href = "login.html"
