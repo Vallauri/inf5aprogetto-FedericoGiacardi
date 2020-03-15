@@ -110,11 +110,6 @@
 //     });
     
 //   });
- 
-
-$('.counter').counterUp({
-  time: 2000
-});
 
   $('.slider').slick({
     slidesToShow: 1,

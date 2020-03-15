@@ -5,11 +5,37 @@ const ERRORS = require('errors');
 let mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+const port = process.env.PORT || 8888;
+
+const multer = require("multer"); // Modulo per salvataggio immagini su server
+// Impostazioni multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "static/images");
+    },
+    filename: function (req, file, cb) {
+        const now = new Date().toISOString(); 
+        const date = now.replace(/:/g, '-');
+        cb(null, date + file.originalname);
+    }
+});
+
+const fileFilter = (req, file, cb) =>{
+    if (!file.originalname.includes("unset")) {
+        cb(null, true);
+    }else{
+        cb(null, false);
+    }
+};
+
+const upload = multer({ storage: storage, fileFilter:fileFilter });
 
 /* CONNESSIONE AL DATABASE */
-let userDB = "dbUser";
-let pwdDB = "djNDIPkNP6skFZEP";
-mongoose.connect("mongodb+srv://"+ userDB +":"+ pwdDB +"@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology:true});
+// let userDB = "dbUser";
+// let pwdDB = "djNDIPkNP6skFZEP";
+mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS +"@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology:true});
 console.log("Everything seems ok...");
 
 // code 600 - database connection error
@@ -63,12 +89,6 @@ ERRORS.create({
 
 const HTTPS = require('https');
 
-// mongo
-const MONGO_CLIENT = require("mongodb").MongoClient;
-const STRING_CONNECT = 'mongodb://127.0.0.1:27017';
-const PARAMETERS = {
-    useNewUrlParser: true,
-};
 
 // express
 const express = require("express");
@@ -78,6 +98,9 @@ const jwt = require("jsonwebtoken");
 
 //Mongoose
 let utenti = require("./models/Utenti.js");
+let argomenti = require("./models/Argomenti.js");
+let appunti = require("./models/Appunti.js");
+let esami = require("./models/Esami.js");
 
 
 // Online RSA Key Generator
@@ -92,7 +115,7 @@ const TIMEOUT = 30; // 60 SEC
 let pageNotFound;
 
 var httpsServer = HTTPS.createServer(credentials, app);
-httpsServer.listen(8888, '127.0.0.1', function () {
+httpsServer.listen(port, '127.0.0.1', function () {
     fs.readFile("./static/error.html", function (err, content) {
         if (err)
             content = "<h1>Risorsa non trovata</h1>"
@@ -103,6 +126,7 @@ httpsServer.listen(8888, '127.0.0.1', function () {
 
 /* ************************************************************ */
 app.use("/", express.static('./static'));
+app.use("/static", express.static("static"));
 // middleware
 app.use("/", bodyParser.json());
 app.use("/", bodyParser.urlencoded({ extended: true }));
@@ -136,7 +160,7 @@ app.post('/api/chkToken', function (req, res) {
 });
 
 function controllaToken(req, res, next) {
-    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd')
+    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd' || req.originalUrl == '/api/loadCounter' || req.originalUrl == '/api/elRecensioni')
         next();
     else {
         let token = readCookie(req);
@@ -204,7 +228,8 @@ app.post('/api/login', function (req, res, next) {
     }
 });
 
-app.post("/api/registrati", function (req, res) {
+app.post("/api/registrati", upload.single("foto"),function (req, res) {
+    let path = "";
     if (req.body.nome != "") {
         if (req.body.cognome != "") {
             //FARE CONTROLLO ETA MINIMA 8 ANNI
@@ -228,6 +253,11 @@ app.post("/api/registrati", function (req, res) {
                                                                     if (nPwdUser == 0) {
                                                                         utenti.find().sort({ _id: 1 }).exec().then(results => {
                                                                             let vet = JSON.parse(JSON.stringify(results));
+                                                                            if (req.file == undefined) {
+                                                                                path = "static\\images\\default.jpg";
+                                                                            }else{
+                                                                                path = req.file.path;
+                                                                            }
                                                                             const utInsert = new utenti({
                                                                                 _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
                                                                                 nome: req.body.nome,
@@ -236,7 +266,8 @@ app.post("/api/registrati", function (req, res) {
                                                                                 mail: req.body.email,
                                                                                 telefono: req.body.telefono,
                                                                                 user: req.body.username,
-                                                                                pwd: hashUtPwd
+                                                                                pwd: hashUtPwd,
+                                                                                foto:path
                                                                             });
                                                                             utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
                                                                         }).catch(err => {
@@ -303,6 +334,28 @@ app.post("/api/reimpostaPwd", function (req, res) {
                             error(req, res, errReimpPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                         }else{
                             utenti.updateOne({ $and: [{ "user": req.body.username }, { "mail": req.body.email }, { "telefono": req.body.telefono }] }, { $set: { "pwd": hashReimpPwd } }).exec().then(results => {
+                                let transporter = nodemailer.createTransport({
+                                    service: 'gmail',
+                                    auth: {
+                                        user: 'learnonthenet7@gmail.com',
+                                        pass: 'S8Fh!lU?y8'
+                                    }
+                                });
+
+                                let mailOptions = {
+                                    from: 'learnonthenet7@gmail.com',
+                                    to: req.body.mail,
+                                    subject: 'Aggiornamento Password',
+                                    text: 'Gentile Utente, le scriviamo per notificarle il cambiamento della Password del suo account sulla Piattaform Learn On The Net.\n Nuova Password:' + req.body.password + ".\n La preghiamo di contattare l'amministratore all'indirizzo: info@ambulatorioGiacardi.com in caso di problemi."
+                                };
+
+                                transporter.sendMail(mailOptions, function (error, info) {
+                                    if (error) {
+                                        console.log(error);
+                                    } else {
+                                        console.log('Email sent: ' + info.response);
+                                    }
+                                });
                                 res.send({ "ris": "reimpPwdOk" });
                             }).catch(err => {
                                 error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
@@ -321,7 +374,7 @@ app.post("/api/reimpostaPwd", function (req, res) {
     }else{
         gestErrorePar(req, res);
     }
-})
+});
 
 function validaEmail(email) {
     let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -341,6 +394,39 @@ function validaPwdReg(pwdReg) {
 function gestErrorePar(req, res) {
     error(req, res, null, JSON.stringify(new ERRORS.MISSING_PARAMS({})));
 }
+
+app.post("/api/loadCounter", function (req, res) {
+    let ret = {};
+    utenti.count({}).exec().then(resultUt =>{
+        ret["utenti"]=resultUt; 
+        argomenti.count({}).exec().then(resultArgs => {
+            ret["argomenti"] = resultArgs;
+            appunti.count({}).exec().then(resultApp => {
+                ret["appunti"] = resultApp;
+                esami.count({}).exec().then(resultEsami => {
+                    ret["esami"] = resultEsami;
+                    res.send(ret);
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }).catch(err=>{
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/elRecensioni", function (req, res) {
+    utenti.find({}).select("recensione user foto").exec().then(results =>{
+        res.send(JSON.stringify(results));
+    }).catch(err =>{
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+})
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

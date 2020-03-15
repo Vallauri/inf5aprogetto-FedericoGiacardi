@@ -62,6 +62,8 @@ const utenti = mongoose.Schema({
     telefono: { type: String, required: true},
     user: { type: String, required: true},
     pwd: { type: String, required: true},
+    foto: { type: String},
+    recensione: { type: String},
     gruppo: [parteDi],
     esami: [eseguonoEsami],
     esamiGruppi: [eseguonoEsamiGruppi],

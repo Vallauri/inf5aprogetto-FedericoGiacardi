@@ -2,9 +2,6 @@
 
 $(document).ready(function () {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR + " " + test_status + " " + str_error);
-    });
     chkToken.done(function (data) {
         window.location.href = "about.html"
     });
@@ -37,18 +34,21 @@ function gestReg() {
                     if (validaTelefono($("#telReg").val())) {
                         if ($("#usernameReg").val() != "") {
                             if (validaPwdReg($("#pwdReg").val())) {
-                                // let dataNascita = $("#dataNascitaReg").val().split('-')[2] + "/" + $("#dataNascitaReg").val().split('-')[1] + "/" + $("#dataNascitaReg").val().split('-')[0];
-                                let par = {
-                                    "nome": $("#nomeReg").val(),
-                                    "cognome": $("#cognomeReg").val(),
-                                    "dataNascita": $("#dataNascitaReg").val(),
-                                    "email": $("#mailReg").val(),
-                                    "telefono": $("#telReg").val(),
-                                    "username": $("#usernameReg").val(),
-                                    "password": $("#pwdReg").val()
-                                };
+                                let formData = new FormData();
+                                formData.append('nome', $("#nomeReg").val());
+                                formData.append('cognome', $("#cognomeReg").val());
+                                formData.append('dataNascita', $("#dataNascitaReg").val());
+                                formData.append('telefono', $("#telReg").val());
+                                formData.append('email', $("#mailReg").val());
+                                formData.append('username', $("#usernameReg").val());
+                                formData.append('password', $("#pwdReg").val());
 
-                                let registratiRQ = inviaRichiesta('/api/registrati', 'POST', par);
+                                let foto = "unset";
+                                if ($('#fotoReg').prop('files')[0] != "") {
+                                    foto = $('#fotoReg').prop('files')[0];
+                                }
+                                formData.append('foto', foto);
+                                let registratiRQ = inviaRichiestaMultipart('/api/registrati', 'POST', formData);
                                 registratiRQ.fail(function (jqXHR, test_status, str_error) {
                                     if (jqXHR.status == 603) {
                                         $(".msg").text("Credenziali Errate o Mancanti");
