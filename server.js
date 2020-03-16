@@ -6,6 +6,8 @@ let mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const nodemailer = require('nodemailer');
+var async = require("async");
+var crypto = require("crypto");
 require('dotenv').config();
 const port = process.env.PORT || 8888;
 
@@ -160,7 +162,7 @@ app.post('/api/chkToken', function (req, res) {
 });
 
 function controllaToken(req, res, next) {
-    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd' || req.originalUrl == '/api/loadCounter' || req.originalUrl == '/api/elRecensioni')
+    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd' || req.originalUrl == '/api/loadCounter' || req.originalUrl == '/api/elRecensioni' || req.originalUrl == '/api/invioMailReimpostaPwd') 
         next();
     else {
         let token = readCookie(req);
@@ -254,7 +256,7 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
                                                                         utenti.find().sort({ _id: 1 }).exec().then(results => {
                                                                             let vet = JSON.parse(JSON.stringify(results));
                                                                             if (req.file == undefined) {
-                                                                                path = "static\\images\\default.jpg";
+                                                                                path = "static\\images\\default.png";
                                                                             }else{
                                                                                 path = req.file.path;
                                                                             }
@@ -323,57 +325,116 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
     }
 });
 
+app.post('/api/invioMailReimpostaPwd', function (req, res, next) {
+    crypto.randomBytes(20, function (err, buf) {
+        let token = buf.toString('hex');
+        utenti.updateOne({ mail: req.body.email }, { $set: { resetPasswordToken: token, resetPasswordExpires: Date.now() + 3600000 } }).exec().then(results => {
+            
+            if (results.nModified != 1) {
+                res.send({ "tipo": "errore", "mes": "Non è stato trovato alcun Account" });
+            }
+
+            console.log(process.env.PWD_GMAIL);
+            let transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'learnonthenet7@gmail.com',
+                    pass: 'S8Fh!lU?y8'//process.env.PWD_GMAIL
+                }
+            });
+
+            let mailOptions = {
+                from: 'learnonthenet7@gmail.com',
+                to: req.body.email,
+                subject: 'Aggiornamento Password',
+                text: 'Gentile Utente, è stato richiesto un cambio di password per il suo account. Clicchi sul link indicato per completare il cambio password.\n\n' +
+                    'https://' + req.headers.host + '/reimpostaPassword.html?token=' + token + '\n\n' +
+                    'Se non ha richiesto questa operazione ignori questa mail e la sua password rimarrà invariata.'
+            };
+            transporter.sendMail(mailOptions, function (error, info) {
+                let ret = {};
+                if (error) {
+                    ret["mes"] = "Ripristino Password fallito. Ritentare.";
+                    ret["tipo"] = "errore";
+                } else {
+                    ret["mes"] = "Abbiamo inviato una mail all'indirizzo specificato con le indicazioni per ultimare il processo.";
+                    ret["tipo"] = "ok";
+                }
+                res.send(JSON.stringify(ret));
+            });
+        }).catch(errUp =>{
+            error(req, res, errUp, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+        
+    });
+    
+});
+
 app.post("/api/reimpostaPwd", function (req, res) {
-    if (req.body.username != "") {
-        if (validaEmail(req.body.email)) {
-            if (validaTelefono(req.body.telefono)) {
-                if (validaPwdReg(req.body.password)) {
-                    //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
-                    bcrypt.hash(req.body.password, saltRounds, function (errReimpPwd, hashReimpPwd) {
-                        if (errReimpPwd) {
-                            error(req, res, errReimpPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                        }else{
-                            utenti.updateOne({ $and: [{ "user": req.body.username }, { "mail": req.body.email }, { "telefono": req.body.telefono }] }, { $set: { "pwd": hashReimpPwd } }).exec().then(results => {
-                                let transporter = nodemailer.createTransport({
-                                    service: 'gmail',
-                                    auth: {
-                                        user: 'learnonthenet7@gmail.com',
-                                        pass: 'S8Fh!lU?y8'
-                                    }
-                                });
+    utenti.findOne({ resetPasswordToken: req.body.token, resetPasswordExpires: { $gt: Date.now() } }).exec().then(result => {
+        let ret = {};
+        if (!result) {
+            ret["mes"] = "Token scaduto o non valido.";
+            ret["tipo"] = "errore";
+            res.send(JSON.stringify((ret)));
+        } else {
+            if (validaPwdReg(req.body.password)) {
+                if (validaPwdReg(req.body.ripetiPassword)) {
+                    if (req.body.password == req.body.ripetiPassword) {
+                        //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
+                        bcrypt.hash(req.body.password, saltRounds, function (errReimpPwd, hashReimpPwd) {
+                            if (errReimpPwd) {
+                                error(req, res, errReimpPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            } else {
+                                utenti.updateOne({ "_id":result._id}, { $set: { "pwd": hashReimpPwd } }).exec().then(results => {
+                                    let transporter = nodemailer.createTransport({
+                                        service: 'gmail',
+                                        auth: {
+                                            user: 'learnonthenet7@gmail.com',
+                                            pass: 'S8Fh!lU?y8'
+                                        }
+                                    });
 
-                                let mailOptions = {
-                                    from: 'learnonthenet7@gmail.com',
-                                    to: req.body.mail,
-                                    subject: 'Aggiornamento Password',
-                                    text: 'Gentile Utente, le scriviamo per notificarle il cambiamento della Password del suo account sulla Piattaform Learn On The Net.\n Nuova Password:' + req.body.password + ".\n La preghiamo di contattare l'amministratore all'indirizzo: info@ambulatorioGiacardi.com in caso di problemi."
-                                };
+                                    let mailOptions = {
+                                        from: 'learnonthenet7@gmail.com',
+                                        to: result.mail,
+                                        subject: 'Aggiornamento Password',
+                                        text: "Gentile Utente, le scriviamo per notificarle il cambiamento della Password del suo account sulla Piattaform Learn On The Net.\n La preghiamo di contattare l'amministratore all'indirizzo: learnonthenet7@gmail.com in caso di problemi."
+                                    };
 
-                                transporter.sendMail(mailOptions, function (error, info) {
-                                    if (error) {
-                                        console.log(error);
-                                    } else {
-                                        console.log('Email sent: ' + info.response);
-                                    }
+                                    transporter.sendMail(mailOptions, function (error, info) {
+                                        if (error) {
+                                            ret["mes"] = "Ripristino Password fallito. Ritentare.";
+                                            ret["tipo"] = "errore";
+                                        } else {
+                                            result.resetPasswordToken = undefined;
+                                            result.resetPasswordExpires = undefined;
+                                            ret["mes"] = "reimpPwdOk";
+                                            ret["tipo"] = "ok";
+                                        }
+                                        res.send(JSON.stringify(ret));
+                                    });
+                                }).catch(err => {
+                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                 });
-                                res.send({ "ris": "reimpPwdOk" });
-                            }).catch(err => {
-                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                            });
-                        }
-                    });
+                            }
+                        });
+                    }else{
+                        gestErrorePar(req, res);
+                    }
                 }else{
                     gestErrorePar(req, res);
                 }
-            }else{
+                
+            } else {
                 gestErrorePar(req, res);
             }
-        }else{
-            gestErrorePar(req, res);
         }
-    }else{
-        gestErrorePar(req, res);
-    }
+        
+
+    }).catch(err => {
+        error(req, res, errUp, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
 });
 
 function validaEmail(email) {

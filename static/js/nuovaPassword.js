@@ -8,40 +8,47 @@ $(document).ready(function () {
         window.location.href = "about.html"
     });
     $("#btnReimpPwd").click(gestReimpPwd);
+    $("#mexEmailReimpPwd").hide();
 });
 
 function gestReimpPwd() {
     $("#usernameReimpPwd").removeClass("alert-danger");
     $("#mailReimpPwd").removeClass("alert-danger");
     $("#telReimpPwd").removeClass("alert-danger");
-    $("#pwdReimpPwd").removeClass("alert-danger");
+    // $("#pwdReimpPwd").removeClass("alert-danger");
 
     if ($("#usernameReimpPwd").val() != "") {
         if (validaEmail($("#mailReimpPwd").val())) {
             if (validaTelefono($("#telReimpPwd").val())) {
-                if (validaPwd($("#pwdReimpPwd").val())) {
-                    let par = {
-                        "email": $("#mailReimpPwd").val(),
-                        "telefono": $("#telReimpPwd").val(),
-                        "username": $("#usernameReimpPwd").val(),
-                        "password": $("#pwdReimpPwd").val()
-                    };
+                let par = {
+                    "email": $("#mailReimpPwd").val(),
+                    "telefono": $("#telReimpPwd").val(),
+                    "username": $("#usernameReimpPwd").val()
+                    // "password": $("#pwdReimpPwd").val()
+                };
 
-                    let reimpostaPwdRQ = inviaRichiesta('/api/reimpostaPwd', 'POST', par);
-                    reimpostaPwdRQ.fail(function (jqXHR, test_status, str_error) {
-                        if (jqXHR.status == 603) {
-                            $(".msg").text("Credenziali Errate o Mancanti");
-                        }
-                        else {
-                            printErrors(jqXHR, ".msg");
-                        }
-                    });
-                    reimpostaPwdRQ.done(function (data) {
-                        window.location.href = "login.html"
-                    });
-                } else {
-                    gestErrori("Inserire una Password valida", $("#pwdReimpPwd"));
-                }
+                let reimpostaPwdRQ = inviaRichiesta('/api/invioMailReimpostaPwd', 'POST', par);
+                reimpostaPwdRQ.fail(function (jqXHR, test_status, str_error) {
+                    if (jqXHR.status == 603) {
+                        $(".msg").text("Credenziali Errate o Mancanti");
+                    }
+                    else {
+                        printErrors(jqXHR, ".msg");
+                    }
+                });
+                reimpostaPwdRQ.done(function (data) {
+                    if (data["tipo"] == "ok") {
+                        $("#mexEmailReimpPwd").addClass("alert alert-success");
+                    }else{
+                        $("#mexEmailReimpPwd").addClass("alert alert-danger");
+                    }
+                    $("#mexEmailReimpPwd").html(data["mes"]).css("display","unset");
+                });
+                // if (validaPwd($("#pwdReimpPwd").val())) {
+                    
+                // } else {
+                //     gestErrori("Inserire una Password valida", $("#pwdReimpPwd"));
+                // }
             } else {
                 gestErrori("Il numero di Telefono deve contenere 10 numeri", $("#telReimpPwd"));
             }

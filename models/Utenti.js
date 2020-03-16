@@ -64,6 +64,8 @@ const utenti = mongoose.Schema({
     pwd: { type: String, required: true},
     foto: { type: String},
     recensione: { type: String},
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: String },
     gruppo: [parteDi],
     esami: [eseguonoEsami],
     esamiGruppi: [eseguonoEsamiGruppi],

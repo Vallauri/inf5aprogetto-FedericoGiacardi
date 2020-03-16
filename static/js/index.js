@@ -38,7 +38,7 @@ function gestRecensioni() {
             if (rec["recensione"] != undefined && rec["user"] != undefined && rec["foto"] != undefined) {
                 codHtml += '<div class="testimonial_slider">';
                 codHtml += '<div class="row">';
-                codHtml += '<div class="col-lg-8 col-xl-4 col-sm-8 align-self-center">';
+                codHtml += '<div class="col-lg-8 col-xl-6 col-sm-8 align-self-center">';
                 codHtml += '<div class="testimonial_slider_text">';
                 codHtml += '<p>' + rec["recensione"] + '</p>';
                 codHtml += '<h4>' + rec["user"] + '</h4>';
@@ -54,5 +54,28 @@ function gestRecensioni() {
             }
         });
         $("#contRecensioni").html(codHtml);
+        let review = $('.textimonial_iner');
+        if (review.length) {
+            review.owlCarousel({
+                items: 1,
+                loop: true,
+                dots: true,
+                autoplay: true,
+                autoplayHoverPause: true,
+                autoplayTimeout: 3000,
+                nav: false,
+                responsive: {
+                    0: {
+                        margin: 15,
+                    },
+                    600: {
+                        margin: 10,
+                    },
+                    1000: {
+                        margin: 10,
+                    }
+                }
+            });
+        }
     });
 }
