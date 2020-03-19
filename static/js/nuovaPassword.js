@@ -5,7 +5,7 @@ $(document).ready(function () {
         console.log(jqXHR + " " + test_status + " " + str_error);
     });
     chkToken.done(function (data) {
-        window.location.href = "about.html"
+        window.location.href = "areaPersonale.html"
     });
     $("#btnReimpPwd").click(gestReimpPwd);
     $("#mexEmailReimpPwd").hide();
@@ -27,6 +27,7 @@ function gestReimpPwd() {
                     // "password": $("#pwdReimpPwd").val()
                 };
 
+                $(".msg").html("");
                 let reimpostaPwdRQ = inviaRichiesta('/api/invioMailReimpostaPwd', 'POST', par);
                 reimpostaPwdRQ.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 603) {

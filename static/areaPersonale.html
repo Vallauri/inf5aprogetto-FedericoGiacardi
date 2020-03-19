@@ -47,13 +47,7 @@
                                     <a class="nav-link" href="index.html">Home</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="login.html">Login</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="registrati.html">Registrati</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="nuovaPassword.html">Nuova Password</a>
+                                    <a class="nav-link active" href="areaPersonale.html">Area Personale</a>
                                 </li>
                             </ul>
                         </div>
@@ -64,73 +58,37 @@
     </header>
     <!-- Header part end-->
 
+
     <!-- sezione login -->
     <section class="section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Reimpostazione Passoword</h2>
+            <h2 align="center" class="section_tittle">Area Personale</h2>
+            <!-- Calendario Moduli ed Esami -->
             <div class="row">
-                <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-                    <div class="card card-signin my-5">
-                        <div div class="card-body">
-                            <form id="formLogin" class="form-contact">
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="usernameReimpPwd" name="usernameReimpPwd" placeholder="Username"
-                                                onfocus="this.placeholder = ''" onblur="this.placeholder = 'Username'" required
-                                                class="single-input">
-                                        </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-envelope"> </i>
-                                            </span>
-                                            <input type="email" id="mailReimpPwd" name="mailReimpPwd" placeholder="Mail"
-                                                onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mail'" required class="single-input">
-                                        </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-phone-square-alt"> </i>
-                                            </span>
-                                            <input type="tel" id="telReimpPwd" name="telReimpPwd" placeholder="Telefono" onfocus="this.placeholder = ''"
-                                                onblur="this.placeholder = 'Telefono'" required class="single-input">
-                                        </div>
-                                    </div>
-                                    <!-- <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-lock"> </i>
-                                            </span>
-                                            <input type="password" id="pwdReimpPwd" name="pwdReimpPwd" placeholder="Nuova Password"
-                                                onfocus="this.placeholder = ''" onblur="this.placeholder = 'Nuova Password'" required
-                                                class="single-input">
-                                        </div>
-                                    </div> -->
-                                    <div class="msg"> </div>
-                                </div>
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="form-group">
-                                        <a id="btnReimpPwd" class="genric-btn primary circle btn-block" style="color: #fff!important;">Reimposta</a>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                <!-- Calendario: Moduli nel giorno di scadenza e/o di iscrizione, Esami e lezioni nel giorno di esecuzione-->
+                <div class="col-sm-12 col-md-6 col-xs-6">
+                    
+                </div>
+                <!-- Dettaglio Modulo/Esame -->
+                <div class="col-sm-12 col-md-6 col-xs-6">
                 </div>
             </div>
+            <!-- Gruppi e Corsi che potrebbero interessare -->
             <div class="row">
-                <div class="col-sm-10 col-md-10 col-lg-10 mx-auto">
-                    <div id="mexEmailReimpPwd" role="alert">
+                <div class="col-sm-12 col-md-2 col-xs-2"></div>
+                <div class="col-sm-12 col-md-4 col-xs-4">
+                    <h3 align="center" class="section_tittle">Elenco Gruppi</h3>
+                    <div id="contGruppi" class="list-group">
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-xs-4"></div>
+                <div class="col-sm-12 col-md-2 col-xs-2"></div>
+            </div>
+            <!-- Eventuale riga amministratore -->
+            <div class="row">
             
-                    </div>
-                </div>
             </div>
+            <div class="msg"> </div>
         </div>
     </section>
     <!-- Fine sezione login -->
@@ -226,7 +184,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <!-- custom js -->
     <script src="js/custom.js"></script>
     <script src="js/libreria.js"></script>
-    <script src="js/nuovaPassword.js"></script>
+    <script src="js/areaPersonale.js"></script>
     
 </body>
 

@@ -10,6 +10,7 @@ const lezioni = mongoose.Schema({
     _id: { type: Number, required: true },
     titolo: { type: String, required: true },
     dataCreazione: { type: Date, required: true },
+    dataScadenza: { type: Date},
     autore: { type: Number, ref:"Moderatori", required: true },
     appunti: [appunti]
 });

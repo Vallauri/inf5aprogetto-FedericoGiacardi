@@ -26,7 +26,7 @@ $(document).ready(function () {
                         printErrors(jqXHR, ".msg");
                 });
                 loginRQ.done(function (data) {
-                   window.location.href = "about.html"
+                   window.location.href = "areaPersonale.html"
                 });
             }else{
                 gestErrori("Inserire la Password", $("#pwdLogin"));

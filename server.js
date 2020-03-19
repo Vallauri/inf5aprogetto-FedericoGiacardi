@@ -103,6 +103,7 @@ let utenti = require("./models/Utenti.js");
 let argomenti = require("./models/Argomenti.js");
 let appunti = require("./models/Appunti.js");
 let esami = require("./models/Esami.js");
+let gruppi = require("./models/Gruppi.js");
 
 
 // Online RSA Key Generator
@@ -407,10 +408,12 @@ app.post("/api/reimpostaPwd", function (req, res) {
                                             ret["mes"] = "Ripristino Password fallito. Ritentare.";
                                             ret["tipo"] = "errore";
                                         } else {
-                                            result.resetPasswordToken = undefined;
-                                            result.resetPasswordExpires = undefined;
-                                            ret["mes"] = "reimpPwdOk";
-                                            ret["tipo"] = "ok";
+                                            utenti.updateOne({ "_id": parseInt(result._id) }, { $set: { "resetPasswordToken": undefined, "resetPasswordExpires":undefined}}).exec().then(upResToken =>{
+                                                ret["mes"] = "reimpPwdOk";
+                                                ret["tipo"] = "ok";
+                                            }).catch(errResToken => {
+                                                error(req, res, errResToken, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                            });
                                         }
                                         res.send(JSON.stringify(ret));
                                     });
@@ -485,6 +488,31 @@ app.post("/api/elRecensioni", function (req, res) {
     utenti.find({}).select("recensione user foto").exec().then(results =>{
         res.send(JSON.stringify(results));
     }).catch(err =>{
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/elGruppi", function (req, res) {
+    console.log(gruppi.collection.name);
+    utenti.aggregate([
+        { $match:{"_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }},
+        {
+            $lookup:
+            {
+                from: gruppi.collection.name,
+                localField: "gruppo.codGruppo",
+                foreignField: "_id",
+                as: "gruppi"
+            }
+        }
+    ]).exec().then(results => {
+        
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        console.log(results);
+        res.end(JSON.stringify(results));
+    }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
 })
