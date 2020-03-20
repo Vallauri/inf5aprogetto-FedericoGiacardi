@@ -35,8 +35,6 @@ const fileFilter = (req, file, cb) =>{
 const upload = multer({ storage: storage, fileFilter:fileFilter });
 
 /* CONNESSIONE AL DATABASE */
-// let userDB = "dbUser";
-// let pwdDB = "djNDIPkNP6skFZEP";
 mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS +"@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology:true});
 console.log("Everything seems ok...");
 
