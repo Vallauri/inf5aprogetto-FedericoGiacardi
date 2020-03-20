@@ -104,6 +104,8 @@ let argomenti = require("./models/Argomenti.js");
 let appunti = require("./models/Appunti.js");
 let esami = require("./models/Esami.js");
 let gruppi = require("./models/Gruppi.js");
+let tipiGruppi = require("./models/TipiGruppo.js");
+let allegati = require("./models/Allegati.js");
 
 
 // Online RSA Key Generator
@@ -500,22 +502,69 @@ app.post("/api/elGruppi", function (req, res) {
             $lookup:
             {
                 from: gruppi.collection.name,
-                localField: "gruppo.codGruppo",
-                foreignField: "_id",
+                // localField: "gruppo.codGruppo",
+                // foreignField: "_id",
+                "let": { "gruppo": "$gruppo.codGruppo" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$in": ["$_id", "$$gruppo"] } } },
+                    {
+                        "$lookup": {
+                            "from": tipiGruppi.collection.name,
+                            "localField": "tipoGruppo",
+                            "foreignField": "_id",
+                            "as": "tipoGruppo"
+                        }
+                    }
+                ],
                 as: "gruppi"
             }
         }
     ]).exec().then(results => {
-        
+        console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
-        console.log(results);
         res.end(JSON.stringify(results));
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
-})
+});
+
+app.post("/api/elAppunti", function (req, res) {
+    console.log(gruppi.collection.name);
+    utenti.aggregate([
+        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+        {
+            $lookup:
+            {
+                from: appunti.collection.name,
+                "let": { "appunto": "$_id" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$eq": ["$codUtente", "$$appunto"] } } },
+                    {
+                        "$lookup": {
+                            "from": argomenti.collection.name,
+                            "let": { "argomenti": "$argomenti.codArgomento" },
+                            "pipeline": [
+                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } }
+                            ],
+                            "as": "argomenti"
+                        }
+                    }
+                ],
+                as: "appuntiCaricati"
+            }
+        }
+    ]).exec().then(results => {
+        console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */
