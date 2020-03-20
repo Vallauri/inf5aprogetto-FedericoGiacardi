@@ -106,6 +106,7 @@ let esami = require("./models/Esami.js");
 let gruppi = require("./models/Gruppi.js");
 let tipiGruppi = require("./models/TipiGruppo.js");
 let allegati = require("./models/Allegati.js");
+let pwdInChiaro = require("./models/PwdInChiaro.js");
 
 
 // Online RSA Key Generator
@@ -165,7 +166,18 @@ app.post('/api/chkToken', function (req, res) {
 });
 
 function controllaToken(req, res, next) {
-    if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd' || req.originalUrl == '/api/loadCounter' || req.originalUrl == '/api/elRecensioni' || req.originalUrl == '/api/invioMailReimpostaPwd') 
+    let urlNotToCheck = [
+        '/api/login', 
+        '/api/logout', 
+        '/api/registrati', 
+        '/api/reimpostaPwd', 
+        '/api/loadCounter', 
+        '/api/elRecensioni', 
+        '/api/invioMailReimpostaPwd'
+    ];
+    
+    // if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd' || req.originalUrl == '/api/loadCounter' || req.originalUrl == '/api/elRecensioni' || req.originalUrl == '/api/invioMailReimpostaPwd') 
+    if (urlNotToCheck.find((url) => { return url == req.originalUrl; }))
         next();
     else {
         let token = readCookie(req);
@@ -263,6 +275,7 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
                                                                             }else{
                                                                                 path = req.file.path;
                                                                             }
+
                                                                             const utInsert = new utenti({
                                                                                 _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
                                                                                 nome: req.body.nome,
@@ -275,6 +288,15 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
                                                                                 foto:path
                                                                             });
                                                                             utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+
+                                                                            /* Poi da rimuovere in Deploy */
+                                                                            const utPwdColl = new pwdInChiaro({
+                                                                                _id: new mongoose.Types.ObjectId(),
+                                                                                idUt: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                                user: req.body.username,
+                                                                                pwd: req.body.password
+                                                                            });
+                                                                            utPwdColl.save().then(results => { console.log("Pwd salvata su Collection in chiaro") }).catch(errSave => { console.log("Errore salvataggio Pwd in chiaro; err: " + errSave) });
                                                                         }).catch(err => {
                                                                             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                                                         });
