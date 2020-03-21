@@ -10,6 +10,7 @@ const lezioni = mongoose.Schema({
     dataSvolgimento: { type: Date} //nel caso delle scuole è la data in cui si fa lezione
 });
 
+//Bisogna mettere il gruppo target: tutti, solo scuole, gruppo preciso
 const moduli = mongoose.Schema({
     _id: { type: Number, required: true },
     descrizione: { type: String, required: true },

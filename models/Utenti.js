@@ -53,6 +53,11 @@ const svolgonoModuliGruppi = mongoose.Schema({
     scadenza: { type: Date }
 });
 
+const matModerate = mongoose.Schema({
+    codMat: { type: Number, ref: "Materie", required: true }
+});
+
+
 const utenti = mongoose.Schema({
     _id: { type: Number, required: true},
     nome: { type: String, required: true},
@@ -66,6 +71,7 @@ const utenti = mongoose.Schema({
     recensione: { type: String},
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: String },
+    materie: [matModerate],
     gruppo: [parteDi],
     esami: [eseguonoEsami],
     esamiGruppi: [eseguonoEsamiGruppi],

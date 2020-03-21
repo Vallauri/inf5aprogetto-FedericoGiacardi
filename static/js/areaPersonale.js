@@ -20,6 +20,22 @@ function loadPagina() {
     chkToken.done(function (data) {
         creazioneElencoAppunti(data);
     });
+
+    chkToken = inviaRichiesta('/api/elMaterie', 'POST', {});
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".msg");
+    });
+    chkToken.done(function (data) {
+        creazioneElencoMaterie(data);
+    });
+
+    chkToken = inviaRichiesta('/api/feedModuli', 'POST', {});
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".msg");
+    });
+    chkToken.done(function (data) {
+        creazioneElencoFeed(data);
+    });
 }
 
 function creazioneElencoGruppi(utenti) {
@@ -40,17 +56,49 @@ function creazioneElencoGruppi(utenti) {
                 codHtml += '</a>';
             }
         }else{
-            codHtml += "<p>Non fai parte di alcun gruppo</p>";
+            codHtml += "<p style='text-align:center'>Non fai parte di alcun gruppo</p>";
         }
     });
     $("#contGruppi").html(codHtml);
+}
+
+function creazioneElencoMaterie(utenti) {
+    $("#contMaterie").html("");
+    let codHtml = "", vetArg = "";
+    let aus;
+    console.log(utenti);
+    utenti.forEach(utente => {
+        if (utente["materieModerate"] != undefined && utente["materieModerate"].length > 0) {
+            for (let i = 0; i < utente["materieModerate"].length; i++) {
+                codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+                codHtml += '<div class="d-flex w-100 justify-content-between">';
+                codHtml += '<h5 class="mb-1">' + utente["materieModerate"][i].descrizione + '</h5>';
+                codHtml += '</div>';
+                aus = new Date(utente["materieModerate"][i].dataCreazione);
+                if (utente["materieModerate"][i].argomenti != undefined) {
+                    vetArg = "Argomenti: ";
+                    for (let j = 0; j < utente["materieModerate"][i].argomenti.length; j++) {
+                        vetArg += utente["materieModerate"][i].argomenti[j].descrizione;
+                        if (j != utente["materieModerate"][i].argomenti.length - 1) {
+                            vetArg += ", ";
+                        }
+                    }
+                }
+                codHtml += '<p class="mb-1">Data iscrizione: ' + aus.toLocaleDateString() + '<br>' + vetArg + '</p>';
+                codHtml += '</a>';
+            }
+        } else {
+            codHtml += "<p style='text-align:center'>Non hai creato alcuna materia</p>";
+        }
+    });
+    $("#contMaterie").html(codHtml);
 }
 
 function creazioneElencoAppunti(utenti) {
     $("#contAppunti").html("");
     let codHtml = "", vetArg = "";
     let aus;
-    console.log(utenti);
+   
     utenti.forEach(utente => {
         if (utente["appuntiCaricati"] != undefined && utente["appuntiCaricati"].length > 0) {
             for (let i = 0; i < utente["appuntiCaricati"].length; i++) {
@@ -59,19 +107,53 @@ function creazioneElencoAppunti(utenti) {
                 codHtml += '<h5 class="mb-1">' + utente["appuntiCaricati"][i].descrizione + '</h5>';
                 codHtml += '</div>';
                 aus = new Date(utente["appuntiCaricati"][i].dataCaricamento);
-                vetArg = "Argomenti: ";
-                for (let j = 0; j < utente["appuntiCaricati"][i].argomenti.length; j++) {
-                    vetArg += utente["appuntiCaricati"][i].argomenti[j].descrizione; 
-                    if (j != utente["appuntiCaricati"][i].argomenti.length - 1) {
-                        vetArg+=", ";
+                if (utente["appuntiCaricati"][i].argomenti != undefined) {
+                    vetArg = "Argomenti: ";
+                    for (let j = 0; j < utente["appuntiCaricati"][i].argomenti.length; j++) {
+                        vetArg += utente["appuntiCaricati"][i].argomenti[j].descrizione;
+                        if (j != utente["appuntiCaricati"][i].argomenti.length - 1) {
+                            vetArg += ", ";
+                        }
                     }
                 }
-                codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString(); +'</p>';
+                codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() +'</p>';
                 codHtml += '</a>';
             }
         }else{
-            codHtml += "<p style='text-align:center''>Non hai caricato alcun appunto</p>";
+            codHtml += "<p style='text-align:center'>Non hai caricato alcun appunto</p>";
         }
     });
     $("#contAppunti").html(codHtml);
+}
+
+function creazioneElencoFeed(utenti) {
+    let vetModuli = new Array();
+
+    utenti.forEach(utente =>{
+        for (let i = 0; i < utente["appuntiInteressati"].length; i++) {
+            if (chkElemVetModuli(utente["appuntiInteressati"][i].descrizione, vetModuli)) {
+                vetModuli.push(utente["appuntiInteressati"][i].descrizione);
+            }
+            for (let j = 0; j < utente["appuntiInteressati"][i].argomenti.length; j++) {
+                for (let k = 0; k < utente["appuntiInteressati"][i].argomenti[j].appuntiOk.length; k++) {
+
+                    if (chkElemVetModuli(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, vetModuli)) {
+                        vetModuli.push(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione);
+                    }
+                }
+                
+            }
+        }
+    });
+
+    console.log(vetModuli);
+}
+
+function chkElemVetModuli(descModulo, vetModuli) {
+    for (let i = 0; i < vetModuli.length; i++) {
+        if (descModulo == vetModuli[i]) {
+            return false;
+        }    
+    }
+    return true;
 }

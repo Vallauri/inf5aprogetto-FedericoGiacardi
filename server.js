@@ -105,6 +105,8 @@ let gruppi = require("./models/Gruppi.js");
 let tipiGruppi = require("./models/TipiGruppo.js");
 let allegati = require("./models/Allegati.js");
 let pwdInChiaro = require("./models/PwdInChiaro.js");
+let materie = require("./models/Materie.js");
+let moduli = require("./models/Moduli.js");
 
 
 // Online RSA Key Generator
@@ -115,7 +117,7 @@ const credentials = { "key": privateKey, "cert": certificate };
 /* ************************************************************ */
 
 // avvio server
-const TIMEOUT = 30; // 60 SEC
+const TIMEOUT = 3000; // 60 SEC
 let pageNotFound;
 
 var httpsServer = HTTPS.createServer(credentials, app);
@@ -550,8 +552,42 @@ app.post("/api/elGruppi", function (req, res) {
     });
 });
 
+app.post("/api/elMaterie", function (req, res) {
+    utenti.aggregate([
+        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+        {
+            $lookup:
+            {
+                from: materie.collection.name,
+                "let": { "materia": "$materie.codMat" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$in": ["$_id", "$$materia"] } } },
+                    {
+                        "$lookup": {
+                            "from": argomenti.collection.name,
+                            "let": { "argomenti": "$argomenti.codArg" },
+                            "pipeline": [
+                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } }
+                            ],
+                            "as": "argomenti"
+                        }
+                    }
+                ],
+                as: "materieModerate"
+            }
+        }
+    ]).exec().then(results => {
+        console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
 app.post("/api/elAppunti", function (req, res) {
-    console.log(gruppi.collection.name);
     utenti.aggregate([
         { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
         {
@@ -573,6 +609,49 @@ app.post("/api/elAppunti", function (req, res) {
                     }
                 ],
                 as: "appuntiCaricati"
+            }
+        }
+    ]).exec().then(results => {
+        console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/feedModuli", function (req, res) {
+    utenti.aggregate([
+        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+        {
+            $lookup:
+            {
+                from: moduli.collection.name,
+                "let": { "moduloUt": "$moduli.codModulo", "moduloGruppo": "$moduliGruppi.codModulo"},
+                "pipeline": [
+                    { "$match": { "$expr": { "$or": [{ "$in": ["$_id", "$$moduloUt"] }, { "$in": ["$_id", "$$moduloGruppo"] }] }} },
+                    {
+                        "$lookup": {
+                            "from": argomenti.collection.name,
+                            "let": { "argomenti": "$argomenti.codArgomento" },
+                            "pipeline": [
+                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
+                                {
+                                    "$lookup": {
+                                        "from": moduli.collection.name,
+                                        localField:"_id",
+                                        foreignField: "argomenti.codArgomento",
+                                        "as": "appuntiOk"
+                                    }
+                                }
+                            ],
+                            "as": "argomenti"
+                        }
+                    }
+                ],
+                as: "appuntiInteressati"
             }
         }
     ]).exec().then(results => {
