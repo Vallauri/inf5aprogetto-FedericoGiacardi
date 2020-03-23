@@ -128,17 +128,23 @@ function creazioneElencoAppunti(utenti) {
 
 function creazioneElencoFeed(utenti) {
     let vetModuli = new Array();
+    let vetPar = new Array();
+    let vetAus = new Array();
+    let codHtml = "", vetArg = "";
+    let aus;
 
+    console.log(utenti);
     utenti.forEach(utente =>{
         for (let i = 0; i < utente["appuntiInteressati"].length; i++) {
-            if (chkElemVetModuli(utente["appuntiInteressati"][i].descrizione, vetModuli)) {
-                vetModuli.push(utente["appuntiInteressati"][i].descrizione);
-            }
+            vetPar.push(utente["appuntiInteressati"][i].descrizione);
+            
             for (let j = 0; j < utente["appuntiInteressati"][i].argomenti.length; j++) {
+                vetAus = new Array();
+                vetAus.push(utente["appuntiInteressati"][i].argomenti[j].descrizione);
                 for (let k = 0; k < utente["appuntiInteressati"][i].argomenti[j].appuntiOk.length; k++) {
 
-                    if (chkElemVetModuli(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, vetModuli)) {
-                        vetModuli.push(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione);
+                    if (chkElemVetModuli(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, vetModuli) ) {
+                        vetModuli.push({ "desc": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, "data": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].dataCreazione, "argomenti": vetAus});
                     }
                 }
                 
@@ -146,12 +152,47 @@ function creazioneElencoFeed(utenti) {
         }
     });
 
+    for (let I = 0; I < vetPar.length; I++) {
+        for (let J = 0; J < vetModuli.length; J++) {
+            if (vetPar[I] == vetModuli[J]["desc"]) {
+                vetModuli.splice(J, 1);
+            }
+        } 
+    }
+   
     console.log(vetModuli);
+    $("#contFeed").html("");
+
+    if (vetModuli.length > 0) {
+        for (let K = 0; K < vetModuli.length; K++) {
+            codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+            codHtml += '<div class="d-flex w-100 justify-content-between">';
+            codHtml += '<h5 class="mb-1">' + vetModuli[K].desc + '</h5>';
+            codHtml += '</div>';
+            aus = new Date(vetModuli[K].data);
+            if (vetModuli[K].argomenti != undefined) {
+                vetArg = "Argomenti: ";
+                for (let j = 0; j < vetModuli[K].argomenti.length; j++) {
+                    vetArg += vetModuli[K].argomenti[j];
+                    if (j != vetModuli[K].argomenti.length - 1) {
+                        vetArg += ", ";
+                    }
+                }
+            }
+            codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() + '</p>';
+            codHtml += '</a>';
+        }
+    }else{
+        codHtml += "<p style='text-align:center'>Non è stato individuato alcun appunto</p>";
+    }
+    
+    
+    $("#contFeed").html(codHtml);
 }
 
 function chkElemVetModuli(descModulo, vetModuli) {
     for (let i = 0; i < vetModuli.length; i++) {
-        if (descModulo == vetModuli[i]) {
+        if (descModulo == vetModuli[i].desc) {
             return false;
         }    
     }
