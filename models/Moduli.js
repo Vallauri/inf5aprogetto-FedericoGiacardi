@@ -17,7 +17,7 @@ const moduli = mongoose.Schema({
     dataScadenza: { type: Date},
     codTipoModulo: { type: Number, ref:"TipiModulo", required: true },
     codMateria: { type: Number, ref:"Materie", required: true },
-    codAutore: { type: Number, ref:"Moderatori", required: true },
+    codAutore: { type: Number, ref:"Moderatori", required: true }, // qui quindi mettiamo Utenti o Moderatori ???
     argomenti: [argomenti],
     lezioni: [lezioni]
 });
