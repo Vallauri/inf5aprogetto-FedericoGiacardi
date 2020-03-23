@@ -665,6 +665,17 @@ app.post("/api/feedModuli", function (req, res) {
     });
 });
 
+app.post("/api/elEventiCalendario", function (req, res) {
+    utenti.find({ "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(results =>{
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err=>{
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */
 function createToken(obj) {
