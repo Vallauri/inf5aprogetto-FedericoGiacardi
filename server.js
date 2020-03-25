@@ -107,6 +107,7 @@ let allegati = require("./models/Allegati.js");
 let pwdInChiaro = require("./models/PwdInChiaro.js");
 let materie = require("./models/Materie.js");
 let moduli = require("./models/Moduli.js");
+let tipiModuli = require("./models/TipiModulo.js");
 
 
 // Online RSA Key Generator
@@ -672,6 +673,57 @@ app.post("/api/elEventiCalendario", function (req, res) {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(results));
     }).catch(err=>{
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/dettaglioEventoModuli", function (req, res) {
+    moduli.aggregate([
+        { $match: { "_id": parseInt(req.body.idEvento) } },
+        {
+            $lookup:
+            {
+                from: materie.collection.name,
+                localField: "codMateria",
+                foreignField: "_id",
+                as: "materia"
+            }
+        },
+        {
+            $lookup:
+            {
+                from: tipiModuli.collection.name,
+                localField: "codTipoModulo",
+                foreignField: "_id",
+                as: "tipoModulo"
+            }
+        },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "codAutore",
+                foreignField: "_id",
+                as: "autore"
+            }
+        }
+    ]).exec().then(results =>{
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/dettaglioEventoEsame", function (req, res) {
+    esami.findOne({ "_id": parseInt(req.body.idEvento) }).exec().then(results => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
 });

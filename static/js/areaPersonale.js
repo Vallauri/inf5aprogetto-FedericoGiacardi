@@ -1,5 +1,7 @@
 "use strict";
 
+let lastClickSchedule;
+
 $(document).ready(function () {
     loadPagina();
 });
@@ -37,6 +39,8 @@ function loadPagina() {
         creazioneElencoFeed(data);
     });
     creazioneCalendario();
+    
+    
 }
 
 function creazioneCalendario() {
@@ -102,28 +106,43 @@ function creazioneCalendario() {
             let vetEventi = new Array();
             let evento = {};
             let I;
-            
+            let colore;
+            let stato;
+            console.log(data);
             for (I = 0; I < utente.moduli.length; I++) {
                 evento = {};
                 evento["id"] = String(utente.moduli[I].codModulo);
                 evento["calendarId"] = String(contEventi);
-                evento["title"] = '';
+                evento["title"] = 'Modulo';
                 evento["isAllDay"] = true;
                 evento["category"] = 'allday';
-                evento["bgColor"] = 'red';
+                colore = setColoreEvento();
+                evento["bgColor"] = colore;
+                evento["borderColor"] = colore;
                 evento["dueDateClass"] = '';
+                evento["isReadOnly"] = true;
                 evento["start"] = utente.moduli[I].dataInizio;
                 evento["end"] = '';
+                stato = "inCorso";
                 if (utente.moduli[I].dataFine != undefined) {
                     evento["end"] = utente.moduli[I].dataFine;
+                    stato = "completato";
                     if (utente.moduli[I].scadenza != undefined) {
-                        if (new Date(utente["gruppo"][i].dataFine) > new Date(utente["gruppo"][i].scadenza)) {
+                        if (new Date(utente.moduli[I].dataFine) > new Date(utente.moduli[I].scadenza)) {
                             evento["bgColor"] = 'red';
+                            evento["borderColor"] = 'red';
+                            stato = "scaduto";
                         }
                     }
                 } else if (utente.moduli[I].scadenza != undefined){
+                    if (new Date() > new Date(utente.moduli[I].scadenza)) {
+                        evento["bgColor"] = 'red';
+                        evento["borderColor"] = 'red';
+                        stato = "scaduto";
+                    }
                     evento["end"] = utente.moduli[I].scadenza;
                 }
+                evento["raw"] = 'moduliUt;'+stato;//Memorizzo il tipo di evento per sapere quale tab itnerrogare
                 contEventi++;
                 vetEventi.push(evento);
             }
@@ -132,16 +151,35 @@ function creazioneCalendario() {
                 evento = {};
                 evento["id"] = String(utente.moduliGruppi[I].codModulo) + "_" + String(utente.moduliGruppi[I].codModulo);
                 evento["calendarId"] = String(contEventi);
-                evento["title"] = '';
+                evento["title"] = 'Modulo';
                 evento["isAllDay"] = true;
                 evento["category"] = 'allday';
-                evento["bgColor"] = 'red';
+                colore = setColoreEvento();
+                evento["bgColor"] = colore;
+                evento["borderColor"] = colore;
                 evento["dueDateClass"] = '';
+                evento["isReadOnly"] = true;
                 evento["start"] = utente.moduliGruppi[I].dataInizio;
                 evento["end"] = '';
                 if (utente.moduliGruppi[I].dataFine != undefined) {
                     evento["end"] = utente.moduliGruppi[I].dataFine;
+                    stato = "completato";
+                    if (utente.moduliGruppi[I].scadenza != undefined) {
+                        if (new Date(utente.moduliGruppi[I].dataFine) > new Date(utente.moduliGruppi[I].scadenza)) {
+                            evento["bgColor"] = 'red';
+                            evento["borderColor"] = 'red';
+                            stato = "scaduto";
+                        }
+                    }
+                } else if (utente.moduliGruppi[I].scadenza != undefined){
+                    if (new Date() > new Date(utente.moduliGruppi[I].scadenza)) {
+                        evento["bgColor"] = 'red';
+                        evento["borderColor"] = 'red';
+                        stato = "scaduto";
+                    }
+                    evento["end"] = utente.moduli[I].scadenza;
                 }
+                evento["raw"] = 'moduliGr;'+stato;
                 contEventi++;
                 vetEventi.push(evento);
             }
@@ -150,13 +188,21 @@ function creazioneCalendario() {
                 evento = {};
                 evento["id"] = String(utente.esami[I].codEsame);
                 evento["calendarId"] = String(contEventi);
-                evento["title"] = '';
+                evento["title"] = 'Esame';
                 evento["isAllDay"] = true;
                 evento["category"] = 'allday';
-                evento["bgColor"] = 'red';
+                colore = setColoreEvento();
+                evento["bgColor"] = colore;
+                evento["borderColor"] = colore;
                 evento["dueDateClass"] = '';
+                evento["isReadOnly"] = true;
                 evento["start"] = utente.esami[I].data;
                 evento["end"] = '';
+                evento["raw"] = 'esamiUt;';
+                if (utente.esami[I].voto != undefined) {
+                    evento["raw"] = evento["raw"] + utente.esami[I].voto;
+                }
+                
                 contEventi++;
                 vetEventi.push(evento);
             }
@@ -165,28 +211,116 @@ function creazioneCalendario() {
                 evento = {};
                 evento["id"] = String(utente.esamiGruppi[I].codEsame) + "_" + String(utente.esamiGruppi[I].codGruppo);
                 evento["calendarId"] = String(contEventi);
-                evento["title"] = '';
+                evento["title"] = 'Esame';
                 evento["isAllDay"] = true;
                 evento["category"] = 'allday';
-                evento["bgColor"] = 'red';
+                colore = setColoreEvento();
+                evento["bgColor"] = colore;
+                evento["borderColor"] = colore;
                 evento["dueDateClass"] = '';
+                evento["isReadOnly"] = true;
                 evento["start"] = utente.esamiGruppi[I].data;
                 evento["end"] = '';
+                evento["raw"] = 'esamiGr;';
+                if (utente.esamiGruppi[I].voto != undefined) {
+                    evento["raw"] = evento["raw"] + utente.esamiGruppi[I].voto;
+                }
                 contEventi++;
                 vetEventi.push(evento);
             }
 
-            console.log(vetEventi);
             calendar.createSchedules(vetEventi);
         });
     });
 
-    //setColoreEvento();
+    $("#btnPrevWeek").on("click", function () {
+        calendar.prev();
+    });
+
+    $("#btnNextWeek").on("click", function () {
+        calendar.next();
+    });
+
+    calendar.on('clickSchedule', function (event) {
+        var schedule = event.schedule;
+
+        // focus the schedule
+        if (lastClickSchedule) {
+            calendar.updateSchedule(lastClickSchedule.id, lastClickSchedule.calendarId, {
+                isFocused: false
+            });
+        }
+        calendar.updateSchedule(schedule.id, schedule.calendarId, {
+            isFocused: true
+        });
+
+        lastClickSchedule = schedule;
+
+        let detEvento;
+        let tipoEvento = schedule.raw.split(";")[0];
+        let idEvento = schedule.id.split("_")[0];
+        if (tipoEvento == "moduliUt" || tipoEvento == "moduliGr") {
+            detEvento = inviaRichiesta('/api/dettaglioEventoModuli', 'POST', { "idEvento": idEvento });
+            detEvento.done(function (data) {
+                creazioneDetModulo(data, new Date(schedule.start).toLocaleDateString(), new Date(schedule.end).toLocaleDateString(), schedule.raw.split(";")[1]);
+            });
+        } else if (tipoEvento == "esamiUt" || tipoEvento == "esamiGr"){
+            detEvento = inviaRichiesta('/api/dettaglioEventoEsame', 'POST', { "idEvento": idEvento });
+            detEvento.done(function (data) {
+                creazioneDetEsame(data, new Date(schedule.start).toLocaleDateString(), schedule.raw.split(";")[1]);
+            });
+        }
+        
+        detEvento.fail(function (jqXHR, test_status, str_error) {
+            printErrors(jqXHR, ".msg");
+        });
+        
+    });
+}
+
+function creazioneDetModulo(moduli, dataInizio, dataFine, stato) {
+    $("#contDettaglioEvento").html("");
+    let codHtml = "";
+
+    moduli.forEach(modulo => {
+        codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+        codHtml += '<div class="d-flex w-100 justify-content-between">';
+        codHtml += '<h5 class="mb-1">' + modulo.descrizione + '</h5>';
+        codHtml += '</div>';
+        codHtml += '<p class="mb-1">Tipo:' + modulo.tipoModulo[0].descrizione + '<br>Materia: ' + modulo.materia[0].descrizione + '<br>Autore: ' + modulo.autore[0].user + '<br>Data Inizio: '+dataInizio+'<br>Data Fine: '+dataFine;
+        if (stato == "inCorso") {
+            codHtml += '<br>Stato: In Corso</p>';
+        } else if (stato == "scaduto")
+            codHtml += '<br>Stato: Scaduto</p>';
+        else if (stato == "completato")
+            codHtml += '<br>Stato: Completato</p>';
+        codHtml += '</a>';
+    });
+
+    $("#contDettaglioEvento").html(codHtml);
+}
+
+function creazioneDetEsame(esami, data, voto) {
+    $("#contDettaglioEvento").html("");
+    let codHtml = "";
+
+    esami.forEach(esame => {
+        codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+        codHtml += '<div class="d-flex w-100 justify-content-between">';
+        codHtml += '<h5 class="mb-1">' + esame.descrizione + '</h5>';
+        codHtml += '</div>';
+        codHtml += '<p class="mb-1">Data Svolgimento:' + data;
+        if (voto != "") {
+            codHtml += '<br>Voto: '+voto+'</p>';
+        }
+        codHtml += '</a>';
+    });
+
+    $("#contDettaglioEvento").html(codHtml);
 }
 
 function setColoreEvento() {
-    Colors = {};
-    Colors.names = {
+    let colori = {
         aqua: "#00ffff",
         azure: "#f0ffff",
         beige: "#f5f5dc",
@@ -214,7 +348,6 @@ function setColoreEvento() {
         lightblue: "#add8e6",
         lightcyan: "#e0ffff",
         lightgreen: "#90ee90",
-        lightgrey: "#d3d3d3",
         lightpink: "#ffb6c1",
         lightyellow: "#ffffe0",
         lime: "#00ff00",
@@ -226,22 +359,16 @@ function setColoreEvento() {
         pink: "#ffc0cb",
         purple: "#800080",
         violet: "#800080",
-        red: "#ff0000",
         silver: "#c0c0c0",
-        white: "#ffffff",
         yellow: "#ffff00"
     };
 
-    Colors.random = function () {
-        var result;
-        var count = 0;
-        for (var prop in this.names)
-            if (Math.random() < 1 / ++count)
-                result = prop;
-        return result;
-    };
-
-    console.log(Colors.random());
+    let result;
+    let count = 0;
+    for (let prop in colori)
+        if (Math.random() < 1 / ++count)
+            result = prop;
+    return result;
 }
 
 function creazioneElencoGruppi(utenti) {
