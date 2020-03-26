@@ -5,7 +5,7 @@ $(document).ready(function () {
         console.log(jqXHR + " " + test_status + " " + str_error);
     });
     chkToken.done(function (data) {
-        window.location.href = "about.html"
+        window.location.href = "areaPersonale.html"
     });
 
     $("#btnLogin").on("click", function () {

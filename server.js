@@ -104,6 +104,9 @@ let esami = require("./models/Esami.js");
 let gruppi = require("./models/Gruppi.js");
 let tipiGruppi = require("./models/TipiGruppo.js");
 let allegati = require("./models/Allegati.js");
+let moduli = require("./models/Moduli.js");
+let tipiModuli = require("./models/TipiModulo.js");
+let materie = require("./models/Materie.js");
 let pwdInChiaro = require("./models/PwdInChiaro.js");
 let materie = require("./models/Materie.js");
 let moduli = require("./models/Moduli.js");
@@ -677,6 +680,109 @@ app.post("/api/elEventiCalendario", function (req, res) {
     });
 });
 
+/* VEDERE SE POSSO RIUTILIZZARLO PER FILTRI DI RICERCA */
+app.post("/api/elTipoModEModuli", function (req, res) {
+    tipiModuli.aggregate([
+        {
+            $lookup:
+            {
+                from: moduli.collection.name,
+                "let": { "tipomodulo": "$_id" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$eq": ["$codTipoModulo", "$$tipomodulo"] } } },
+                    {
+                        "$lookup": {
+                            "from": utenti.collection.name,
+                            "localField": "codAutore",
+                            "foreignField": "_id",
+                            "as": "autore"
+                        }
+                    },
+                    {
+                        "$lookup": {
+                            "from": materie.collection.name,
+                            "localField": "codMateria",
+                            "foreignField": "_id",
+                            "as": "materia"
+                        }
+                    }
+                ],
+                as: "moduli"
+            }
+        }
+    ]).exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/cercaCorso", function (req, res) {
+    moduli.find({ descrizione: new RegExp(req.body.valore, "i") }).exec().then(results => {
+        if (results.length > 0) {
+            let modId = [];
+            let tipiModId = [];
+            results.forEach(ris => {
+                modId.push(ris._id);
+                tipiModId.push(ris.codTipoModulo);
+            });
+
+            tipiModuli.aggregate([
+                { "$match": { "$expr": { "$in": ["$_id", tipiModId] } } },
+                {
+                    $lookup:
+                    {
+                        from: moduli.collection.name,
+                        "let": { "tipomodulo": "$_id" },
+                        "pipeline": [
+                            { "$match": { "$expr": { "$eq": ["$codTipoModulo", "$$tipomodulo"] } } },
+                            { "$match": { "$expr": { "$in": ["$_id", modId] } } },
+                            {
+                                "$lookup": {
+                                    "from": utenti.collection.name,
+                                    "localField": "codAutore",
+                                    "foreignField": "_id",
+                                    "as": "autore"
+                                }
+                            },
+                            {
+                                "$lookup": {
+                                    "from": materie.collection.name,
+                                    "localField": "codMateria",
+                                    "foreignField": "_id",
+                                    "as": "materia"
+                                }
+                            }
+                        ],
+                        as: "moduli"
+                    }
+                }
+            ]).exec().then(results => {
+                //console.log(results);
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(results));
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+        else {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
 app.post("/api/dettaglioEventoModuli", function (req, res) {
     moduli.aggregate([
         { $match: { "_id": parseInt(req.body.idEvento) } },
@@ -717,12 +823,123 @@ app.post("/api/dettaglioEventoModuli", function (req, res) {
     });
 });
 
+app.post("/api/datiCorsoById", function (req, res) {
+    moduli.aggregate([
+        { $match: { "_id": parseInt(req.body.idCorso) } },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "codAutore",
+                foreignField: "_id",
+                as: "autore"
+            }
+        },
+        {
+            $lookup: {
+                from: materie.collection.name,
+                localField: "codMateria",
+                foreignField: "_id",
+                as: "materia"
+            }
+        },
+        {
+            $lookup: {
+                from: tipiModuli.collection.name,
+                localField: "codTipoModulo",
+                foreignField: "_id",
+                as: "tipoModulo"
+            }
+        },
+        {
+            $lookup:
+            {
+                from: argomenti.collection.name,
+                localField: "argomenti.codArgomento",
+                foreignField: "_id",
+                as: "argomentiModulo"
+            }
+        }
+    ]).exec().then(result => {
+        //console.log(result);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
 app.post("/api/dettaglioEventoEsame", function (req, res) {
     esami.findOne({ "_id": parseInt(req.body.idEvento) }).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/cercaGruppo", function (req, res) {
+    gruppi.aggregate([
+        { $match: { nome: new RegExp(req.body.valore, "i") } },
+        {
+            $lookup:
+            {
+                from: tipiGruppi.collection.name,
+                localField: "tipoGruppo",
+                foreignField: "_id",
+                as: "descTipoGruppo"
+            }
+        }
+    ]).exec().then(results => {
+        console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/datiGruppoById", function (req, res) {
+    gruppi.aggregate([
+        { $match: { "_id": parseInt(req.body.idGruppo) } },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "_id",
+                foreignField: "gruppo.codGruppo",
+                as: "componenti"
+            }
+        },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "codAutore",
+                foreignField: "_id",
+                as: "autore"
+            }
+        },
+        {
+            $lookup: {
+                from: tipiGruppi.collection.name,
+                localField: "tipoGruppo",
+                foreignField: "_id",
+                as: "descTipoGruppo"
+            }
+        }
+    ]).exec().then(result => {
+        console.log(result);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
