@@ -14,6 +14,7 @@ function loadPagina() {
         });
         chkToken.done(function (data) {
             caricamentoDatiGruppo(data);
+            chkModeratore(parseInt(par[1]));
         });
     }
     else{
@@ -114,11 +115,39 @@ function caricamentoDatiGruppo(gruppo) {
         codHtml += '<span class="color">' + gruppo[0]["materia"][0].descrizione + '</span>';
         codHtml += '</a>';
         codHtml += '</li>';*/
-        codHtml += '</ul>';
-        codHtml += '<a href="#" class="btn_1 d-block">Iscriviti al Gruppo</a>'; // da vedere
+        codHtml += '</ul>'; 
+        codHtml += '<div class="col-lg-12 text-center">';
+        codHtml += '<button id="btnIscrivitiGruppo" class="genric-btn success radius">Iscriviti al Gruppo</button>'; // da vedere
+        codHtml += '</div>';
         codHtml += '</div>';
         codHtml += '</div>';
         
         $("#contGruppo").html(codHtml);
     }
+}
+
+function chkModeratore(idGruppo) {
+    // Solo se utente loggato = moderatore gruppo
+    let chkToken = inviaRichiesta('/api/chkModGruppo', 'POST', { "idGruppo": idGruppo });
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        console.log(jqXHR);
+        printErrors(jqXHR, ".msg");
+    });
+    chkToken.done(function (data) {
+        if (data.ris == "autore") {
+            let codHtml = "";
+            codHtml += '<div class="sidebar_top">';
+            codHtml += '<div class="col-lg-12 text-center">';
+            codHtml += '<h4>Gestione Gruppo</h4>';
+            codHtml += '<button class="genric-btn success radius" style="margin:2px;" id="btnAddMember">Aggiungi Membro/i</button>';
+            codHtml += '<button class="genric-btn success radius" style="margin:2px;" id="btnModGroup">Modifica Gruppo</button>';
+            codHtml += '<button class="genric-btn danger radius" style="margin:2px;" id="btnRemGroup">Elimina Gruppo</button>';
+            codHtml += '</div>';
+            codHtml += '</div>';
+            $(".right-contents").append(codHtml);
+            $("#btnIscrivitiGruppo").hide();
+        }
+        else if (data.ris == "componente")
+            $("#btnIscrivitiGruppo").hide();
+    });
 }
