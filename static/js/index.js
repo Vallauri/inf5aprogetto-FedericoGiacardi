@@ -3,12 +3,12 @@
 $(document).ready(function () {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
+        gestLoadCounter();
+        gestRecensioni();
     });
     chkToken.done(function (data) {
         window.location.href = "about.html";
     });
-    gestLoadCounter();
-    gestRecensioni();
 });
 
 function gestLoadCounter() {

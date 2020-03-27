@@ -161,6 +161,7 @@ function creazioneCalendario() {
                 evento["isReadOnly"] = true;
                 evento["start"] = utente.moduliGruppi[I].dataInizio;
                 evento["end"] = '';
+                stato = "inCorso";
                 if (utente.moduliGruppi[I].dataFine != undefined) {
                     evento["end"] = utente.moduliGruppi[I].dataFine;
                     stato = "completato";
@@ -229,6 +230,44 @@ function creazioneCalendario() {
                 vetEventi.push(evento);
             }
 
+            for (I = 0; I < utente.lezioni.length; I++) {
+                evento = {};
+                evento["id"] = String(utente.lezioni[I].codLez);
+                evento["calendarId"] = String(contEventi);
+                evento["title"] = 'Lezione';
+                evento["isAllDay"] = true;
+                evento["category"] = 'allday';
+                colore = setColoreEvento();
+                evento["bgColor"] = colore;
+                evento["borderColor"] = colore;
+                evento["dueDateClass"] = '';
+                evento["isReadOnly"] = true;
+                evento["start"] = utente.lezioni[I].dataInizio;
+                evento["end"] = '';
+                stato = "inCorso";
+                if (utente.lezioni[I].dataFine != undefined) {
+                    evento["end"] = utente.lezioni[I].dataFine;
+                    stato = "completato";
+                    if (utente.datiLezione[I].dataScadenza != undefined) {
+                        if (new Date(utente.lezioni[I].dataFine) > new Date(utente.datiLezione[I].dataScadenza)) {
+                            evento["bgColor"] = 'red';
+                            evento["borderColor"] = 'red';
+                            stato = "scaduto";
+                        }
+                    }
+                } else if (utente.datiLezione[I].dataScadenza != undefined) {
+                    evento["start"] = utente.datiLezione[I].dataScadenza;
+                    if (new Date() > new Date(utente.datiLezione[I].dataScadenza)) {
+                        evento["bgColor"] = 'red';
+                        evento["borderColor"] = 'red';
+                        stato = "scaduto";
+                    }
+                    evento["end"] = utente.datiLezione[I].dataScadenza;
+                }
+                evento["raw"] = 'lezioni;'+stato;
+                vetEventi.push(evento);
+            }
+
             calendar.createSchedules(vetEventi);
         });
     });
@@ -269,6 +308,11 @@ function creazioneCalendario() {
             detEvento.done(function (data) {
                 creazioneDetEsame(data, new Date(schedule.start).toLocaleDateString(), schedule.raw.split(";")[1]);
             });
+        } else if (tipoEvento == "lezioni") {
+            detEvento = inviaRichiesta('/api/dettaglioEventoLezione', 'POST', { "idEvento": idEvento });
+            detEvento.done(function (data) {
+                creazioneDetLezione(data, new Date(schedule.start).toLocaleString(), new Date(schedule.end).toLocaleString(), schedule.raw.split(";")[1]);
+            });
         }
         
         detEvento.fail(function (jqXHR, test_status, str_error) {
@@ -283,38 +327,85 @@ function creazioneDetModulo(moduli, dataInizio, dataFine, stato) {
     let codHtml = "";
 
     moduli.forEach(modulo => {
-        codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
-        codHtml += '<div class="d-flex w-100 justify-content-between">';
-        codHtml += '<h5 class="mb-1">' + modulo.descrizione + '</h5>';
-        codHtml += '</div>';
-        codHtml += '<p class="mb-1">Tipo:' + modulo.tipoModulo[0].descrizione + '<br>Materia: ' + modulo.materia[0].descrizione + '<br>Autore: ' + modulo.autore[0].user + '<br>Data Inizio: '+dataInizio+'<br>Data Fine: '+dataFine;
-        if (stato == "inCorso") {
-            codHtml += '<br>Stato: In Corso</p>';
-        } else if (stato == "scaduto")
-            codHtml += '<br>Stato: Scaduto</p>';
-        else if (stato == "completato")
-            codHtml += '<br>Stato: Completato</p>';
-        codHtml += '</a>';
+        if (modulo != undefined) {
+            codHtml += '<a href="dettaglioCorso.html?corso=' + modulo._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
+            codHtml += '<div class="d-flex w-100 justify-content-between">';
+            codHtml += '<h5 class="mb-1">' + modulo.descrizione + '</h5>';
+            codHtml += '</div>';
+            codHtml += '<p class="mb-1">Tipo: ' + modulo.tipoModulo[0].descrizione + '<br>Materia: ' + modulo.materia[0].descrizione + '<br>Autore: ' + modulo.autore[0].user + '<br>Data Inizio: ' + dataInizio + '<br>Data Fine: ' + dataFine;
+            if (stato == "inCorso") {
+                codHtml += '<br>Stato: In Corso</p>';
+            } else if (stato == "scaduto")
+                codHtml += '<br><span style="color:red">Stato: Scaduto</span></p>';
+            else if (stato == "completato")
+                codHtml += '<br>Stato: Completato</p>';
+            codHtml += '</a>';
+        }else{
+            codHtml += "<p style='text-align:center'>Dati non disponibili</p>";
+        }
     });
 
     $("#contDettaglioEvento").html(codHtml);
 }
 
-function creazioneDetEsame(esami, data, voto) {
+function creazioneDetEsame(esame, data, voto) {
     $("#contDettaglioEvento").html("");
     let codHtml = "";
 
-    esami.forEach(esame => {
+    if (esame != undefined) {
         codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
         codHtml += '<div class="d-flex w-100 justify-content-between">';
-        codHtml += '<h5 class="mb-1">' + esame.descrizione + '</h5>';
+        codHtml += '<h5 class="mb-1">' + esame[0].descrizione + '</h5>';
         codHtml += '</div>';
-        codHtml += '<p class="mb-1">Data Svolgimento:' + data;
+        codHtml += '<p class="mb-1">Data Svolgimento: ' + data+'<br>Moduli: ';
+        for (let i = 0; i < esame[0].detModuli.length; i++) {
+            codHtml += esame[0].detModuli[i].descrizione;
+            if (i != esame[0].detModuli.length - 1) {
+                codHtml += ", ";
+            }
+        }
+
         if (voto != "") {
-            codHtml += '<br>Voto: '+voto+'</p>';
+            codHtml += '<br>Voto: ' + voto + '</p>';
+        }else{
+            codHtml += '<br>Esame non ancora svolto</p>';
         }
         codHtml += '</a>';
-    });
+    }else{
+        codHtml += "<p style='text-align:center'>Dati non disponibili</p>";
+    }
+    
+
+    $("#contDettaglioEvento").html(codHtml);
+}
+
+function creazioneDetLezione(lezione, dataInizio, dataFine, stato) {
+    let codHtml = "";
+
+    $("#contDettaglioEvento").html("");
+
+    if (lezione != undefined) {
+        codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+        codHtml += '<div class="d-flex w-100 justify-content-between">';
+        codHtml += '<h5 class="mb-1">' + lezione.titolo + '</h5>';
+        codHtml += '</div>';
+        codHtml += '<p class="mb-1">Data Creazione: ' + new Date(lezione.dataCreazione).toLocaleDateString()+"<br>Data Inizio: "+dataInizio;
+        if (dataFine != "" ) {
+            codHtml += "<br>Data Fine: "+dataFine;
+        }
+        if (lezione.dataScadenza != undefined) {
+            codHtml += "<br>Data Scadenza: " + new Date(lezione.dataScadenza).toLocaleString();
+        }
+        if (stato == "inCorso") {
+            codHtml += '<br>Stato: In Corso</p>';
+        } else if (stato == "scaduto")
+            codHtml += '<br><span style="color:red">Stato: Scaduto</span></p>';
+        else if (stato == "completato")
+            codHtml += '<br>Stato: Completato</p>';
+        codHtml += '</a>';
+    }else{
+        codHtml += "<p style='text-align:center'>Dati non disponibili</p>";
+    }
 
     $("#contDettaglioEvento").html(codHtml);
 }
@@ -324,7 +415,6 @@ function setColoreEvento() {
         aqua: "#00ffff",
         azure: "#f0ffff",
         beige: "#f5f5dc",
-        black: "#000000",
         blue: "#0000ff",
         brown: "#a52a2a",
         cyan: "#00ffff",
@@ -337,7 +427,6 @@ function setColoreEvento() {
         darkolivegreen: "#556b2f",
         darkorange: "#ff8c00",
         darkorchid: "#9932cc",
-        darkred: "#8b0000",
         darksalmon: "#e9967a",
         darkviolet: "#9400d3",
         fuchsia: "#ff00ff",
@@ -347,11 +436,9 @@ function setColoreEvento() {
         khaki: "#f0e68c",
         lightblue: "#add8e6",
         lightcyan: "#e0ffff",
-        lightgreen: "#90ee90",
         lightpink: "#ffb6c1",
         lightyellow: "#ffffe0",
         lime: "#00ff00",
-        magenta: "#ff00ff",
         maroon: "#800000",
         navy: "#000080",
         olive: "#808000",
@@ -379,7 +466,7 @@ function creazioneElencoGruppi(utenti) {
     utenti.forEach(utente => {
         if (utente["gruppi"] != undefined && utente["gruppi"].length > 0) {
             for (let i = 0; i < utente["gruppi"].length; i++) {
-                codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+                codHtml += '<a href="dettaglioGruppo.html?gruppo=' + utente["gruppi"][i]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
                 codHtml += '<h5 class="mb-1">' + utente["gruppi"][i].nome + '</h5>'; //mettere il nome del gruppo
                 codHtml += '</div>';
@@ -475,7 +562,7 @@ function creazioneElencoFeed(utenti) {
 
                     if (chkElemVetModuli(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, vetModuli) ) {
                         //Attenzione!!! Gli argomenti non funzionano
-                        vetModuli.push({ "desc": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, "data": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].dataCreazione, "argomenti": vetAus});
+                        vetModuli.push({ "_id": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k]._id, "desc": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, "data": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].dataCreazione, "argomenti": vetAus});
                     }
                 }
                 
@@ -493,9 +580,10 @@ function creazioneElencoFeed(utenti) {
    
     $("#contFeed").html("");
 
+    
     if (vetModuli.length > 0) {
         for (let K = 0; K < vetModuli.length; K++) {
-            codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+            codHtml += '<a href="dettaglioCorso.html?corso=' + vetModuli[K]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
             codHtml += '<div class="d-flex w-100 justify-content-between">';
             codHtml += '<h5 class="mb-1">' + vetModuli[K].desc + '</h5>';
             codHtml += '</div>';

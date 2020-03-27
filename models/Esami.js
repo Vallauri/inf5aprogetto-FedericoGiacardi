@@ -13,9 +13,10 @@ const domande = mongoose.Schema({
 const esami = mongoose.Schema({
     _id: { type: Number, required: true },
     dataCreazione: { type: Date, required: true },
-    codUtente: { type: Number, ref: "Moderatori", required: true },
+    codUtente: { type: Number, ref: "Utenti", required: true },
     descrizione: { type: String, required: true },
-    domande:[domande]
+    domande:[domande],
+    moduli: [{ type: Number, ref: "Moduli", required: true }],
 });
 
 module.exports = mongoose.model("Esami", esami);
