@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/themify-icons.css">
     <!-- flaticon CSS -->
     <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/nice-select.css">
     <!-- font awesome CSS -->
     <link rel="stylesheet" href="css/magnific-popup.css">
     <!-- swiper CSS -->
@@ -85,14 +86,41 @@
     <section class="special_cource padding_top">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-xl-5">
+                <div class="col-xl-6">
                     <div class="section_tittle text-center">
-                        <div class="form-group">
+                        <h2>Ricerca</h2>
+                        <div class="col-lg-1-12">
                             <label for="txtRicerca">Cerca Gruppi:</label>
-                            <input type="text" class="form-control" name="txtRicerca" id="txtRicerca" placeholder="Digita qui la tua ricerca...">
-                            <p class="msg"></p>
-                            <button class="genric-btn success circle" style="margin-top: 5px;" id="btnRicerca">Cerca</button>
-                            <!-- <i class="fas fa-search"></i> non riesco a farla andare... volevo metterla come testo del btn-->
+                            <div class="row">
+                                <div class="col-lg-10">
+                                    <input type="text" class="form-control" name="txtRicerca" id="txtRicerca" placeholder="Digita qui la tua ricerca...">
+                                </div>
+                                <div class="col-lg-2">
+                                    <button class="genric-btn success circle" id="btnRicerca">Cerca</button>
+                                    <!-- <i class="fas fa-search"></i> non riesco a farla andare... volevo metterla come testo del btn-->
+                                </div>
+                            </div>
+                            <p class="msg" style="margin-top:5px"></p>
+                        </div>
+    
+                        <div class="container" id="divRicAvanzata" style="margin-top: 25px;">
+                            <h4>Filtri di Ricerca</h4>
+                            <form>
+                                <div class="form-select" id="default-select">
+                                    <label for="tipoRicerca">Gruppi da cercare</label>
+                                    <select name="tipoRicerca" id="tipoRicerca">
+                                        <option value="all" selected>Tutti i gruppi</option>
+                                        <option value="yourGroup">I miei gruppi</option>
+                                        <option></option>
+                                    </select>
+                                </div>
+                                <div class="form-select" id="default-select-1">
+                                    <label for="tipoGruppo">Tipi di gruppo da cercare</label>
+                                    <select name="tipoGruppo" id="tipoGruppo">
+                                        <option value="none" selected>-------------------</option>
+                                    </select>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -198,6 +226,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <!-- custom js -->
     <script src="js/custom.js"></script>
     <script src="js/libreria.js"></script>
+    <script src="js/jquery-ui.js"></script>
     <script src="js/gruppi.js"></script>
 </body>
 

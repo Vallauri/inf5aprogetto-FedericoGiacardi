@@ -70,6 +70,29 @@ function caricamentoDatiCorso(modulo) {
                    
         codHtml += '</ul>';
         codHtml += '</div>';
+
+        codHtml += '<h4 class="title">Lezioni del Corso</h4>';
+        codHtml += '<div class="content">';
+        codHtml += '<ul class="course_list">';
+
+        if (modulo[0]["lezioniModulo"] != undefined && modulo[0]["lezioniModulo"].length > 0) {
+            for (let i = 0; i < modulo[0]["lezioniModulo"].length; i++) {
+                codHtml += '<li class="justify-content-between align-items-center d-flex">';
+                codHtml += '<p>' + modulo[0]["lezioniModulo"][i].titolo + '</p>';
+                codHtml += '<p>Data aggiunta: ' + new Date(modulo[0]["lezioni"][i].dataAggiunta).toLocaleDateString() + '</p>';
+                //codHtml += '<a class="btn_2 text-uppercase" href="dettaglioArgomento.html?lezione=' + lezione._id + '">View Details</a>'; // vedere se metterlo o no il dettaglio dell'lezione
+                codHtml += '</li>';
+            }
+        }
+        else {
+            codHtml += '<li class="justify-content-between align-items-center d-flex">';
+            codHtml += '<p>Al momento non ci sono ancora delle lezioni relative al corso</p>';
+            codHtml += '</li>';
+        }
+
+        codHtml += '</ul>';
+        codHtml += '</div>';
+
         codHtml += '</div >';
         codHtml += '</div >';
 
