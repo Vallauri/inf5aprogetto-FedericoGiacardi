@@ -19,4 +19,4 @@ Ogni corso è moderato da dei moderatori che hanno il compito di controllare gli
 * Node.js
 * MongoDB
 
-[Piattaforma di Hosting](https://www.heroku.com/)
+## Piattaforma di Hosting: [Heroku](https://www.heroku.com/)
