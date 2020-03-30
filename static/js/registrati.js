@@ -3,7 +3,7 @@
 $(document).ready(function () {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.done(function (data) {
-        window.location.href = "about.html"
+        window.location.href = "areaPersonale.html"
     });
     $("#btnInviaReg").click(gestReg);
     setMinDate();

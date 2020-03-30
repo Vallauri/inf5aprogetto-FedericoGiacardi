@@ -1,6 +1,7 @@
 "use strict";
 $(document).ready(function () {
     loadPagina();
+
     $("#btnRicerca").on("click", function () {
         $(".msg").text("");
 
@@ -112,7 +113,7 @@ function creazioneElencoCorsi(tipimodulo) {
                 for (let i = 0; i < tipomodulo["moduli"].length; i++) {
                     codHtml += '<div class="col-sm-6 col-lg-4">';
                     codHtml += '<div class="single_special_cource">';
-                    
+
                     codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
                     codHtml += '<div class="special_cource_text">';
                     codHtml += '<a href="dettaglioCorso.html?corso=' + tipomodulo["moduli"][i]._id + '">' + tipomodulo["moduli"][i].descrizione + '</a>';

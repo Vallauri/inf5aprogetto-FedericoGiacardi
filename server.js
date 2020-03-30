@@ -104,10 +104,10 @@ let esami = require("./models/Esami.js");
 let gruppi = require("./models/Gruppi.js");
 let tipiGruppi = require("./models/TipiGruppo.js");
 let allegati = require("./models/Allegati.js");
-let pwdInChiaro = require("./models/PwdInChiaro.js");
-let materie = require("./models/Materie.js");
 let moduli = require("./models/Moduli.js");
 let tipiModuli = require("./models/TipiModulo.js");
+let materie = require("./models/Materie.js");
+let pwdInChiaro = require("./models/PwdInChiaro.js");
 let lezioni = require("./models/Lezioni.js");
 
 
@@ -245,6 +245,12 @@ app.post('/api/login', function (req, res, next) {
     }else{
         gestErrorePar(req, res);
     }
+});
+
+// Logout
+app.post('/api/logout', function (req, res, next) {
+    res.set("Set-Cookie", "token=;max-age=-1;Path=/;httponly=true");
+    res.send({ "ris": "LogOutOk" });
 });
 
 app.post("/api/registrati", upload.single("foto"),function (req, res) {
@@ -624,6 +630,7 @@ app.post("/api/elAppunti", function (req, res) {
     });
 });
 
+//Attenzione!! Modificarlo escludendo gli appunti che non sono accessibili per l'utente tramite controllo target modulo
 app.post("/api/feedModuli", function (req, res) {
     utenti.aggregate([
         { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
@@ -668,12 +675,24 @@ app.post("/api/feedModuli", function (req, res) {
 });
 
 app.post("/api/elEventiCalendario", function (req, res) {
-    utenti.find({ "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(results =>{
+    utenti.aggregate([
+        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }},
+        {
+            $lookup:{
+                from: lezioni.collection.name,
+                "let": { "lezione": "$lezioni.codLez" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$in": ["$_id", "$$lezione"] } } }
+                ],
+                as: "datiLezione"
+            }
+        }
+    ]).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(results));
-    }).catch(err=>{
+    }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
 });
@@ -719,11 +738,47 @@ app.post("/api/dettaglioEventoModuli", function (req, res) {
 });
 
 app.post("/api/dettaglioEventoEsame", function (req, res) {
-    esami.findOne({ "_id": parseInt(req.body.idEvento) }).exec().then(results => {
+    esami.aggregate([
+        { $match: { "_id": parseInt(req.body.idEvento) } },
+        {
+            $lookup:
+            {
+                from: moduli.collection.name,
+                "let": { "modulo": "$moduli" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$in": ["$_id", "$$modulo"] } } }
+                ],
+                as: "detModuli"
+            }
+        }
+    ]).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/dettaglioEventoLezione", function (req, res) {
+    lezioni.findOne({ "_id": parseInt(req.body.idEvento) }).exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/setNavBar", function (req, res) {
+    console.log(req.payload);
+    utenti.findOne({ "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
@@ -1283,7 +1338,7 @@ app.post("/api/chkModGruppo", function (req, res) {
                 error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
             });
         }
-    }).catch(err => {
+      }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
 });

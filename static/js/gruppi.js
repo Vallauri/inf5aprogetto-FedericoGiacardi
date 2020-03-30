@@ -1,7 +1,7 @@
 "use strict";
 $(document).ready(function () {
     loadPagina();
-
+  
     // $("#btnRicerca").on("click", function () {
     //     $(".msg").text("");
 
@@ -96,7 +96,6 @@ $(document).ready(function () {
             $("#default-select-1 .list").append("<li data-value='" + tipogruppo._id + "' class='option'>" + tipogruppo.descrizione + "</li>");
         });
     });
-
 });
 
 function loadPagina() {

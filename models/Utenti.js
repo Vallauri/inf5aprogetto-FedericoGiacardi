@@ -38,6 +38,8 @@ const modificanoAppunti = mongoose.Schema({
     approvata: { type: Boolean, default: false}
 });
 
+//si gestisce così perchè se sei parte di un gruppo l'esame devi farlo in una data prestabilita
+//l'esame individuale puoi farlo quando vuoi
 const eseguonoEsamiGruppi = mongoose.Schema({
     codGruppo: { type: Number, ref: "Gruppi", required: true },
     codEsame: { type: Number, ref: "Esami", required: true },

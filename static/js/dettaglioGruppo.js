@@ -119,6 +119,7 @@ function caricamentoDatiGruppo(gruppo) {
         codHtml += '<div class="col-lg-12 text-center">';
         codHtml += '<button id="btnIscrivitiGruppo" class="genric-btn success radius">Iscriviti al Gruppo</button>'; // da vedere
         codHtml += '</div>';
+
         codHtml += '</div>';
         codHtml += '</div>';
         
