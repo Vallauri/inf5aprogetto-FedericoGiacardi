@@ -10,4 +10,13 @@ Ogni corso è moderato da dei moderatori che hanno il compito di controllare gli
 ## Autori: Federico Giacardi e Stefano Fontana
 
 ## Tecnologie Utilizzate: 
+* HTML
+* CSS
+* Bootstrap
+* Javascript
+* jQuery
 * Ajax
+* Node.js
+* MongoDB
+
+[Piattaforma di Hosting](https://www.heroku.com/)
