@@ -1,6 +1,6 @@
 # LearnOnTheNet
 
-![](/Home_1)
+![](/Home_1.PNG)
 
 ## Descrizione:
 Piattaforma di e-learning che consente di seguire, individualmente o come parte di un gruppo, corsi relativi a determinati argomenti. 
