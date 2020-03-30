@@ -1,5 +1,7 @@
 # LearnOnTheNet
 
+![](/Home_1)
+
 ## Descrizione:
 Piattaforma di e-learning che consente di seguire, individualmente o come parte di un gruppo, corsi relativi a determinati argomenti. 
 Ogni corso può prevedere degli esami finali. 
