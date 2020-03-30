@@ -20,3 +20,6 @@ Ogni corso è moderato da dei moderatori che hanno il compito di controllare gli
 * MongoDB
 
 ## Piattaforma di Hosting: [Heroku](https://www.heroku.com/)
+
+## Versione:
+Progetto in fase di sviluppo
