@@ -18,6 +18,7 @@
     <!-- flaticon CSS -->
     <link rel="stylesheet" href="css/flaticon.css">
     <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <!-- font awesome CSS -->
     <link rel="stylesheet" href="css/magnific-popup.css">
     <!-- swiper CSS -->
@@ -55,6 +56,8 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="gruppi.html">Gruppi</a>
+                                </li>
+                                <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
                             </ul>
                         </div>
@@ -96,13 +99,12 @@
                                     <input type="text" class="form-control" name="txtRicerca" id="txtRicerca" placeholder="Digita qui la tua ricerca...">
                                 </div>
                                 <div class="col-lg-2">
-                                    <button class="genric-btn success circle" id="btnRicerca">Cerca</button>
-                                    <!-- <i class="fas fa-search"></i> non riesco a farla andare... volevo metterla come testo del btn-->
+                                    <button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>
                                 </div>
                             </div>
                             <p class="msg" style="margin-top:5px"></p>
                         </div>
-                        
+    
                         <div class="container" id="divRicAvanzata" style="margin-top: 25px;">
                             <h4>Filtri di Ricerca</h4>
                             <form>
@@ -120,7 +122,7 @@
                                         <option value="none" selected>-------------------</option>
                                     </select>
                                 </div>
-                          </form>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -227,6 +229,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="js/custom.js"></script>
     <script src="js/libreria.js"></script>
     <script src="js/jquery-ui.js"></script>
+    <script src="js/navBar.js"></script>
     <script src="js/corsi.js"></script>
 </body>
 

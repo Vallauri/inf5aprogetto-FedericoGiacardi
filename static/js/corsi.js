@@ -6,7 +6,7 @@ $(document).ready(function () {
         $(".msg").text("");
 
         if ($("#txtRicerca").val() != "") {
-            let ricerca = inviaRichiesta('/api/cercaCorso', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "corsiDaCercare": $("#default-select .selected").attr("data-value"), "tipoCorso": $("#default-select-1 .selected").attr("data-value") }});
+            let ricerca = inviaRichiesta('/api/cercaCorso', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "corsiDaCercare": $("#default-select .selected").attr("data-value"), "tipoCorso": $("#default-select-1 .selected").attr("data-value") } });
             ricerca.fail(function (jqXHR, test_status, str_error) {
                 printErrors(jqXHR, ".msg");
             });
@@ -15,7 +15,7 @@ $(document).ready(function () {
                 creazioneElencoCorsi(data);
             });
         }
-        else{
+        else {
             $(".msg").text("Inserire un valore per la ricerca");
             $("#txtRicerca").focus();
         }
@@ -55,17 +55,10 @@ $(document).ready(function () {
             $("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
         });
     });
+
 });
 
 function loadPagina() {
-    /* potrebbe servire per filtri di ricerca */
-    /*let chkToken = inviaRichiesta('/api/elTipoModEModuli', 'POST', {});
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg"); // vedere se va bene o se da cambiare campo di segnalazione errore
-    });
-    chkToken.done(function (data) {
-        creazioneElencoCorsi(data, 0);
-    });*/
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         //printErrors(jqXHR, ".msg"); // vedere se va bene o se da cambiare campo di segnalazione errore
@@ -113,7 +106,7 @@ function creazioneElencoCorsi(tipimodulo) {
                 for (let i = 0; i < tipomodulo["moduli"].length; i++) {
                     codHtml += '<div class="col-sm-6 col-lg-4">';
                     codHtml += '<div class="single_special_cource">';
-
+                    
                     codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
                     codHtml += '<div class="special_cource_text">';
                     codHtml += '<a href="dettaglioCorso.html?corso=' + tipomodulo["moduli"][i]._id + '">' + tipomodulo["moduli"][i].descrizione + '</a>';

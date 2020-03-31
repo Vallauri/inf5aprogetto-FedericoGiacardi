@@ -76,7 +76,7 @@ function caricamentoDatiCorso(modulo) {
         codHtml += '<ul class="course_list">';
 
         if (modulo[0]["lezioniModulo"] != undefined && modulo[0]["lezioniModulo"].length > 0) {
-            for (let i = 0; i < modulo[0]["lezioniModulo"].length; i++){
+            for (let i = 0; i < modulo[0]["lezioniModulo"].length; i++) {
                 codHtml += '<li class="justify-content-between align-items-center d-flex">';
                 codHtml += '<p>' + modulo[0]["lezioniModulo"][i].titolo + '</p>';
                 codHtml += '<p>Data aggiunta: ' + new Date(modulo[0]["lezioni"][i].dataAggiunta).toLocaleDateString() + '</p>';

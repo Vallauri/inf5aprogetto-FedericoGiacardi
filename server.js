@@ -35,7 +35,7 @@ const fileFilter = (req, file, cb) =>{
 const upload = multer({ storage: storage, fileFilter:fileFilter });
 
 /* CONNESSIONE AL DATABASE */
-mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS +"@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", {useNewUrlParser:true, useUnifiedTopology:true});
+mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS + "@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
 console.log("Everything seems ok...");
 
 // code 600 - database connection error
@@ -106,8 +106,8 @@ let tipiGruppi = require("./models/TipiGruppo.js");
 let allegati = require("./models/Allegati.js");
 let moduli = require("./models/Moduli.js");
 let tipiModuli = require("./models/TipiModulo.js");
-let materie = require("./models/Materie.js");
 let pwdInChiaro = require("./models/PwdInChiaro.js");
+let materie = require("./models/Materie.js");
 let lezioni = require("./models/Lezioni.js");
 
 
@@ -737,6 +737,17 @@ app.post("/api/dettaglioEventoModuli", function (req, res) {
     });
 });
 
+// app.post("/api/dettaglioEventoEsame", function (req, res) {
+//     esami.findOne({ "_id": parseInt(req.body.idEvento) }).exec().then(results => {
+//         let token = createToken(req.payload);
+//         writeCookie(res, token);
+//         res.writeHead(200, { "Content-Type": "application/json" });
+//         res.end(JSON.stringify(results));
+//     }).catch(err => {
+//         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+//     });
+// });
+
 app.post("/api/dettaglioEventoEsame", function (req, res) {
     esami.aggregate([
         { $match: { "_id": parseInt(req.body.idEvento) } },
@@ -1257,7 +1268,7 @@ app.post("/api/cercaGruppo", function (req, res) {
     }
 });
 
-app.post("/api/datiGruppoById", function (req, res) {
+app.post("/api/datiGruppoById", function (req, res) { // da vedere
     gruppi.aggregate([
         { $match: { "_id": parseInt(req.body.idGruppo) } },
         {
@@ -1266,6 +1277,11 @@ app.post("/api/datiGruppoById", function (req, res) {
                 from: utenti.collection.name,
                 localField: "_id",
                 foreignField: "gruppo.codGruppo",
+                /*"let": { "gruppo": "$_id" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$gt": ["$gruppo.codGruppo", "$$gruppo"] } } },
+                    { "$match": { "$expr": { "$gt": ["$gruppo.dataFine", new Date().toISOString()] } } }
+                ],*/
                 as: "componenti"
             }
         },
@@ -1287,7 +1303,7 @@ app.post("/api/datiGruppoById", function (req, res) {
             }
         }
     ]).exec().then(result => {
-        console.log(result);
+        //console.log(result);
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -1338,9 +1354,97 @@ app.post("/api/chkModGruppo", function (req, res) {
                 error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
             });
         }
-      }).catch(err => {
+    }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
+});
+
+app.post("/api/cercaUtente", function (req, res) {
+    utenti.find(
+        {
+            $or: [
+                { nome: new RegExp(req.body.valore, "i") },
+                { cognome: new RegExp(req.body.valore, "i") },
+                { user: new RegExp(req.body.valore, "i") }
+            ]
+        }
+    ).select("_id cognome nome user gruppo").exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/insNuovoMembroGruppo", function (req, res) {
+    let now = new Date().toISOString();
+    utenti.updateOne({ _id: parseInt(req.body.idUtente) }, { $push: { gruppo: { codGruppo: parseInt(req.body.idGruppo), dataInizio : now } } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        }); 
+});
+
+app.post("/api/modificaGruppo", function (req, res) {
+    gruppi.updateOne({ _id: parseInt(req.body.idGruppo) }, { $set: { nome: req.body.nome, descrizione : req.body.descrizione, tipoGruppo: parseInt(req.body.tipoGruppo) }})
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/elComponentiGruppo", function (req, res) {
+    utenti.aggregate([
+        { $match: { "gruppo.codGruppo": parseInt(req.body.idGruppo), "gruppo.dataFine" : {$exists:false}} }
+    ]).exec().then(results => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/removeMembroGruppo", function (req, res) {
+    if (parseInt(JSON.parse(JSON.stringify(req.payload))._id) == parseInt(req.body.idUtente)){
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({"ris" : "noRemoveAut"}));
+    }
+    else{
+        let now = new Date().toISOString();
+        utenti.updateOne({ _id: parseInt(req.body.idUtente), "gruppo.codGruppo" : parseInt(req.body.idGruppo) }, { $set: { "gruppo.$.dataFine" : now }})
+            .exec()
+            .then(results => {
+                //console.log(results);
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(results));
+            })
+            .catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            }); 
+    }
 });
 
 /* createToken si aspetta un generico json contenente i campi indicati.
