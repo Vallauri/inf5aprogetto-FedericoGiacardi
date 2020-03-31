@@ -6,7 +6,7 @@ $(document).ready(function () {
         $(".msg").text("");
 
         if ($("#txtRicerca").val() != "") {
-            let ricerca = inviaRichiesta('/api/cercaGruppo', 'POST', { "valore": $("#txtRicerca").val()});
+            let ricerca = inviaRichiesta('/api/cercaGruppo', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "gruppiDaCercare": $("#default-select .selected").attr("data-value"), "tipoGruppo": $("#default-select-1 .selected").attr("data-value") } });
             ricerca.fail(function (jqXHR, test_status, str_error) {
                 printErrors(jqXHR, ".msg");
             });
@@ -15,10 +15,45 @@ $(document).ready(function () {
                 creazioneElencoGruppi(data);
             });
         }
-        else{
+        else {
             $(".msg").text("Inserire un valore per la ricerca");
             $("#txtRicerca").focus();
         }
+    });
+
+    $('#txtRicerca').autocomplete({
+        source: function (req, res) {
+            $.ajax({
+                url: "/api/cercaGruppo",
+                dataType: "json",
+                type: "POST",
+                data: {
+                    valore: req.term,
+                    filtri: { "gruppiDaCercare": $("#default-select .selected").attr("data-value"), "tipoGruppo": $("#default-select-1 .selected").attr("data-value") }
+                },
+                success: function (data) {
+                    creazioneElencoGruppi(data);
+                },
+                error: function (xhr) {
+                    alert(xhr.status + ' : ' + xhr.statusText);
+                }
+            });
+        },
+        select: function (event, ui) {
+
+        }
+    });
+
+    let tipiGruppi = inviaRichiesta('/api/elTipiGruppi', 'POST', {});
+    tipiGruppi.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".msg");
+    });
+    tipiGruppi.done(function (data) {
+        console.log(data);
+        data.forEach(tipogruppo => {
+            $("#tipoGruppo").append("<option value='" + tipogruppo._id + "'>" + tipogruppo.descrizione + "</option>");
+            $("#default-select-1 .list").append("<li data-value='" + tipogruppo._id + "' class='option'>" + tipogruppo.descrizione + "</li>");
+        });
     });
 
 });
@@ -50,7 +85,7 @@ function creazioneElencoGruppi(gruppi) {
     }
     else{
         codHtml += '<div class="row justify-content-center">';
-        codHtml += '<div class="col-xl-5">';
+        codHtml += '<div class="col-xl-6">';
         codHtml += '<div class="section_tittle text-center">';
         codHtml += '<h2>Elenco Gruppi</h2>';
         codHtml += '</div>';
@@ -67,7 +102,7 @@ function creazioneElencoGruppi(gruppi) {
             // codHtml += '</div>';
             
             codHtml += '<div class="row">';
-            codHtml += '<div class="col-sm-6 col-lg-4">';
+            codHtml += '<div class="col-sm-8 col-lg-8">';
             codHtml += '<div class="single_special_cource">';
             
             // codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">';

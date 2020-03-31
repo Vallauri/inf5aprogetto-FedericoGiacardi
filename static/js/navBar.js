@@ -17,9 +17,9 @@ function setNavBar() {
             codHtml += data.user;
             codHtml += "</a>";
             codHtml += '<div class="dropdown-menu dropdown-menu-lg-right dropdown-secondary" aria-labelledby="navbarDropdownMenuLink-55">';
-            codHtml += '<a class="dropdown-item" href="areaPersonale.html">Dashboard</a>';
-            codHtml += '<a class="dropdown-item" href="#">Opzioni</a>';
-            codHtml += '<a onclick="doLogOut();" class="dropdown-item">Logout</a>';
+            codHtml += '<a class="dropdown-item" href="areaPersonale.html"><i class="fas fa-user"></i> Dashboard</a>';
+            codHtml += '<a class="dropdown-item" href="#"><i class="fas fa-user-cog"></i> Opzioni</a>';
+            codHtml += '<a class="dropdown-item" href="#" onclick="doLogOut();"><i class="fas fa-sign-out-alt"></i> Logout</a>';
         }
         console.log(codHtml);
         $("#profiloUtNavBar").html(codHtml);

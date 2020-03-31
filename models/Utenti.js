@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const parteDi = mongoose.Schema({
     codGruppo: { type: Number, ref:"Gruppi", required: true},
     dataInizio: { type: Date, required: true },
-    dataFine: Date
+    dataFine: {type: Date}
 });
 
 const eseguonoEsami = mongoose.Schema({
