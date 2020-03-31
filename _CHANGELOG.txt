@@ -23,4 +23,4 @@ Rimangono da fare:
     gestione colore di sfondo btn quando hover (per ora rimane bianco e non si vede nulla)
     gestione footer
     valutare l'utilizzo dei tag required e pattern per gli input
-
+Prova commit
