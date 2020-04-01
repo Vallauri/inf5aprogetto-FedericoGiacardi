@@ -59,14 +59,6 @@ $(document).ready(function () {
 });
 
 function loadPagina() {
-    /* potrebbe servire per filtri di ricerca */
-    /*let chkToken = inviaRichiesta('/api/elTipoModEModuli', 'POST', {});
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg"); // vedere se va bene o se da cambiare campo di segnalazione errore
-    });
-    chkToken.done(function (data) {
-        creazioneElencoCorsi(data, 0);
-    });*/
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         //printErrors(jqXHR, ".msg"); // vedere se va bene o se da cambiare campo di segnalazione errore
@@ -115,7 +107,7 @@ function creazioneElencoCorsi(tipimodulo) {
                     codHtml += '<div class="col-sm-6 col-lg-4">';
                     codHtml += '<div class="single_special_cource">';
                     
-                    odHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
+                    codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
                     codHtml += '<div class="special_cource_text">';
                     codHtml += '<a href="dettaglioCorso.html?corso=' + tipomodulo["moduli"][i]._id + '">' + tipomodulo["moduli"][i].descrizione + '</a>';
                     codHtml += '<p>Materia: ' + tipomodulo["moduli"][i].materia[0].descrizione + '</p>';
