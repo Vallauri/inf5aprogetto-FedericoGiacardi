@@ -7,40 +7,44 @@ $(document).ready(function () {
 });
 
 function loadPagina() {
-    let chkToken = inviaRichiesta('/api/elGruppi', 'POST', {});
+    let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         printErrors(jqXHR, ".msg");
     });
     chkToken.done(function (data) {
-        creazioneElencoGruppi(data);
-    });
+        chkToken = inviaRichiesta('/api/elGruppi', 'POST', {});
+        chkToken.fail(function (jqXHR, test_status, str_error) {
+            printErrors(jqXHR, ".msg");
+        });
+        chkToken.done(function (data) {
+            creazioneElencoGruppi(data);
+        });
 
-    chkToken = inviaRichiesta('/api/elAppunti', 'POST', {});
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
-    });
-    chkToken.done(function (data) {
-        creazioneElencoAppunti(data);
-    });
+        chkToken = inviaRichiesta('/api/elAppunti', 'POST', {});
+        chkToken.fail(function (jqXHR, test_status, str_error) {
+            printErrors(jqXHR, ".msg");
+        });
+        chkToken.done(function (data) {
+            creazioneElencoAppunti(data);
+        });
 
-    chkToken = inviaRichiesta('/api/elMaterie', 'POST', {});
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
-    });
-    chkToken.done(function (data) {
-        creazioneElencoMaterie(data);
-    });
+        chkToken = inviaRichiesta('/api/elMaterie', 'POST', {});
+        chkToken.fail(function (jqXHR, test_status, str_error) {
+            printErrors(jqXHR, ".msg");
+        });
+        chkToken.done(function (data) {
+            creazioneElencoMaterie(data);
+        });
 
-    chkToken = inviaRichiesta('/api/feedModuli', 'POST', {});
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
-    });
-    chkToken.done(function (data) {
-        creazioneElencoFeed(data);
-    });
-    creazioneCalendario();
-    
-    
+        chkToken = inviaRichiesta('/api/feedModuli', 'POST', {});
+        chkToken.fail(function (jqXHR, test_status, str_error) {
+            printErrors(jqXHR, ".msg");
+        });
+        chkToken.done(function (data) {
+            creazioneElencoFeed(data);
+        });
+        creazioneCalendario();
+    });  
 }
 
 function creazioneCalendario() {

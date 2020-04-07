@@ -21,7 +21,6 @@ function setNavBar() {
             codHtml += '<a class="dropdown-item" href="#"><i class="fas fa-user-cog"></i> Opzioni</a>';
             codHtml += '<a class="dropdown-item" href="#" onclick="doLogOut();"><i class="fas fa-sign-out-alt"></i> Logout</a>';
         }
-        console.log(codHtml);
         $("#profiloUtNavBar").html(codHtml);
     });
 }

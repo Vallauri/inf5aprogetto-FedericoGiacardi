@@ -1493,6 +1493,76 @@ app.post("/api/removeMembroGruppo", function (req, res) {
     }
 });
 
+app.post("/api/ricercaAppunti", function (req, res) {
+    let campo = "";
+
+    if (req.body.tipo.toUpperCase() == "DESCRIZIONE") {
+        appunti.aggregate([
+            { $match: { "descrizione": new RegExp(req.body.par, "i") } },
+            {
+                $lookup:
+                {
+                    from: argomenti.collection.name,
+                    "let": { "argomenti": "$argomenti.codArgomento" },
+                    "pipeline": [
+                        { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } }
+                    ],
+                    as: "detArgomenti"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else if (req.body.tipo.toUpperCase() == "ARGOMENTO"){
+        console.log(req.body.par);
+        let aus = new RegExp(req.body.par, "i");
+        appunti.aggregate([{$match:{}},
+            {
+                $lookup:
+                {
+                    from: argomenti.collection.name,
+                    "let": { "argomenti": "$argomenti.codArgomento" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "descrizione": aus,
+                                "$expr": { "$in": ["$_id", "$$argomenti"] }
+                            }
+                        }
+                    ],
+                    as: "detArgomenti"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }
+    else{
+        error(req, res, null, JSON.stringify(new ERRORS.Http401Error({})));
+    }
+});
+
+app.post("/api/elencoArgomenti", function (req, res) {
+    argomenti.find({}).exec().then(results => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    }); 
+});
+
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */
 function createToken(obj) {
