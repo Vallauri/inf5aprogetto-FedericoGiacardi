@@ -160,25 +160,27 @@
                                             <span class="input-group-text">
                                                 <i class="fas fa-user"> </i>
                                             </span>
-                                            <div class="default-select">
-                                            	<select id="argomentiAppunto" multiple>
+                                            <div>
+                                            	<select id="argomentiAppunto" js-placeholder=" " multiple required>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
                                                 <i class="fas fa-image"> </i>
                                             </span>
-                                            <input type="file" id="allegatiAppunto" name="allegatiAppunto" accept="image/*"
-                                                aria-describedby="descAllegati" class="single-input" multiple>
+                                            <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
+                                            <div class="custom-file">
+                                                <input type="file" id="allegatiAppunto" class="custom-file-input" name="allegatiAppunto" aria-describedby="descAllegati"
+                                                    class="single-input" multiple required>
+                                                <label class="custom-file-label" for="allegatiAppunto">Scegli file</label>
+                                            </div>
                                         </div>
-                                        <small id="descAllegati" class="form-text text-muted">
-                                            Campo Opzionale
-                                        </small>
                                     </div>
-                                    <div class="msg"> </div>
+                                    <div id="msgAddAppunto" class="msg"> </div>
                                 </div>
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="form-group">

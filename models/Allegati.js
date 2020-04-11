@@ -5,7 +5,7 @@ const allegati = mongoose.Schema({
     descrizione: { type: String, required: true },
     codUtente: { type: Number, ref:"Utenti", required: true },
     dataCaricamento: { type: Date, required: true },
-    //  //Lol non so come salvare l'allegato fisico
+    percorso: { type: String, required: true }
 });
 
 module.exports = mongoose.model("Allegati", allegati);

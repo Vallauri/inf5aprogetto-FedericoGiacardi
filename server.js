@@ -24,6 +24,18 @@ const storage = multer.diskStorage({
     }
 });
 
+const storageAllegati = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "static/allegati");
+    },
+    filename: function (req, file, cb) {
+        console.log("FILE CARICATO");
+        const now = new Date().toISOString();
+        const date = now.replace(/:/g, '-');
+        cb(null, date + file.originalname);
+    }
+});
+
 const fileFilter = (req, file, cb) =>{
     if (!file.originalname.includes("unset")) {
         cb(null, true);
@@ -33,6 +45,8 @@ const fileFilter = (req, file, cb) =>{
 };
 
 const upload = multer({ storage: storage, fileFilter:fileFilter });
+
+const uploadAllegati = multer({ storage: storageAllegati });//<!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
 
 /* CONNESSIONE AL DATABASE */
 mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS + "@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
@@ -85,6 +99,13 @@ ERRORS.create({
     code: 607,
     name: 'PWD_USED',
     defaultMessage: 'Questa Password è già stata utilizzata'
+});
+
+// code 608 - Already Existing Note
+ERRORS.create({
+    code: 608,
+    name: 'EXISTING_NOTE',
+    defaultMessage: 'Esiste già un Appunto con il medesimo Titolo e Autore'
 });
 
 const HTTPS = require('https');
@@ -1562,6 +1583,98 @@ app.post("/api/elencoArgomenti", function (req, res) {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     }); 
 });
+
+app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"),function (req, res) {
+    if (req.body.descrizione != "") {
+        if (req.body.nome != "") {
+            if (req.body.cognome != "") {
+                if (req.body.argomenti.length > 0) {
+                    if (req.files.length > 0) {
+                        appunti.count({ $and: [{ "descrizione": req.body.descrizione }, { "nomeAutore": req.body.nome }, { "cognomeAutore": req.body.cognome }] }).exec().then(nAppunti =>{
+                            if (nAppunti == 0) {
+                                appunti.find({}).sort({ _id: 1 }).exec().then(results => {
+                                    let vet = JSON.parse(JSON.stringify(results));
+                                    let vetArgomenti = new Array();
+                                    let vetAllegati = new Array();
+                                    let vetAus = req.body.argomenti.split(',');
+                                    let idPrec = -1;
+                                    for (let i = 0; i < vetAus.length; i++) {
+                                        vetArgomenti[i] = { "codArgomento": parseInt(vetAus[i]), "dataAggiunta":new Date()};
+                                    }
+                                    addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati =>{
+                                        const aggAppunto = new appunti({
+                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                            descrizione: req.body.descrizione,
+                                            dataCaricamento: new Date(),
+                                            nomeAutore: req.body.nome,
+                                            cognomeAutore: req.body.cognome,
+                                            codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                                            argomenti: vetArgomenti,
+                                            allegati: vetAllegati
+                                        });
+                                        aggAppunto.save().then(results => { res.send(JSON.stringify("aggAppuntoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                    });
+                                    // for (let j = 0; j < req.files.length; j++) {
+                                    //     console.log(idPrec);
+                                    //     idPrec = addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res, req.files[j].path, idPrec);
+                                    //     vetAllegati[j] = { "codAllegato": idPrec};
+                                    // }
+                                    
+                                }).catch(err => {
+                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                });
+                            }else{
+                                error(req, res, null, JSON.stringify(new ERRORS.EXISTING_NOTE({})));
+                            } 
+                        }).catch(err => {
+                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                        });
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    }else{
+        gestErrorePar(req, res);
+    }
+});
+
+function addAllegato(desc, req,res) {
+    return new Promise((resolve, reject) =>{
+        let vetAllegati = new Array();
+        let vetCodici = new Array();
+        let id, vet;
+        allegati.find({}).sort({ _id: 1 }).exec().then(results => {
+            console.log(req.files.length);
+            for (let i = 0; i < req.files.length; i++) {
+                if (results.length > 0) {
+                    vet = JSON.parse(JSON.stringify(results));
+                    id = parseInt(vet[vet.length - 1]["_id"]) + (i + 1);
+                } else {
+                    id = 1;
+                }
+                vetCodici[i] = { "codAllegato": id };
+                vetAllegati[i] = new allegati({
+                    _id: id,
+                    descrizione: desc,
+                    codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                    dataCaricamento: new Date(),
+                    percorso: req.files[i].path
+                });
+            }
+            allegati.insertMany(vetAllegati).then(results => { resolve(vetCodici) }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    });
+}
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

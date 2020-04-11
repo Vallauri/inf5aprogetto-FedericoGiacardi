@@ -2,6 +2,7 @@
 // 2.list multiple
 // 3.eventuale limite di appunti
 $(document).ready(function () {
+    $('#argomentiAppunto').niceSelect();
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         printErrors(jqXHR, ".msg");
@@ -16,7 +17,7 @@ $(document).ready(function () {
 function loadArgomenti() {
     let elArgomenti = inviaRichiesta('/api/elencoArgomenti', 'POST', {});
     elArgomenti.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, "#msgAddAppunto");
     });
     elArgomenti.done(function (data) {
         let codHtml = '';
@@ -25,7 +26,7 @@ function loadArgomenti() {
             codHtml += '<option value="' + argomento._id + '">' + argomento.descrizione+'</option>';
         });     
         $("#argomentiAppunto").html(codHtml).niceSelect('update');   
-        document.getElementById("argomentiAppunto").selectedIndex = 1;
+        document.getElementById("argomentiAppunto").selectedIndex = -1;
         $("#argomentiAppunto").niceSelect('update');  
     });
 }
@@ -105,29 +106,61 @@ function aggiuntaAppunto() {
     $("#cognomeAutoreAppunto").removeClass("alert-danger");
     $("#argomentiAppunto").removeClass("alert-danger");
     $("#allegatiAppunto").removeClass("alert-danger");
-    $(".msg").text("");
+    $("#msgAddAppunto").text("");
 
+    
     if ($("#descAppunto").val() != "") {
         if ($("#nomeAutoreAppunto").val() != "") {
             if ($("#cognomeAutoreAppunto").val() != "") {
-                console.log($("#argomentiAppunto").val());
-                // if ($("#cognomeAutoreAppunto").val() != "") {
-
-                // } else {
-                //     gestErrori("Inserire il Cognome dell' Autore", $("#cognomeAutoreAppunto"));
-                // }
+                if (document.getElementById("argomentiAppunto").selectedIndex != -1) {
+                    if ($('#allegatiAppunto').prop('files').length > 0) {
+                        let formData = new FormData();
+                        formData.append('descrizione', $("#descAppunto").val());
+                        formData.append('nome', $("#nomeAutoreAppunto").val());
+                        formData.append('cognome', $("#cognomeAutoreAppunto").val());
+                        formData.append('argomenti', new Array($("#argomentiAppunto").val()));
+                        for (let i = 0; i < $('#allegatiAppunto').prop('files').length; i++) {
+                            formData.append('allegati', $('#allegatiAppunto').prop('files')[i]);
+                        }
+                        let aggAppuntoRQ = inviaRichiestaMultipart('/api/aggiungiAppunti', 'POST', formData);
+                        aggAppuntoRQ.fail(function (jqXHR, test_status, str_error) {
+                            if (jqXHR.status == 603) {
+                                $("#msgAddAppunto").text("Parametri Errati o Mancanti");
+                            }
+                            else {
+                                printErrors(jqXHR, "#msgAddAppunto");
+                            }
+                        });
+                        aggAppuntoRQ.done(function (data) {
+                            $("#msgAddAppunto").text("Appunto aggiunto con successo");
+                            clearInputFields();
+                        });
+                    } else {
+                        gestErrori("Indicare un allegato", $("#allegatiAppunto"), "#msgAddAppunto");
+                    }
+                } else {
+                    gestErrori("Selezionare un Argomento", $("#argomentiAppunto"), "#msgAddAppunto");
+                }
             } else {
-                gestErrori("Inserire il Cognome dell' Autore", $("#cognomeAutoreAppunto"));
+                gestErrori("Inserire il Cognome dell' Autore", $("#cognomeAutoreAppunto"), "#msgAddAppunto");
             }
-        }else{
-            gestErrori("Inserire il Nome dell' Autore", $("#nomeAutoreAppunto"));
+        } else {
+            gestErrori("Inserire il Nome dell' Autore", $("#nomeAutoreAppunto"), "#msgAddAppunto");
         }
     }else{
-        gestErrori("Inserire la Descrizione dell'Appunto", $("#descAppunto"));
+        gestErrori("Inserire la Descrizione dell'Appunto", $("#descAppunto"), "#msgAddAppunto");
     }
 }
 
-function gestErrori(msg, controllo) {
-    $(".msg").html(msg);
+function clearInputFields() {
+    $("#descAppunto").val("");
+    $("#nomeAutoreAppunto").val("");
+    $("#cognomeAutoreAppunto").val("");
+    document.getElementById("argomentiAppunto").selectedIndex = -1;
+    $("#allegatiAppunto").val("");
+}
+
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg);
     controllo.addClass("alert-danger");
 }

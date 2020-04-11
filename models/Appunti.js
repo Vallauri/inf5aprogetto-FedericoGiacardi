@@ -8,7 +8,6 @@ const argomenti = mongoose.Schema({
 
 const allegati = mongoose.Schema({
     codAllegato: { type: Number, ref: "Allegati", required: true },
-    percorso: { type: String, required: true }
 });
 
 const appunti = mongoose.Schema({
