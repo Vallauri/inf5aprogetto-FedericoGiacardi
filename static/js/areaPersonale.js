@@ -524,7 +524,7 @@ function creazioneElencoAppunti(utenti) {
     utenti.forEach(utente => {
         if (utente["appuntiCaricati"] != undefined && utente["appuntiCaricati"].length > 0) {
             for (let i = 0; i < utente["appuntiCaricati"].length; i++) {
-                codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+                codHtml += '<a href="dettaglioAppunto.html?appunto=' + utente["appuntiCaricati"][i]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
                 codHtml += '<h5 class="mb-1">' + utente["appuntiCaricati"][i].descrizione + '</h5>';
                 codHtml += '</div>';

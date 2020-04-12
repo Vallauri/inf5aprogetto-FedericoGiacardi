@@ -32,7 +32,7 @@ const storageAllegati = multer.diskStorage({
         console.log("FILE CARICATO");
         const now = new Date().toISOString();
         const date = now.replace(/:/g, '-');
-        cb(null, date + file.originalname);
+        cb(null, date +"_"+ file.originalname);
     }
 });
 
@@ -1675,6 +1675,61 @@ function addAllegato(desc, req,res) {
         });
     });
 }
+
+app.post("/api/datiAppuntoById", function (req, res) {
+    appunti.aggregate([
+        { $match: { "_id": parseInt(req.body.idAppunto) } },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "codUtente",
+                foreignField: "_id",
+                as: "autoreCaricamento"
+            }
+        },
+        {
+            $lookup:
+            {
+                "from": argomenti.collection.name,
+                "let": { "argomenti": "$argomenti.codArgomento" },
+                "pipeline": [
+                    {"$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } }}
+                ],
+                "as": "detArgomenti"
+            }
+        },
+        {
+            $lookup:
+            {
+                "from": allegati.collection.name,
+                "let": { "allegati": "$allegati.codAllegato" },
+                "pipeline": [
+                    { "$match": { "$expr": { "$in": ["$_id", "$$allegati"] } } }
+                ],
+                "as": "detAllegati"
+            }
+        }
+    ]).exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/elencoAllegati", function (req, res) {
+    allegati.find({}).exec().then(results => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

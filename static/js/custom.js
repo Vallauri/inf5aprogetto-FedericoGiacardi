@@ -43,7 +43,7 @@
 
   
   $(document).ready(function() {
-    $('select').niceSelect();
+    // $('select').niceSelect();
   });
   // menu fixed js code
   $(window).scroll(function () {

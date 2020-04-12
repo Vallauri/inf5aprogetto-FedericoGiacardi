@@ -58,7 +58,7 @@
                                     <a class="nav-link" href="gruppi.html">Gruppi</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="areaPersonale.html">Appunti</a>
+                                    <a class="nav-link active" href="appunti.html">Appunti</a>
                                 </li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
@@ -161,7 +161,7 @@
                                                 <i class="fas fa-user"> </i>
                                             </span>
                                             <div>
-                                            	<select id="argomentiAppunto" js-placeholder=" " multiple required>
+                                            	<select id="argomentiAppunto" js-placeholder=" " multiple required data-multiple-separator=", ">
                                                 </select>
                                             </div>
                                         </div>
@@ -176,7 +176,7 @@
                                             <div class="custom-file">
                                                 <input type="file" id="allegatiAppunto" class="custom-file-input" name="allegatiAppunto" aria-describedby="descAllegati"
                                                     class="single-input" multiple required>
-                                                <label class="custom-file-label" for="allegatiAppunto">Scegli file</label>
+                                                <label class="custom-file-label" for="allegatiAppunto">Scegli Allegati</label>
                                             </div>
                                         </div>
                                     </div>
@@ -292,6 +292,7 @@
     <script src="js/jquery.counterup.min.js"></script>
     <script src="js/waypoints.min.js"></script>    
     <!-- custom js -->
+    <script src="js/jquery-ui.js"></script>
     <script src="js/libreria.js"></script>
     <script src="js/custom.js"></script>
     <script src="js/navBar.js"></script>

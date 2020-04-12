@@ -10,6 +10,26 @@ $(document).ready(function () {
     chkToken.done(function (data) {
         $("#btnRicerca").on("click", ricercaAppunti);
         $("#btnInviaAppunto").on("click", aggiuntaAppunto);
+        $("#txtRicerca").autocomplete({
+            source: function (req, res) {
+                $.ajax({
+                    minLength: 0,
+                    url: "/api/ricercaAppunti",
+                    dataType: "json",
+                    type: "POST",
+                    data: {
+                        par: req.term,
+                        tipo: $("#tipoRicerca").val()
+                    },
+                    success: function (data) {
+                        stampaRisRicerca(data);
+                    },
+                    error: function (xhr) {
+                        printErrors(jqXHR, ".msg");
+                    }
+                });
+            }
+        });
         loadArgomenti();
     });
 });
@@ -63,7 +83,7 @@ function stampaRisRicerca(appunti) {
 
             codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4">';
             if (appunto != undefined) {
-                codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+                codHtml += '<a href="dettaglioAppunto.html?appunto='+appunto._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
                 codHtml += '<h5 class="mb-1">' + appunto.descrizione + '</h5>';
                 codHtml += '</div>';
