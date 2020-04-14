@@ -81,7 +81,7 @@
             <div class="row" id="contDetAppunto"></div>
             <div class="row">
                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                    <div class="msg"> </div>
+                    <div id="msgDetAppunto" class="msg"> </div>
                 </div>
             </div>
             <br>
@@ -114,10 +114,20 @@
                                             <span class="input-group-text">
                                                 <i class="fas fa-user"> </i>
                                             </span>
-                                            <input type="text" id="nomeCognomeAutoreModAppunto" name="nomeAutoreModAppunto"
+                                            <input type="text" id="nomeAutoreModAppunto" name="nomeAutoreModAppunto"
                                                 placeholder="Nome Autore"
                                                 onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                                 onblur="this.placeholder = 'Nome Autore'" required class="single-input">
+                                        </div>
+                                    </div>
+                                    <div class="input-group form-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user"> </i>
+                                            </span>
+                                            <input type="text" id="cognomeAutoreModAppunto" name="cognomeAutoreModAppunto" placeholder="Cognome Autore"
+                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                onblur="this.placeholder = 'Cognome Autore'" required class="single-input">
                                         </div>
                                     </div>
                                     <div class="input-group form-group">
@@ -154,18 +164,18 @@
                                             </span>
                                             <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
                                             <div class="custom-file">
-                                                <input type="file" id="allegatiAppunto" class="custom-file-input"
-                                                    name="allegatiAppunto" aria-describedby="descAllegati"
+                                                <input type="file" id="newAllegatiModAppunto" class="custom-file-input"
+                                                    name="newAllegatiModAppunto" aria-describedby="descAllegati"
                                                     class="single-input" multiple required>
-                                                <label class="custom-file-label" for="allegatiAppunto">Aggiungi Allegati</label>
+                                                <label class="custom-file-label" for="newAllegatiModAppunto">Aggiungi Allegati</label>
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="msgModAppunto"> </div>
+                                    <div id="msgModAppunto" class=".msg"> </div>
                                 </div>
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="form-group">
-                                        <a id="btnInviaAppunto" class="genric-btn primary circle btn-block"
+                                        <a id="btnModAppunto" class="genric-btn primary circle btn-block"
                                             style="color: #fff!important;">Invia</a>
                                     </div>
                                 </div>

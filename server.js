@@ -1595,9 +1595,7 @@ app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"),function (req,
                                 appunti.find({}).sort({ _id: 1 }).exec().then(results => {
                                     let vet = JSON.parse(JSON.stringify(results));
                                     let vetArgomenti = new Array();
-                                    let vetAllegati = new Array();
                                     let vetAus = req.body.argomenti.split(',');
-                                    let idPrec = -1;
                                     for (let i = 0; i < vetAus.length; i++) {
                                         vetArgomenti[i] = { "codArgomento": parseInt(vetAus[i]), "dataAggiunta":new Date()};
                                     }
@@ -1614,12 +1612,6 @@ app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"),function (req,
                                         });
                                         aggAppunto.save().then(results => { res.send(JSON.stringify("aggAppuntoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
                                     });
-                                    // for (let j = 0; j < req.files.length; j++) {
-                                    //     console.log(idPrec);
-                                    //     idPrec = addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res, req.files[j].path, idPrec);
-                                    //     vetAllegati[j] = { "codAllegato": idPrec};
-                                    // }
-                                    
                                 }).catch(err => {
                                     error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                 });
@@ -1729,6 +1721,127 @@ app.post("/api/elencoAllegati", function (req, res) {
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
+});
+
+app.post("/api/modificaAppunto", uploadAllegati.array("newAllegati"),function (req, res) {
+    let codQuery = {};
+    let aus;
+    let i = 0;
+    if (req.body.codAppunto != null) {
+        if (req.body.descrizione != "") {
+            if (req.body.nome != "") {
+                if (req.body.cognome != "") {
+                    if (req.body.argomentiOk == "true") {
+                        if (req.body.allegatiOk == "true") {
+                            appunti.count({ $and: [{ "_id": {$ne:parseInt(req.body.codAppunto)}},{ "descrizione": req.body.descrizione }, { "nomeAutore": req.body.nome }, { "cognomeAutore": req.body.cognome }] }).exec().then(nAppunti => {
+                                if (nAppunti == 0) {
+                                    codQuery["$set"] = {"descrizione":req.body.descrizione, "nomeAutore":req.body.nome, "cognomeAutore":req.body.cognome};
+                                    if (req.body.addArgomenti.length > 0) {
+                                        aus = {};
+                                        aus["argomenti"] = new Array();
+                                        console.log(req.body.addArgomenti);
+                                        for (i = 0; i < req.body.addArgomenti.length; i++) {
+                                            aus["argomenti"].push({"codArgomento":parseInt(req.body.addArgomenti[i]), "dataAggiunta":new Date().toJSON()});
+                                        }
+                                        codQuery["$push"] = aus;
+                                    }
+                                    if (req.body.removeArgomenti.length > 0) {
+                                        aus = {};
+                                        aus["argomenti"] = new Array();
+                                        for (i = 0; i < req.body.removeArgomenti.length; i++) {
+                                            aus["argomenti"].push({"codArgomento":parseInt(req.body.removeArgomenti[i])});
+                                        }
+                                        codQuery["$pull"] = aus;
+                                    }
+
+                                    if (req.body.addAllegati.length > 0) {
+                                        aus = {};
+                                        aus["allegati"] = new Array();
+                                        for (i = 0; i < req.body.addAllegati.length; i++) {
+
+                                            aus["allegati"].push({"codAllegato":parseInt(req.body.addAllegati[i])});
+                                        }
+                                        codQuery["$push"] = aus;
+                                    }
+
+                                    if (req.body.removeAllegati.length > 0) {
+                                        aus = {};
+                                        aus["allegati"] = new Array();
+                                        for (i = 0; i < req.body.removeAllegati.length; i++) {
+                                            aus["allegati"].push({"codAllegato":parseInt(req.body.removeAllegati[i])});
+                                        }
+                                        codQuery["$pull"] = aus;
+                                        // Object.keys(obj1).forEach(key => result[key] = obj1[key]);
+
+                                        // Object.keys(obj2)
+                                        //     .forEach(key => result[key] = obj2[key]);
+                                        
+                                    }
+                                    addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati => {
+                                        if (vetAllegati.length > 0) {
+                                            aus = {};
+                                            aus["allegati"] = new Array();
+                                            for (i = 0; i < vetAllegati.length; i++) {
+                                                aus["allegati"].push({"codAllegato":parseInt(vetAllegati[i])});
+                                            }
+                                            codQuery["$push"] = aus;
+                                        }
+                                        console.log(codQuery);
+                                        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) },codQuery).exec().then(results => {
+                                            console.log(results);
+                                            let token = createToken(req.payload);
+                                            writeCookie(res, token);
+                                            res.writeHead(200, { "Content-Type": "application/json" });
+                                            res.end(JSON.stringify(results));
+                                        }).catch(err => {
+                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                        });
+                                    });
+                                } else {
+                                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_NOTE({})));
+                                }
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            });
+                        } else {
+                            gestErrorePar(req, res);
+                        }
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+    
+});
+
+app.post("/api/removeAppunto", function (req, res) {
+    console.log(req.body.codAppunto);
+    if (req.body.codAppunto != null) {
+        appunti.remove({ "_id": parseInt(req.body.codAppunto) }).exec().then(resRem => {
+            lezioni.updateMany({}, { $pull: { "appunti":{"codAppunto": parseInt(req.body.codAppunto) }} }).exec().then(results =>{
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(results));
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
 });
 
 /* createToken si aspetta un generico json contenente i campi indicati.

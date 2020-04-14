@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const argomenti = mongoose.Schema({
     codArgomento: { type: Number, ref:"Argomenti", required: true },
-    dataAggiunta: { type: Date, required: true },
-    dataRimozione: { type: Date}
+    dataAggiunta: { type: Date, required: true }
+    // dataRimozione: { type: Date}
 });
 
 const allegati = mongoose.Schema({
