@@ -28,6 +28,8 @@ function caricamentoDatiGruppo(gruppo) {
     let codHtml = "";
     let aus;
     
+    console.log(gruppo);
+    
     if (gruppo == undefined || gruppo.length == 0){
         codHtml += '<div class="row justify-content-center">';
         codHtml += '<div class="col-xl-12">';
@@ -63,7 +65,7 @@ function caricamentoDatiGruppo(gruppo) {
                 codHtml += '<tr>';
                 codHtml += '<td scope="row">' + utente.cognome + ' ' + utente.nome + '</td>';
                 codHtml += '<td>' + utente.user + '</td>';
-                codHtml += '<td>' + new Date(utente.gruppo[0].dataInizio).toLocaleDateString() + '</td>';
+                codHtml += '<td>' + new Date(utente.gruppo.dataInizio).toLocaleDateString() + '</td>';
                 codHtml += '</tr>';
             });
             codHtml += '</table>';
@@ -96,9 +98,9 @@ function caricamentoDatiGruppo(gruppo) {
         codHtml += '</a>';
         codHtml += '</li>';
         codHtml += '</ul>'; 
-        codHtml += '<div class="col-lg-12 text-center">';
-        codHtml += '<button id="btnIscrivitiGruppo" class="genric-btn success radius">Iscriviti al Gruppo</button>'; // da vedere
-        codHtml += '</div>';
+        // codHtml += '<div class="col-lg-12 text-center">';
+        // codHtml += '<button id="btnIscrivitiGruppo" class="genric-btn success radius">Iscriviti al Gruppo</button>'; // da vedere (non so se farlo, bisognerebbe fare una gestione delle richieste ad inviti)
+        // codHtml += '</div>';
         codHtml += '</div>';
         codHtml += '</div>';
         
@@ -119,35 +121,44 @@ function chkModeratore(idGruppo) {
             codHtml += '<div class="sidebar_top">';
             codHtml += '<div class="col-lg-12 text-center">';
             codHtml += '<h4>Gestione Gruppo</h4>';
-            codHtml += '<button class="genric-btn success radius" style="margin:2px;" id="btnAddMember">Aggiungi Membro/i</button>';
-            codHtml += '<button class="genric-btn success radius" style="margin:2px;" id="btnModGroup">Modifica Gruppo</button>';
-            codHtml += '<button class="genric-btn danger radius" style="margin:2px;" id="btnRemGroup">Elimina Gruppo</button>';
             codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnAddMember">Aggiungi Membro/i</button>';
             codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnModGroup">Modifica Gruppo</button>';
-            // da fare --> codHtml += '<button class="genric-btn danger radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnRemGroup">Elimina Gruppo</button>';
+            codHtml += '<button class="genric-btn danger radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnRemGroup">Elimina Gruppo</button>';
             codHtml += '</div>';
             codHtml += '</div>';
             $(".right-contents").append(codHtml);
             $("#btnIscrivitiGruppo").hide();
 
             $("#btnSalvaModifiche").on("click", function () {
-                if($(this).html() == "Salva Aggiunte")
+                /*if($(this).html() == "Salva Aggiunte"){
                     window.location.reload();
-                else if ($(this).html() == "Salva Modifiche"){
+                }
+                else */
+                if ($(this).html() == "Salva Modifiche"){
                     if(chkCorrettezzaDati()){
                         let chkToken = inviaRichiesta('/api/modificaGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "nome": $("#nome").val().trim(), "descrizione": $("#descrizione").val().trim(), "tipoGruppo": $("#tipoGruppo option:selected").val() });
                         chkToken.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".msg");
+                            printErrors(jqXHR, ".modal-body .msg");
                         });
                         chkToken.done(function (data) {
-                            console.log("Modifica");
-                            console.log(data);
                             if (data.ok == 1)
                                 window.location.reload();
                             else
-                                $(".msg").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare");
+                                $(".modal-body .msg").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare");
                         });
                     }
+                }
+                else if ($(this).html() == "Conferma Rimozione"){
+                    let chkToken = inviaRichiesta('/api/rimuoviGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
+                    chkToken.fail(function (jqXHR, test_status, str_error) {
+                        printErrors(jqXHR, ".modal-body .msg");
+                    });
+                    chkToken.done(function (data) {
+                        if (data.ok == 1)
+                            window.location.href = "gruppi.html";
+                        else
+                            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione del gruppo. Riprovare");
+                    });
                 }
             });
 
@@ -155,7 +166,7 @@ function chkModeratore(idGruppo) {
                 console.log("Aggiunta membro");
                 $("#dettGruppoMod .modal-title").html("Aggiunta Membro al Gruppo");
                 $("#dettGruppoMod .modal-body").children().remove();
-                $("#btnSalvaModifiche").html("Salva Aggiunte"); // da cambiare gestione!!!!!!!
+                $("#btnSalvaModifiche").hide();
 
                 let cod = "";
                 cod += '<div class="row">';
@@ -172,6 +183,7 @@ function chkModeratore(idGruppo) {
                 cod += '</div>';
                 cod += '</div>';
                 cod += '<p class="msg" style="margin-top:5px"></p>';
+                // cod += '<span id="elUtAdd" idUt=""></span>'; // serve per add diversa da quella gestita ora
                 cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
@@ -179,12 +191,12 @@ function chkModeratore(idGruppo) {
                 $("#dettGruppoMod .modal-body").append(cod);
 
                 $("#btnRicerca").on("click", function () {
-                    $(".msg").text("");
+                    $(".modal-body .msg").text("");
 
                     if ($("#txtRicerca").val() != "") {
-                        let ricerca = inviaRichiesta('/api/cercaUtente', 'POST', { "valore": $("#txtRicerca").val() });
+                        let ricerca = inviaRichiesta('/api/cercaUtenteAggiuntaGruppo', 'POST', { "valore": $("#txtRicerca").val() });
                         ricerca.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".msg");
+                            printErrors(jqXHR, ".modal-body .msg");
                         });
                         ricerca.done(function (data) {
                             console.log(data);
@@ -192,7 +204,7 @@ function chkModeratore(idGruppo) {
                         });
                     }
                     else {
-                        $(".msg").text("Inserire un valore per la ricerca");
+                        $(".modal-body .msg").text("Inserire un valore per la ricerca");
                         $("#txtRicerca").focus();
                     }
                 });
@@ -200,7 +212,7 @@ function chkModeratore(idGruppo) {
                 $('#txtRicerca').autocomplete({
                     source: function (req, res) {
                         $.ajax({
-                            url: "/api/cercaUtente",
+                            url: "/api/cercaUtenteAggiuntaGruppo",
                             dataType: "json",
                             type: "POST",
                             data: {
@@ -224,24 +236,34 @@ function chkModeratore(idGruppo) {
                 console.log("Modifica gruppo");
                 $("#dettGruppoMod .modal-title").html("Modifica del Gruppo");
                 $("#dettGruppoMod .modal-body").children().remove();
-                $("#btnSalvaModifiche").html("Salva Modifiche");
+                $("#btnSalvaModifiche").show().html("Salva Modifiche");
 
                 let chkToken = inviaRichiesta('/api/datiGruppoById', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
                 chkToken.fail(function (jqXHR, test_status, str_error) {
-                    printErrors(jqXHR, ".msg");
+                    printErrors(jqXHR, ".modal-body .msg");
                 });
                 chkToken.done(function (data) {
                     console.log(data);
                     modificaGruppo(data);
                 });
             });
-
-            /* DA FARE
+            
             $("#btnRemGroup").on("click", function () {
                 console.log("Elimina gruppo");
                 $("#dettGruppoMod .modal-title").html("Rimozione del Gruppo");
                 $("#dettGruppoMod .modal-body").children().remove();
-            });*/
+                $("#btnSalvaModifiche").show().html("Conferma Rimozione");
+
+                let cod = "";
+                cod += '<div class="row">';
+                cod += '<div class="col-lg-12 text-center">';
+                cod += '<p>Sei sicuro di voler rimuovere il gruppo? Tutti i dati ad esso collegati verranno rimossi</p>';
+                cod += '<p class="msg"></p>';
+                cod += '</div>';
+                cod += '</div>';
+
+                $("#dettGruppoMod .modal-body").append(cod);
+            });
         }
         else if (data.ris == "componente")
             $("#btnIscrivitiGruppo").hide();
@@ -251,7 +273,7 @@ function chkModeratore(idGruppo) {
 function dettaglioUtente(utenti) {
     console.log(utenti);
     let codHtml = "";
-    $(".msg").html("");
+    $(".modal-body .msg").html("");
     $("#risultato").remove();
 
     if (utenti.length > 0) {
@@ -264,12 +286,7 @@ function dettaglioUtente(utenti) {
         codHtml += '</tr>';
 
         utenti.forEach(utente => {
-            let gruppi = [];
-            utente.gruppo.forEach(gruppo => {
-                gruppi.push(gruppo.codGruppo);
-            })
-
-            codHtml += '<tr id="riga_' + utente._id + '" idGruppi="' + gruppi.join(',') + '">';
+            codHtml += '<tr id="riga_' + utente._id + '">';
             codHtml += '<td scope="row">' + utente.cognome + ' ' + utente.nome + '</td>';
             codHtml += '<td>' + utente.user + '</td>';
             codHtml += '<td><button class="genric-btn success circle" onclick="addIscrittoGruppo(' + utente._id + ')"><i class="fa fa-plus" aria-hidden="true"></i></button></td>';
@@ -280,7 +297,7 @@ function dettaglioUtente(utenti) {
         codHtml += '</div>';
     }
     else {
-        $(".msg").text("Nessun utente trovato");
+        $(".modal-body .msg").text("Nessun utente trovato");
         $("#risultato").remove();
     }
 
@@ -288,24 +305,21 @@ function dettaglioUtente(utenti) {
 }
 
 function addIscrittoGruppo(idUtente) {
-    $(".msg").text("").css("color", "red");
-    let gruppi = $("#riga_" + idUtente).attr("idGruppi");
-    
-    if (gruppi.includes($("#descGruppo").attr("idGruppo")))
-        $(".msg").text("L'utente selezionato fa già parte di questo gruppo");
-    else{
-        let chkToken = inviaRichiesta('/api/insNuovoMembroGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "idUtente" : idUtente });
-        chkToken.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
-        });
-        chkToken.done(function (data) {
-            console.log(data);
-            if(data.nModified == 1)
-                $(".msg").css("color", "green").text("Utente aggiunto al gruppo");
-            else
-                $(".msg").text("Si è verificato un errore durante l'aggiunta al gruppo");
-        });
-    }
+    $(".modal-body .msg").text("").css("color", "red");
+
+    let chkToken = inviaRichiesta('/api/insNuovoMembroGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "idUtente" : idUtente });
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        if (jqXHR.status == 608)  // utente già presente in gruppo
+            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+        else
+            printErrors(jqXHR, ".modal-body .msg");
+    });
+    chkToken.done(function (data) {
+        if(data.nModified == 1)
+            window.location.reload();
+        else
+            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta al gruppo");
+    });
 }
 
 function modificaGruppo(dettGruppo){
@@ -341,7 +355,7 @@ function modificaGruppo(dettGruppo){
     //cod += '<div class="form-group row">';
     let tipiGruppi = inviaRichiesta('/api/elTipiGruppi', 'POST', {});
     tipiGruppi.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
     });
     tipiGruppi.done(function (data) {
         cod += '<div class="form-select row" id="default-select-1">';
@@ -361,7 +375,7 @@ function modificaGruppo(dettGruppo){
         
         let compGruppo = inviaRichiesta('/api/elComponentiGruppo', 'POST', {"idGruppo" : dettGruppo[0]._id});
         compGruppo.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
         });
         compGruppo.done(function (componenti) {
             if(componenti != null && componenti.length > 0){
@@ -395,13 +409,13 @@ function modificaGruppo(dettGruppo){
 }
 
 function chkCorrettezzaDati() {
-    $(".msg").text("").css("color", "red");
+    $(".modal-body .msg").text("").css("color", "red");
 
     if($("#nome").val().trim() == ""){
-        $(".msg").text("Devi inserire il nome del gruppo");
+        $(".modal-body .msg").text("Devi inserire il nome del gruppo");
     }
     else if ($("#descrizione").val().trim() == "") {
-        $(".msg").text("Devi inserire la descrizione del gruppo");
+        $(".modal-body .msg").text("Devi inserire la descrizione del gruppo");
     }
     else{
         return true;
@@ -410,23 +424,22 @@ function chkCorrettezzaDati() {
 }
 
 function removeIscrittoGruppo(idUtente) {
-    $(".msg").text("").css("color", "red");
+    $(".modal-body .msg").text("").css("color", "red");
 
     let chkToken = inviaRichiesta('/api/removeMembroGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "idUtente": idUtente });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
+        if (jqXHR.status == 609)  // l'autore del gruppo non può essere rimosso
+            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+        else
+            printErrors(jqXHR, ".modal-body .msg");
     });
     chkToken.done(function (data) {
-        console.log("Rimozione");
-        console.log(data);
-        if (data.ris == "noRemoveAut")
-            $(".msg").text("Non puoi rimuovere l'autore del gruppo");
-        else if (data.nModified == 1){
-            $(".msg").css("color", "green").text("Utente rimosso dal gruppo");
+        if (data.nModified == 1){
+            $(".modal-body .msg").css("color", "green").text("Utente rimosso dal gruppo");
             $("#tabCompGruppoRem").children().remove();
             let compGruppo = inviaRichiesta('/api/elComponentiGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
             compGruppo.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".msg");
+                printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
             });
             compGruppo.done(function (componenti) {
                 let cod = "";
@@ -455,6 +468,6 @@ function removeIscrittoGruppo(idUtente) {
             });
         }
         else
-            $(".msg").text("Si è verificato un errore durante la rimozione dal gruppo");
+            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione dal gruppo");
     });
 }

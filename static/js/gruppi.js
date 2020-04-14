@@ -2,47 +2,6 @@
 $(document).ready(function () {
     loadPagina();
 
-    // $("#btnRicerca").on("click", function () {
-    //     $(".msg").text("");
-
-    //     if ($("#txtRicerca").val() != "") {
-    //         let ricerca = inviaRichiesta('/api/cercaGruppo', 'POST', { "valore": $("#txtRicerca").val()});
-    //         ricerca.fail(function (jqXHR, test_status, str_error) {
-    //             printErrors(jqXHR, ".msg");
-    //         });
-    //         ricerca.done(function (data) {
-    //             console.log(data);
-    //             creazioneElencoGruppi(data);
-    //         });
-    //     }
-    //     else{
-    //         $(".msg").text("Inserire un valore per la ricerca");
-    //         $("#txtRicerca").focus();
-    //     }
-    // });
-
-    // $('#txtRicerca').autocomplete({
-    //     source: function (req, res) {
-    //         $.ajax({
-    //             url: "/api/cercaGruppo",
-    //             dataType: "json",
-    //             type: "POST",
-    //             data: {
-    //                 valore: req.term
-    //             },
-    //             success: function (data) {
-    //                 creazioneElencoGruppi(data);
-    //             },
-    //             error: function (xhr) {
-    //                 alert(xhr.status + ' : ' + xhr.statusText);
-    //             }
-    //         });
-    //     },
-    //     select: function (event, ui) {
-
-    //     }
-    // });
-
     $("#btnRicerca").on("click", function () {
         $(".msg").text("");
 

@@ -108,6 +108,19 @@ ERRORS.create({
     defaultMessage: 'Esiste già un Appunto con il medesimo Titolo e Autore'
 });
 
+ERRORS.create({
+    code: 608,
+    name: 'USER_ALREADY_IN_GROUP',
+    defaultMessage: 'L\'utente è già presente nel gruppo'
+});
+
+// code 609 - Author of group can't be removed
+ERRORS.create({
+    code: 609,
+    name: 'AUTH_NOT_REMOVED',
+    defaultMessage: 'L\'autore del gruppo non può essere rimosso'
+});
+
 const HTTPS = require('https');
 
 
@@ -1289,20 +1302,18 @@ app.post("/api/cercaGruppo", function (req, res) {
     }
 });
 
-app.post("/api/datiGruppoById", function (req, res) { // da vedere
+app.post("/api/datiGruppoById", function (req, res) {
     gruppi.aggregate([
         { $match: { "_id": parseInt(req.body.idGruppo) } },
         {
             $lookup:
             {
                 from: utenti.collection.name,
-                localField: "_id",
-                foreignField: "gruppo.codGruppo",
-                /*"let": { "gruppo": "$_id" },
+                "let": { "gruppo": "$_id" },
                 "pipeline": [
-                    { "$match": { "$expr": { "$gt": ["$gruppo.codGruppo", "$$gruppo"] } } },
-                    { "$match": { "$expr": { "$gt": ["$gruppo.dataFine", new Date().toISOString()] } } }
-                ],*/
+                    { "$unwind" : "$gruppo" },
+                    { "$match": { "$expr": { "$and": [{ "$eq": ["$$gruppo", "$gruppo.codGruppo"] }, { "$eq": [null, "$gruppo.dataFine"] }] } } }
+				],
                 as: "componenti"
             }
         },
@@ -1347,25 +1358,13 @@ app.post("/api/chkModGruppo", function (req, res) {
         else {
             utenti.aggregate([
                 { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
-                {
-                    $lookup:
-                    {
-                        from: gruppi.collection.name,
-                        // localField: "gruppo.codGruppo",
-                        // foreignField: "_id",
-                        "let": { "gruppi": "$gruppo.codGruppo" },
-                        "pipeline": [
-                            { "$match": { "$expr": { "$in": ["$_id", "$$gruppi"] } } },
-                            { "$match": { "$expr": { "$eq": ["$_id", idGruppo] } } }
-                        ],
-                        as: "gruppiUtente",
-                    }
-                }
+                { $match: { $expr: { $eq: ["$gruppo.codGruppo", parseInt(req.body.idGruppo)] } } }
             ]).exec().then(results => {
-                if (results.gruppi == [])
+                console.log(results);
+                if (results == [])
                     risp = { "ris": "noAutNoComp" };
                 else
-                    risp = { "ris": "componente" };
+                    risp = { "ris": "componente" }; // da controllare
 
                 let token = createToken(req.payload);
                 writeCookie(res, token);
@@ -1380,7 +1379,7 @@ app.post("/api/chkModGruppo", function (req, res) {
     });
 });
 
-app.post("/api/cercaUtente", function (req, res) {
+app.post("/api/cercaUtenteAggiuntaGruppo", function (req, res) {
     utenti.find(
         {
             $or: [
@@ -1401,19 +1400,36 @@ app.post("/api/cercaUtente", function (req, res) {
 });
 
 app.post("/api/insNuovoMembroGruppo", function (req, res) {
-    let now = new Date().toISOString();
-    utenti.updateOne({ _id: parseInt(req.body.idUtente) }, { $push: { gruppo: { codGruppo: parseInt(req.body.idGruppo), dataInizio : now } } })
-        .exec()
-        .then(results => {
-            //console.log(results);
-            let token = createToken(req.payload);
-            writeCookie(res, token);
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(results));
-        })
-        .catch(err => {
-            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-        }); 
+    utenti.findOne({ _id : parseInt(req.body.idUtente) }).exec().then(result => {
+        let add = true;
+        result.gruppo.forEach(gruppo => {
+            if(add && gruppo.codGruppo == parseInt(req.body.idGruppo))
+                if(gruppo.dataFine == null)
+                    add = false;
+        });
+        console.log("Aggiunta: " + add);
+
+        if(add){
+            let now = new Date().toISOString();
+            utenti.updateOne({ _id: parseInt(req.body.idUtente) }, { $push: { gruppo: { codGruppo: parseInt(req.body.idGruppo), dataInizio : now , dataFine : null} } })
+                .exec()
+                .then(results => {
+                    //console.log(results);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results));
+                })
+                .catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+        }
+        else {
+            error(req, res, null, JSON.stringify(new ERRORS.USER_ALREADY_IN_GROUP({})));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
 });
 
 app.post("/api/modificaGruppo", function (req, res) {
@@ -1432,9 +1448,9 @@ app.post("/api/modificaGruppo", function (req, res) {
 });
 
 app.post("/api/elComponentiGruppo", function (req, res) {
-    utenti.aggregate([
-        { $match: { "gruppo.codGruppo": parseInt(req.body.idGruppo), "gruppo.dataFine" : {$exists:false}} }
-    ]).exec().then(results => {
+    utenti.find(
+        { "gruppo.codGruppo" : parseInt(req.body.idGruppo), "gruppo.dataFine" : null }
+    ).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -1444,8 +1460,61 @@ app.post("/api/elComponentiGruppo", function (req, res) {
     });
 });
 
-app.post("/api/chkModGruppo", function (req, res) {
-    gruppi.findById(parseInt(req.body.idGruppo)).exec().then(result => {
+app.post("/api/removeMembroGruppo", function (req, res) {
+    if (parseInt(JSON.parse(JSON.stringify(req.payload))._id) == parseInt(req.body.idUtente)){
+        error(req, res, null, JSON.stringify(new ERRORS.AUTH_NOT_REMOVED({})));
+    }
+    else{
+        let now = new Date().toISOString();
+        utenti.updateOne({ _id: parseInt(req.body.idUtente), "gruppo.codGruppo" : parseInt(req.body.idGruppo), "gruppo.dataFine" : null }, { $set: { "gruppo.$.dataFine" : now }})
+            .exec()
+            .then(results => {
+                //console.log(results);
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(results));
+            })
+            .catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            }); 
+    }
+});
+
+app.post("/api/rimuoviGruppo", function (req, res) {
+    gruppi.findOneAndRemove({ _id: parseInt(req.body.idGruppo) }, (err, response) => {
+        utenti.updateMany({}, { $pull: {
+            "gruppo": { codGruppo: parseInt(req.body.idGruppo) },
+            "esamiGruppi": { codGruppo: parseInt(req.body.idGruppo) },
+            "moduliGruppi": { codGruppo: parseInt(req.body.idGruppo) }
+        } }).exec().then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }).exec().catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/elGruppiAdmin", function (req, res) {
+    gruppi.find({ codAutore: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).select("_id nome").exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/chkModCorso", function (req, res) {
+    corsi.findById(parseInt(req.body.idCorso)).exec().then(result => {
         let risp = {};
         if (result.codAutore == parseInt(JSON.parse(JSON.stringify(req.payload))._id)) {
             risp = { "ris": "autore" };
@@ -1457,25 +1526,12 @@ app.post("/api/chkModGruppo", function (req, res) {
         else {
             utenti.aggregate([
                 { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
-                {
-                    $lookup:
-                    {
-                        from: gruppi.collection.name,
-                        // localField: "gruppo.codGruppo",
-                        // foreignField: "_id",
-                        "let": { "gruppi": "$gruppo.codGruppo" },
-                        "pipeline": [
-                            { "$match": { "$expr": { "$in": ["$_id", "$$gruppi"] } } },
-                            { "$match": { "$expr": { "$eq": ["$_id", idGruppo] } } }
-                        ],
-                        as: "gruppiUtente",
-                    }
-                }
+                { $match: { $expr: { $eq: ["$corsi.codCorso", parseInt(req.body.idCorso)] } } }
             ]).exec().then(results => {
-                if (results.gruppi == [])
+                if (results == [])
                     risp = { "ris": "noAutNoComp" };
                 else
-                    risp = { "ris": "componente" };
+                    risp = { "ris": "componente" }; // da controllare
 
                 let token = createToken(req.payload);
                 writeCookie(res, token);
@@ -1488,30 +1544,6 @@ app.post("/api/chkModGruppo", function (req, res) {
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
-});
-
-app.post("/api/removeMembroGruppo", function (req, res) {
-    if (parseInt(JSON.parse(JSON.stringify(req.payload))._id) == parseInt(req.body.idUtente)) {
-        let token = createToken(req.payload);
-        writeCookie(res, token);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ "ris": "noRemoveAut" }));
-    }
-    else {
-        let now = new Date().toISOString();
-        utenti.updateOne({ _id: parseInt(req.body.idUtente), "gruppo.codGruppo": parseInt(req.body.idGruppo) }, { $set: { "gruppo.$.dataFine": now } })
-            .exec()
-            .then(results => {
-                //console.log(results);
-                let token = createToken(req.payload);
-                writeCookie(res, token);
-                res.writeHead(200, { "Content-Type": "application/json" });
-                res.end(JSON.stringify(results));
-            })
-            .catch(err => {
-                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-            });
-    }
 });
 
 app.post("/api/ricercaAppunti", function (req, res) {
@@ -1864,10 +1896,11 @@ function writeCookie(res, token) {
     res.set("Set-Cookie", "token=" + token + ";max-age=" + TIMEOUT + ";Path=/;httponly=true;secure=true");
 }
 
-app.post('/api/logout', function (req, res, next) {
-    res.set("Set-Cookie", "token=;max-age=-1;Path=/;httponly=true");
-    res.send({ "ris": "LogOutOk" });
-});
+// Si può togliere ???
+// app.post('/api/logout', function (req, res, next) {
+//     res.set("Set-Cookie", "token=;max-age=-1;Path=/;httponly=true");
+//     res.send({ "ris": "LogOutOk" });
+// });
 
 /* ************************************************************* */
 
