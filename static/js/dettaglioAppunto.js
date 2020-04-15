@@ -134,14 +134,14 @@ function loadDatiModifica() {
     let args = $(".descAppunto");
     let value = new Array();
     let I;
-    for (I = 0; I < $(".descAppunto").length; I++) {
+    for (I = 0; I < args.length; I++) {
         value[I] = args[I].attributes[1].value;
     }
     window.sessionStorage.setItem("currentArgs", value);
     $('#argomentiModAppunto').selectpicker('val', value);
     $('#argomentiModAppunto').selectpicker('refresh');
 
-    for (I = 0; I < $(".descAllegati").length; I++) {
+    for (I = 0; I < args.length; I++) {
         value[I] = args[I].attributes[1].value;
     }
     window.sessionStorage.setItem("currentAttachments", value);
@@ -243,7 +243,7 @@ function gestModifica() {
                             });
                         } else {
                             allegatiOk = false;
-                            gestErrori("Indicare un allegato", $("#allegatiAppunto"), "#msgModAppunto");
+                            gestErrori("Indicare almeno un allegato", $("#allegatiAppunto"), "#msgModAppunto");
                         }
                     } else {
                         argomentiOk = false;

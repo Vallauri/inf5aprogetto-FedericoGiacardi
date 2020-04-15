@@ -1,15 +1,16 @@
-// 1.Autocomplete
-// 2.list multiple
-// 3.eventuale limite di appunti
 $(document).ready(function () {
-    $('#argomentiAppunto').niceSelect();
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, "#msgRic");
     });
     chkToken.done(function (data) {
+        document.getElementById("tipoRicerca").selectedIndex = -1;
+        $('#tipoRicerca').selectpicker('refresh');
+        
         $("#btnRicerca").on("click", ricercaAppunti);
         $("#btnInviaAppunto").on("click", aggiuntaAppunto);
+        loadArgomenti(); 
+        loadAllegati();
         $("#txtRicerca").autocomplete({
             source: function (req, res) {
                 $.ajax({
@@ -25,12 +26,11 @@ $(document).ready(function () {
                         stampaRisRicerca(data);
                     },
                     error: function (xhr) {
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#msgRic");
                     }
                 });
             }
         });
-        loadArgomenti();
     });
 });
 
@@ -45,30 +45,53 @@ function loadArgomenti() {
         data.forEach(argomento =>{
             codHtml += '<option value="' + argomento._id + '">' + argomento.descrizione+'</option>';
         });     
-        $("#argomentiAppunto").html(codHtml).niceSelect('update');   
+        $("#argomentiAppunto").html(codHtml); 
         document.getElementById("argomentiAppunto").selectedIndex = -1;
-        $("#argomentiAppunto").niceSelect('update');  
+        $('#argomentiAppunto').selectpicker('refresh');
+    });
+}
+
+function loadAllegati() {
+    let elArgomenti = inviaRichiesta('/api/elencoAllegati', 'POST', {});
+    elArgomenti.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, "#msgAddAppunto");
+    });
+    elArgomenti.done(function (data) {
+        let codHtml = "";
+        let ausVet = new Array();
+        data.forEach(allegato => {
+            ausVet = allegato.percorso.split('\\');
+            ausVet = ausVet[ausVet.length - 1].split("_");
+            codHtml += '<option value="' + allegato._id + '">' + ausVet[1] + '</option>';
+        });
+        document.getElementById("allPresentiAppunto").selectedIndex = -1;
+        $("#allPresentiAppunto").html(codHtml).selectpicker("refresh");
     });
 }
 
 function ricercaAppunti() {
-    let ricAppunti = inviaRichiesta('/api/ricercaAppunti', 'POST', { "tipo": $("#tipoRicerca").val(), "par": $("#txtRicerca").val()});
-    ricAppunti.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
-    });
-    ricAppunti.done(function (data) {
-        stampaRisRicerca(data);
-    });
+    if ($("#tipoRicerca").val() != "") {
+        let ricAppunti = inviaRichiesta('/api/ricercaAppunti', 'POST', { "tipo": $("#tipoRicerca").val(), "par": $("#txtRicerca").val() });
+        ricAppunti.fail(function (jqXHR, test_status, str_error) {
+            printErrors(jqXHR, "#msgRic");
+        });
+        ricAppunti.done(function (data) {
+            stampaRisRicerca(data);
+        });
+    }else{
+        gestErrori("Indicare il tipo di ricerca", $("#tipoRicerca"), "#msgRic");
+    }
+    
 }
 
 function stampaRisRicerca(appunti) {
     //fare segnalazione nessun risultato
     console.log(appunti);
     if (appunti.length == 0) {
-        $(".msg").text("Non è stato individuato alcun appunto");
+        $("#msgRic").text("Non è stato individuato alcun appunto");
     }else{
         $("#contRis").html("");
-        $(".msg").text("");
+        $("#msgRic").text("");
         let codHtml = '<div class="row">';
         let I = 0;
         let appuntiFiltered = appunti.filter(chkAppunti);
@@ -133,11 +156,13 @@ function aggiuntaAppunto() {
         if ($("#nomeAutoreAppunto").val() != "") {
             if ($("#cognomeAutoreAppunto").val() != "") {
                 if (document.getElementById("argomentiAppunto").selectedIndex != -1) {
-                    if ($('#allegatiAppunto').prop('files').length > 0) {
+                    if (($('#allegatiAppunto').prop('files').length > 0) || (document.getElementById("allPresentiAppunto").selectedIndex != -1)) {
                         let formData = new FormData();
                         formData.append('descrizione', $("#descAppunto").val());
                         formData.append('nome', $("#nomeAutoreAppunto").val());
                         formData.append('cognome', $("#cognomeAutoreAppunto").val());
+                        formData.append('allegatiPresenti', $("#allPresentiAppunto").val());
+                        console.log($("#allPresentiAppunto").val());
                         formData.append('argomenti', new Array($("#argomentiAppunto").val()));
                         for (let i = 0; i < $('#allegatiAppunto').prop('files').length; i++) {
                             formData.append('allegati', $('#allegatiAppunto').prop('files')[i]);
@@ -156,7 +181,7 @@ function aggiuntaAppunto() {
                             clearInputFields();
                         });
                     } else {
-                        gestErrori("Indicare un allegato", $("#allegatiAppunto"), "#msgAddAppunto");
+                        gestErrori("Indicare almeno un allegato", $("#allegatiAppunto"), "#msgAddAppunto");
                     }
                 } else {
                     gestErrori("Selezionare un Argomento", $("#argomentiAppunto"), "#msgAddAppunto");
@@ -177,6 +202,7 @@ function clearInputFields() {
     $("#nomeAutoreAppunto").val("");
     $("#cognomeAutoreAppunto").val("");
     document.getElementById("argomentiAppunto").selectedIndex = -1;
+    document.getElementById("allPresentiAppunto").selectedIndex = -1;
     $("#allegatiAppunto").val("");
 }
 
