@@ -8,6 +8,8 @@ $(document).ready(function () {
     chkToken.done(function (data) {
         codUt = data.id;
         loadPagina();
+        $("#btnConfElAppunto").on("click", eliminaAppunto);
+        $("#btnConfMexElimina").on("click", function () { window.location = "appunti.html";});
     });
 });
 
@@ -113,7 +115,7 @@ function caricamentoDatiCorso(appunto) {
         if (parseInt(appunto[0]["codUtente"]) == parseInt(codUt)) {
             codHtml += '<br><div class="form-group">';
             codHtml += '<a href="#sezModAppunto" id="btnModAppunto" onclick="loadDatiModifica();" class="genric-btn success circle"><i class="fas fa-edit"></i>Modifica</a >&nbsp';
-            codHtml += '<a id="btnElAppunto" onclick="eliminaAppunto();" class="genric-btn danger circle"><i class="fa fa-trash" aria-hidden="true"></i></i>Elimina</a >';
+            codHtml += '<a id="btnElAppunto" class="genric-btn danger circle" data-toggle="modal" data-target="#modalConfElimina"><i class="fa fa-trash" aria-hidden="true"></i></i>Elimina</a >';
             codHtml += '</div>';
         }
 
@@ -140,7 +142,8 @@ function loadDatiModifica() {
     window.sessionStorage.setItem("currentArgs", value);
     $('#argomentiModAppunto').selectpicker('val', value);
     $('#argomentiModAppunto').selectpicker('refresh');
-
+    value = new Array();
+    args = $(".descAllegati");
     for (I = 0; I < args.length; I++) {
         value[I] = args[I].attributes[1].value;
     }
@@ -295,7 +298,7 @@ function eliminaAppunto() {
             }
         });
         eliminaAppuntoRQ.done(function (data) {
-            $("#msgDetAppunto").html("Appu");
+            $('#modalMexElimina').modal('show');
         });
     } else {
         gestErrori("Codice Appunto mancante. Ricaricare la pagina", undefined, "#msgDetAppunto");

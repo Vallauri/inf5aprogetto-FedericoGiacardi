@@ -1698,11 +1698,13 @@ function addAllegato(desc, req,res) {
                     percorso: req.files[i].path
                 });
             }
-            
-            for (let k = 0; k < req.body.allegatiPresenti.split(',').length; k++) {
-                
-                vetCodici.push({ "codAllegato": parseInt(req.body.allegatiPresenti.split(',')[k]) });
+
+            if (req.body.allegatiPresenti != undefined) {
+                for (let k = 0; k < req.body.allegatiPresenti.split(',').length; k++) {
+                    vetCodici.push({ "codAllegato": parseInt(req.body.allegatiPresenti.split(',')[k]) });
+                }
             }
+            
             allegati.insertMany(vetAllegati).then(results => { resolve(vetCodici) }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
         }).catch(err => {
             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
@@ -1777,95 +1779,38 @@ app.post("/api/modificaAppunto", uploadAllegati.array("newAllegati"),function (r
                         if (req.body.allegatiOk == "true") {
                             appunti.count({ $and: [{ "_id": {$ne:parseInt(req.body.codAppunto)}},{ "descrizione": req.body.descrizione }, { "nomeAutore": req.body.nome }, { "cognomeAutore": req.body.cognome }] }).exec().then(nAppunti => {
                                 if (nAppunti == 0) {
-                                    let ausVet;
                                     codQuery["$set"] = {"descrizione":req.body.descrizione, "nomeAutore":req.body.nome, "cognomeAutore":req.body.cognome};
-                                    if (req.body.addArgomenti.length > 0) {
-                                        aus = {};
-                                        if (req.body.addArgomenti.length > 1) {
-                                            aus["argomenti"] = new Array();
-                                            ausVet = req.body.addArgomenti.split(',');
-                                            for (i = 0; i < ausVet.length; i++) {
-                                                aus["argomenti"].push({ "codArgomento": parseInt(ausVet[i]), "dataAggiunta": new Date().toJSON() });
-                                            }
-                                        }else{
-                                            aus["argomenti"] = { "codArgomento": parseInt(req.body.addArgomenti[0]), "dataAggiunta": new Date().toJSON() };
-                                        }
-                                        codQuery["$push"] = aus;
-                                    }
-                                    
-                                    if (req.body.removeArgomenti.length > 0) {
-                                        aus = {};
-                                        if (req.body.removeArgomenti.length > 1) {
-                                            aus["argomenti.codArgomento"]={};
-                                            aus["argomenti.codArgomento"]["$in"] = new Array();
-                                            ausVet = req.body.removeArgomenti.split(',');
-                                            for (i = 0; i < ausVet.length; i++) {
-                                                // aus["argomenti.codArgomento"].push({ "codArgomento": parseInt(ausVet[i]) });
-                                                aus["argomenti.codArgomento"]["$in"].push(parseInt(ausVet[i]));
-                                            }
-                                        }else{
-                                            aus["argomenti"]={ "codArgomento": parseInt(req.body.removeArgomenti[0]) };
-                                        }
-                                        codQuery["$pull"] = aus;
-                                        console.log(aus["argomenti"]);
-                                        
-                                    }
-                                    
-                                    if (req.body.addAllegati.length > 0) {
-                                        aus = {};
-                                        if (req.body.addAllegati.length > 1) {
-                                            aus["allegati"] = new Array();
-                                            ausVet = req.body.addAllegati.split(',');
-                                            for (i = 0; i < ausVet.length; i++) {
-
-                                                aus["allegati"].push({ "codAllegato": parseInt(ausVet[i]) });
-                                            }
-                                        }else{
-                                            aus["allegati"]={ "codAllegato": parseInt(req.body.addAllegati[0]) };
-                                        }
-                                        console.log("Add " + aus["allegati"]);
-                                        codQuery["$push"] = aus;
-                                    }
-
-                                    if (req.body.removeAllegati.length > 0) {
-                                        aus = {};
-                                        if (req.body.removeAllegati.length > 1) {
-                                            aus["allegati"] = new Array();
-                                            ausVet = req.body.removeAllegati.split(',');
-                                            for (i = 0; i < ausVet.length; i++) {
-                                                aus["allegati"].push({ "codAllegato": parseInt(ausVet[i]) });
-                                            }
-                                            
-                                        }else{
-                                            aus["allegati"]={ "codAllegato": parseInt(req.body.removeAllegati[0]) };
-                                        }
-                                        console.log("Remove: " + aus["allegati"]);
-                                        codQuery["$pull"] = aus;
-                                    }
-                                    addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati => {
-                                        if (vetAllegati.length > 0) {
-                                            aus = {};
-                                            if (vetAllegati.length > 1) {
-                                                aus["allegati"] = new Array();
-                                                for (i = 0; i < vetAllegati.length; i++) {
-                                                    aus["allegati"].push({ "codAllegato": parseInt(vetAllegati[i]) });
+                                    appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => { 
+                                        modificaRicorsiva(req, res, 1);
+                                        addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati => {
+                                            if (vetAllegati.length > 0) {
+                                                aus = {};
+                                                if (vetAllegati.length > 1) {
+                                                    aus["allegati"] = new Array();
+                                                    for (i = 0; i < vetAllegati.length; i++) {
+                                                        aus["allegati"].push({ "codAllegato": parseInt(vetAllegati[i]) });
+                                                    }
+                                                } else {
+                                                    aus["allegati"] = { "codAllegato": parseInt(vetAllegati[0]) };
                                                 }
+                                                codQuery["$push"] = aus;
+                                                appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => {
+                                                    let token = createToken(req.payload);
+                                                    writeCookie(res, token);
+                                                    res.writeHead(200, { "Content-Type": "application/json" });
+                                                    res.end(JSON.stringify(results));
+                                                }).catch(err => {
+                                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                });
                                             }else{
-                                                aus["allegati"]={ "codAllegato": parseInt(vetAllegati[0]) };
+                                                let token = createToken(req.payload);
+                                                writeCookie(res, token);
+                                                res.writeHead(200, { "Content-Type": "application/json" });
+                                                res.end(JSON.stringify(results));
                                             }
-                                            
-                                            codQuery["$push"] = aus;
-                                        }
-                                        console.log(codQuery);
-                                        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) },codQuery).exec().then(results => {
-                                            console.log(results);
-                                            let token = createToken(req.payload);
-                                            writeCookie(res, token);
-                                            res.writeHead(200, { "Content-Type": "application/json" });
-                                            res.end(JSON.stringify(results));
-                                        }).catch(err => {
-                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                         });
+                                    }).catch(err => { 
+                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); 
                                     });
                                 } else {
                                     error(req, res, null, JSON.stringify(new ERRORS.EXISTING_NOTE({})));
@@ -1893,6 +1838,122 @@ app.post("/api/modificaAppunto", uploadAllegati.array("newAllegati"),function (r
     }
     
 });
+
+function modificaRicorsiva(req, res, step) {
+    if ((req.body.addArgomenti.length > 0) && (step == 1)) {
+        gestModAddArgomenti(req, res).then(ris1 => { 
+            modificaRicorsiva(req, res, step + 1);
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else if (step == 1){
+        modificaRicorsiva(req, res, step + 1);
+    }
+
+    if ((req.body.removeArgomenti.length > 0) && (step == 2)) {
+        gestModDelArgomenti(req, res).then(ris2 =>{
+            modificaRicorsiva(req, res, step + 1);
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else if (step == 2){
+        modificaRicorsiva(req, res, step + 1);
+    }
+
+    if ((req.body.addAllegati.length > 0) && (step == 3)) {
+        gestModAddAllegati(req, res).then(ris2=>{
+            modificaRicorsiva(req, res, step + 1);
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else if (step == 3){
+        modificaRicorsiva(req, res, step + 1);
+    }
+
+    if ((req.body.removeAllegati.length > 0) && (step == 4)) {
+        gestModDelAllegati(req, res).then(ris3=>{
+            modificaRicorsiva(req, res, step + 1);
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else if (step == 4){
+        return 0;
+    }
+}
+
+function gestModAddArgomenti(req, res) {
+    return new Promise((resolve, reject)=>{
+        let aus = {}, codQuery = {};
+        if (req.body.addArgomenti.length > 1) {
+            aus["argomenti"] = new Array();
+            let ausVet = req.body.addArgomenti.split(',');
+            for (let i = 0; i < ausVet.length; i++) {
+                aus["argomenti"].push({ "codArgomento": parseInt(ausVet[i]), "dataAggiunta": new Date().toJSON() });
+            }
+        } else {
+            aus["argomenti"] = { "codArgomento": parseInt(req.body.addArgomenti[0]), "dataAggiunta": new Date().toJSON() };
+        }
+        codQuery["$push"] = aus;
+        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => { resolve() }).catch(err => { error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+    });
+}
+
+function gestModDelArgomenti(req, res) {
+    return new Promise((resolve, reject)=>{
+        let aus = {}, codQuery = {};
+        if (req.body.removeArgomenti.length > 1) {
+            aus["argomenti"] = {};
+            let vetCond = new Array();
+            let ausVet = req.body.removeArgomenti.split(',');
+            for (let i = 0; i < ausVet.length; i++) {
+                vetCond.push({ "codArgomento": parseInt(ausVet[i]) });
+            }
+            aus["argomenti"]["$or"] = JSON.parse(JSON.stringify(vetCond));
+        } else {
+            aus["argomenti"] = { "codArgomento": parseInt(req.body.removeArgomenti[0]) };
+        }
+
+        codQuery["$pull"] = aus;
+        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => { resolve() }).catch(err => { error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+    });
+}
+
+function gestModAddAllegati(req, res) {
+    return new Promise((resolve, reject)=>{
+        let aus = {}, codQuery = {};
+        if (req.body.addAllegati.length > 1) {
+            aus["allegati"] = new Array();
+            let ausVet = req.body.addAllegati.split(',');
+            for (let i = 0; i < ausVet.length; i++) {
+
+                aus["allegati"].push({ "codAllegato": parseInt(ausVet[i]) });
+            }
+        } else {
+            aus["allegati"] = { "codAllegato": parseInt(req.body.addAllegati[0]) };
+        }
+        codQuery["$push"] = aus;
+        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => { resolve() }).catch(err => { error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+    });
+}
+
+function gestModDelAllegati(req, res) {
+    return new Promise((resolve, reject) =>{
+        let aus = {}, codQuery = {};
+        if (req.body.removeAllegati.length > 1) {
+            aus["allegati"] = {};
+            let vetCond = new Array();
+            let ausVet = req.body.removeAllegati.split(',');
+            for (let i = 0; i < ausVet.length; i++) {
+                vetCond.push({ "codAllegato": parseInt(ausVet[i]) });
+            }
+            aus["allegati"]["$or"] = JSON.parse(JSON.stringify(vetCond));
+        } else {
+            aus["allegati"] = { "codAllegato": parseInt(req.body.removeAllegati[0]) };
+        }
+        codQuery["$pull"] = aus;
+        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => { resolve() }).catch(err => { error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+    });
+}
 
 app.post("/api/removeAppunto", function (req, res) {
     console.log(req.body.codAppunto);

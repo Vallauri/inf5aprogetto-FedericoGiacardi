@@ -1,6 +1,7 @@
 "use strict";
 
 let lastClickSchedule;
+const nElementiVis = 3;
 
 $(document).ready(function () {
     loadPagina();
@@ -520,10 +521,17 @@ function creazioneElencoAppunti(utenti) {
     $("#contAppunti").html("");
     let codHtml = "", vetArg = "";
     let aus;
+    let dim = 0;
    
     utenti.forEach(utente => {
         if (utente["appuntiCaricati"] != undefined && utente["appuntiCaricati"].length > 0) {
-            for (let i = 0; i < utente["appuntiCaricati"].length; i++) {
+            if (utente["appuntiCaricati"].length < 3) {
+                dim = utente["appuntiCaricati"].length;
+            }else{
+                dim = nElementiVis;
+            }
+            //Controllare il collapse
+            for (let i = 0; i < dim; i++) {
                 codHtml += '<a href="dettaglioAppunto.html?appunto=' + utente["appuntiCaricati"][i]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
                 codHtml += '<h5 class="mb-1">' + utente["appuntiCaricati"][i].descrizione + '</h5>';
@@ -539,6 +547,27 @@ function creazioneElencoAppunti(utenti) {
                     }
                 }
                 codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() +'</p>';
+                if (i == dim - 1 && dim > 2) {
+                    codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriAppunti" data-parent="#acc"><i class="fa fa-plus"></i></button>';
+                    codHtml += '<div id="contAltriAppunti" class="collapse">';
+                    for (let k = dim; k < (utente["appuntiCaricati"].length-dim); k++) {
+                        codHtml += '<a href="dettaglioAppunto.html?appunto=' + utente["appuntiCaricati"][k]._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
+                        codHtml += '<div class="d-flex w-100 justify-content-between">';
+                        codHtml += '<h5 class="mb-1">' + utente["appuntiCaricati"][k].descrizione + '</h5>';
+                        codHtml += '</div>';
+                        aus = new Date(utente["appuntiCaricati"][k].dataCaricamento);
+                        if (utente["appuntiCaricati"][k].argomenti != undefined) {
+                            vetArg = "Argomenti: ";
+                            for (let J = 0; J < utente["appuntiCaricati"][k].argomenti.length; J++) {
+                                vetArg += utente["appuntiCaricati"][k].argomenti[J].descrizione;
+                                if (J != utente["appuntiCaricati"][k].argomenti.length - 1) {
+                                    vetArg += ", ";
+                                }
+                            }
+                        }
+                    }
+                    codHtml += '</div>';
+                }
                 codHtml += '</a>';
             }
         }else{
