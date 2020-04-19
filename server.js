@@ -8,8 +8,15 @@ const saltRounds = 10;
 const nodemailer = require('nodemailer');
 var async = require("async");
 var crypto = require("crypto");
+const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
+const { IamAuthenticator } = require('ibm-watson/auth');
+const textToSpeech = new TextToSpeechV1({
+    authenticator: new IamAuthenticator({ apikey: 'GIoavDcJdcfLEMrYTx3qpK4digTwJW3UeLnXSQgF3xsX' }),
+    url: 'https://api.eu-gb.text-to-speech.watson.cloud.ibm.com/instances/cc186352-e98d-4453-a9db-e71e93ffee9e'
+});
 require('dotenv').config();
 const port = process.env.PORT || 8888;
+const textract = require('textract');
 
 const multer = require("multer"); // Modulo per salvataggio immagini su server
 // Impostazioni multer
@@ -119,6 +126,13 @@ ERRORS.create({
     code: 609,
     name: 'AUTH_NOT_REMOVED',
     defaultMessage: 'L\'autore del gruppo non può essere rimosso'
+});
+
+// code 610 - TTS Service currently unavailable
+ERRORS.create({
+    code: 609,
+    name: 'TTS_NOT_AVAILABLE',
+    defaultMessage: 'Il servizio di Text to speech non è attualmente disponibile'
 });
 
 const HTTPS = require('https');
@@ -1974,6 +1988,63 @@ app.post("/api/removeAppunto", function (req, res) {
         gestErrorePar(req, res);
     }
 });
+
+app.post("/api/TTSVoices", function (req, res) {
+    textToSpeech.listVoices().then(results=>{
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
+    });
+});
+
+app.post("/api/TTS", function (req, res) {
+    if (req.body.elencoAllegati.length > 0) {
+        if (req.body.voce != "") {
+            textract.fromFileWithPath("static/allegati/2020-04-14T18-47-09.756Z_Massa - VictorianAge.docx", function (err, text) {
+                console.log(err);
+                console.log(text);
+                const params = {
+                    text: text,
+                    voice: req.body.voce,
+                    accept: 'audio/wav'
+                };
+                textToSpeech.synthesize(params).then(response => {
+                    const audio = response.result;
+                    return textToSpeech.repairWavHeaderStream(audio);
+                }).then(repairedFile => {
+                    const now = new Date().toISOString();
+                    const date = now.replace(/:/g, '-');
+                    let percorso = 'static/audio/' + date + "prova" + ".wav";
+                    fs.writeFileSync(percorso, repairedFile);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(percorso));
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
+                });
+            });
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+function getFilePath(codFile) {
+    return new Promise((resolve, reject) =>{
+        allegati.findOne({ "_id": parseInt(codFile) }).exec.then(result => {
+            resolve(result.percorso);
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    });
+}
+
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

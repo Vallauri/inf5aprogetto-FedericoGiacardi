@@ -13,22 +13,26 @@ $(document).ready(function () {
         loadAllegati();
         $("#txtRicerca").autocomplete({
             source: function (req, res) {
-                $.ajax({
-                    minLength: 0,
-                    url: "/api/ricercaAppunti",
-                    dataType: "json",
-                    type: "POST",
-                    data: {
-                        par: req.term,
-                        tipo: $("#tipoRicerca").val()
-                    },
-                    success: function (data) {
-                        stampaRisRicerca(data);
-                    },
-                    error: function (xhr) {
-                        printErrors(jqXHR, "#msgRic");
-                    }
-                });
+                if ($("#tipoRicerca").val() != ""){
+                    $.ajax({
+                        minLength: 0,
+                        url: "/api/ricercaAppunti",
+                        dataType: "json",
+                        type: "POST",
+                        data: {
+                            par: req.term,
+                            tipo: $("#tipoRicerca").val()
+                        },
+                        success: function (data) {
+                            stampaRisRicerca(data);
+                        },
+                        error: function (xhr) {
+                            printErrors(jqXHR, "#msgRic");
+                        }
+                    });
+                } else {
+                    gestErrori("Indicare il tipo di ricerca", $("#tipoRicerca"), "#msgRic");
+                }
             }
         });
     });
@@ -81,7 +85,6 @@ function ricercaAppunti() {
     }else{
         gestErrori("Indicare il tipo di ricerca", $("#tipoRicerca"), "#msgRic");
     }
-    
 }
 
 function stampaRisRicerca(appunti) {
