@@ -46,7 +46,7 @@ function caricamentoDatiCorso(modulo) {
         codHtml += '<img class="img-fluid" src="img/single_cource.png" alt="">'; // immagine del corso non presente su db
         codHtml += '</div>';
         codHtml += '<div class="content_wrapper">';
-        codHtml += '<h4 class="title_top">' + modulo[0]["descrizione"] +'</h4>';
+        codHtml += '<h4 class="title_top" id="descCorso" idCorso="' + modulo[0]._id + '">' + modulo[0]["descrizione"] +'</h4>';
         codHtml += '<div class="content">';
         codHtml += 'Breve descrizione del modulo'; // la mettiamo o no ??
         codHtml += '</div>';
@@ -120,7 +120,7 @@ function caricamentoDatiCorso(modulo) {
         codHtml += '</li>';
         codHtml += '</ul>';
         codHtml += '<div class="col-lg-12 text-center">';
-        codHtml += '<button id="btnIscrivitiCorso" class="genric-btn success radius">Iscriviti al Corso</button>'; // da gestire
+        codHtml += '<button id="btnIscrivitiCorso" class="genric-btn success radius">Iscriviti al Corso</button>';
         codHtml += '</div>';
 
         let chkToken = inviaRichiesta('/api/elGruppiAdmin', 'POST', { });
@@ -131,19 +131,89 @@ function caricamentoDatiCorso(modulo) {
         chkToken.done(function (data) {
             if(data.length > 0){
                 codHtml += '<div style="margin-top:5px" class="col-lg-12 text-center">';
-                codHtml += '<button id="btnIscriviGruppoCorso" class="genric-btn success radius">Iscrivi un tuo Gruppo al Corso</button>'; // da gestire
+                codHtml += '<button id="btnIscriviGruppoCorso" data-toggle="modal" data-target="#dettCorsoMod" class="genric-btn success radius">Iscrivi un tuo Gruppo al Corso</button>';
                 codHtml += '</div>';
             }
             codHtml += '</div>';
             codHtml += '</div>';
 
             $("#contCorso").html(codHtml);
+           
+            $("#btnIscrivitiCorso").on("click", function () {
+                let chkToken = inviaRichiesta('/api/iscriviUtenteCorso', 'POST', {"idCorso" : $("#descCorso").attr("idCorso")});
+                chkToken.fail(function (jqXHR, test_status, str_error) {
+                    if (jqXHR.status == 611)  // utente già presente in corso
+                        $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+                    else
+                        printErrors(jqXHR, ".modal-body .msg");
+                });
+                chkToken.done(function (data) {
+                    if (data.nModified == 1){
+                        alert("Iscrizione al corso effettuata correttamente!");
+                        window.location.reload();
+                    }
+                    else
+                        $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                });
+            });
+
+            if(data.length > 0){
+                $("#btnIscriviGruppoCorso").on("click", function () {
+                    $("#dettCorsoMod .modal-title").html("Iscrizione Gruppo");
+                    $("#dettCorsoMod .modal-body").children().remove();
+                    $("#btnSalvaModifiche").show().html("Aggiungi");
+
+                    let chkToken = inviaRichiesta('/api/elGruppiIscrivibiliCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
+                    chkToken.fail(function (jqXHR, test_status, str_error) {
+                        console.log(jqXHR);
+                        printErrors(jqXHR, ".msg");
+                    });
+                    chkToken.done(function (gruppi) {
+                        if(gruppi.length > 0){
+                            let cod = '<div class="form-select row" id="default-select-1">';
+                            cod += '<label for="iscriviGruppo">Scegli il Gruppo da Iscrivere</label>';
+                            cod += '<select name="iscriviGruppo" id="iscriviGruppo">';
+                            data.forEach(gruppo => {
+                                cod += "<option value='" + gruppo._id + "'>" + gruppo.nome + "</option>";
+                                //$("#default-select-1 .list").append("<li data-value='" + gruppo._id + "' class='option'>" + gruppo.nome + "</li>");
+                            });
+                            cod += '</select>';
+                            cod += '</div>';
+
+                            $("#dettCorsoMod .modal-body").append(cod);
+
+                            $("#btnSalvaModifiche").on("click", function () {
+                                if ($(this).html() == "Aggiungi") {
+                                    console.log("Gruppo da iscrivere: " + $("#iscriviGruppo option:selected").val());
+                                    let chkToken = inviaRichiesta('/api/iscriviGruppoCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idGruppo" : $("#iscriviGruppo option:selected").val() });
+                                    chkToken.fail(function (jqXHR, test_status, str_error) {
+                                        console.log(jqXHR);
+                                        printErrors(jqXHR, ".msg");
+                                    });
+                                    chkToken.done(function (data) {
+                                        if (data.ok == 1 && data.nModified > 0) {
+                                            alert("Iscrizione del gruppo al corso effettuata correttamente!");
+                                            window.location.reload();
+                                        }
+                                        else
+                                            $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                                    });
+                                }
+                            });
+                        }
+                        else{
+                            // non ci sono gruppi iscrivibili
+                            $("#dettCorsoMod .modal-body").append("<p>Non ci sono gruppi che possono essere iscritti a questo corso</p>");
+                            $("#btnSalvaModifiche").hide();
+                        }
+                    });
+                });
+            }
         });
     }
 }
 
 function chkModeratore(idCorso) {
-    // da cambiare tutto!!!
     // Solo se utente loggato = moderatore gruppo
     let chkToken = inviaRichiesta('/api/chkModCorso', 'POST', { "idCorso": idCorso });
     chkToken.fail(function (jqXHR, test_status, str_error) {
@@ -155,14 +225,16 @@ function chkModeratore(idCorso) {
             let codHtml = "";
             codHtml += '<div class="sidebar_top">';
             codHtml += '<div class="col-lg-12 text-center">';
-            codHtml += '<h4>Gestione Gruppo</h4>';
-            codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnAddMember">Aggiungi Membro/i</button>';
-            codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnModGroup">Modifica Gruppo</button>';
-            codHtml += '<button class="genric-btn danger radius" data-toggle="modal" data-target="#dettGruppoMod" style="margin:2px;" id="btnRemGroup">Elimina Gruppo</button>';
+            codHtml += '<h4>Gestione Corso</h4>';
+            codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettCorsoMod" style="margin:2px;" id="btnAddArgomento">Aggiungi Argomento</button>';
+            codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettCorsoMod" style="margin:2px;" id="btnAddLezione">Aggiungi Lezione</button>';
+            codHtml += '<button class="genric-btn success radius" data-toggle="modal" data-target="#dettCorsoMod" style="margin:2px;" id="btnModCorso">Modifica Corso</button>';
+            codHtml += '<button class="genric-btn danger radius" data-toggle="modal" data-target="#dettCorsoMod" style="margin:2px;" id="btnRemCorso">Elimina Corso</button>';
             codHtml += '</div>';
             codHtml += '</div>';
             $(".right-contents").append(codHtml);
-            $("#btnIscrivitiGruppo").hide();
+            $("#btnIscrivitiCorso").hide();
+            //$("#btnIscriviGruppoCorso").hide(); // da controllare il caso in cui un'utente è iscritto ed è mod di un gruppo (bisogna dargli la possibilità di iscrivere il gruppo)
 
             $("#btnSalvaModifiche").on("click", function () {
                 /*if($(this).html() == "Salva Aggiunte"){
@@ -171,7 +243,7 @@ function chkModeratore(idCorso) {
                 else */
                 if ($(this).html() == "Salva Modifiche") {
                     if (chkCorrettezzaDati()) {
-                        let chkToken = inviaRichiesta('/api/modificaGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "nome": $("#nome").val().trim(), "descrizione": $("#descrizione").val().trim(), "tipoGruppo": $("#tipoGruppo option:selected").val() });
+                        let chkToken = inviaRichiesta('/api/modificaCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "nome": $("#nome").val().trim(), /*"descrizione": $("#descrizione").val().trim(),*/ "tipoCorso": $("#tipiCorsi option:selected").val(), "materia": $("#materie option:selected").val() });
                         chkToken.fail(function (jqXHR, test_status, str_error) {
                             printErrors(jqXHR, ".modal-body .msg");
                         });
@@ -184,29 +256,28 @@ function chkModeratore(idCorso) {
                     }
                 }
                 else if ($(this).html() == "Conferma Rimozione") {
-                    let chkToken = inviaRichiesta('/api/rimuoviGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
+                    let chkToken = inviaRichiesta('/api/rimuoviCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
                         printErrors(jqXHR, ".modal-body .msg");
                     });
                     chkToken.done(function (data) {
                         if (data.ok == 1)
-                            window.location.href = "gruppi.html";
+                            window.location.href = "corsi.html";
                         else
-                            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione del gruppo. Riprovare");
+                            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione del corso. Riprovare");
                     });
                 }
             });
 
-            $("#btnAddMember").on("click", function () {
-                console.log("Aggiunta membro");
-                $("#dettGruppoMod .modal-title").html("Aggiunta Membro al Gruppo");
-                $("#dettGruppoMod .modal-body").children().remove();
+            $("#btnAddArgomento").on("click", function(){
+                $("#dettCorsoMod .modal-title").html("Aggiunta Argomento al Corso");
+                $("#dettCorsoMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").hide();
 
                 let cod = "";
                 cod += '<div class="row">';
                 cod += '<div class="col-lg-12 text-center">';
-                cod += '<label for="txtRicerca">Cerca Utente:</label>';
+                cod += '<label for="txtRicerca">Cerca Argomento:</label>';
                 cod += '</div>';
                 cod += '<div class="col-lg-11 text-center">';
                 cod += '<div class="row">';
@@ -218,24 +289,22 @@ function chkModeratore(idCorso) {
                 cod += '</div>';
                 cod += '</div>';
                 cod += '<p class="msg" style="margin-top:5px"></p>';
-                // cod += '<span id="elUtAdd" idUt=""></span>'; // serve per add diversa da quella gestita ora
                 cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
 
-                $("#dettGruppoMod .modal-body").append(cod);
+                $("#dettCorsoMod .modal-body").append(cod);
 
                 $("#btnRicerca").on("click", function () {
                     $(".modal-body .msg").text("");
 
                     if ($("#txtRicerca").val() != "") {
-                        let ricerca = inviaRichiesta('/api/cercaUtenteAggiuntaGruppo', 'POST', { "valore": $("#txtRicerca").val() });
+                        let ricerca = inviaRichiesta('/api/cercaArgAggiuntaCorso', 'POST', { "valore": $("#txtRicerca").val() });
                         ricerca.fail(function (jqXHR, test_status, str_error) {
                             printErrors(jqXHR, ".modal-body .msg");
                         });
                         ricerca.done(function (data) {
-                            console.log(data);
-                            dettaglioUtente(data);
+                            dettArgomento(data);
                         });
                     }
                     else {
@@ -247,14 +316,14 @@ function chkModeratore(idCorso) {
                 $('#txtRicerca').autocomplete({
                     source: function (req, res) {
                         $.ajax({
-                            url: "/api/cercaUtenteAggiuntaGruppo",
+                            url: "/api/cercaArgAggiuntaCorso",
                             dataType: "json",
                             type: "POST",
                             data: {
                                 valore: req.term
                             },
                             success: function (data) {
-                                dettaglioUtente(data);
+                                dettArgomento(data);
                             },
                             error: function (xhr) {
                                 alert(xhr.status + ' : ' + xhr.statusText);
@@ -267,40 +336,444 @@ function chkModeratore(idCorso) {
                 });
             });
 
-            $("#btnModGroup").on("click", function () {
-                console.log("Modifica gruppo");
-                $("#dettGruppoMod .modal-title").html("Modifica del Gruppo");
-                $("#dettGruppoMod .modal-body").children().remove();
+            $("#btnAddLezione").on("click", function () {
+                $("#dettCorsoMod .modal-title").html("Aggiunta Lezione al Corso");
+                $("#dettCorsoMod .modal-body").children().remove();
+                $("#btnSalvaModifiche").hide();
+
+                let cod = "";
+                cod += '<div class="row">';
+                cod += '<div class="col-lg-12 text-center">';
+                cod += '<label for="txtRicerca">Cerca Lezione:</label>';
+                cod += '</div>';
+                cod += '<div class="col-lg-11 text-center">';
+                cod += '<div class="row">';
+                cod += '<div class="col-lg-10">';
+                cod += '<input type="text" class="form-control" name="txtRicerca" id="txtRicerca" placeholder="Digita qui la tua ricerca...">';
+                cod += '</div>';
+                cod += '<div class="col-lg-2">';
+                cod += '<button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>';
+                cod += '</div>';
+                cod += '</div>';
+                cod += '<p class="msg" style="margin-top:5px"></p>';
+                cod += '</div>';
+                cod += '</div>';
+                cod += '</div>';
+
+                $("#dettCorsoMod .modal-body").append(cod);
+
+                $("#btnRicerca").on("click", function () {
+                    $(".modal-body .msg").text("");
+
+                    if ($("#txtRicerca").val() != "") {
+                        let ricerca = inviaRichiesta('/api/cercaLezAggiuntaCorso', 'POST', { "valore": $("#txtRicerca").val() });
+                        ricerca.fail(function (jqXHR, test_status, str_error) {
+                            printErrors(jqXHR, ".modal-body .msg");
+                        });
+                        ricerca.done(function (data) {
+                            dettLezione(data);
+                        });
+                    }
+                    else {
+                        $(".modal-body .msg").text("Inserire un valore per la ricerca");
+                        $("#txtRicerca").focus();
+                    }
+                });
+
+                $('#txtRicerca').autocomplete({
+                    source: function (req, res) {
+                        $.ajax({
+                            url: "/api/cercaLezAggiuntaCorso",
+                            dataType: "json",
+                            type: "POST",
+                            data: {
+                                valore: req.term
+                            },
+                            success: function (data) {
+                                dettLezione(data);
+                            },
+                            error: function (xhr) {
+                                alert(xhr.status + ' : ' + xhr.statusText);
+                            }
+                        });
+                    },
+                    select: function (event, ui) {
+
+                    }
+                });
+            });
+
+            $("#btnModCorso").on("click", function () {
+                $("#dettCorsoMod .modal-title").html("Modifica del Corso");
+                $("#dettCorsoMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").show().html("Salva Modifiche");
 
-                let chkToken = inviaRichiesta('/api/datiGruppoById', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
+                let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
                 chkToken.fail(function (jqXHR, test_status, str_error) {
                     printErrors(jqXHR, ".modal-body .msg");
                 });
                 chkToken.done(function (data) {
                     console.log(data);
-                    modificaGruppo(data);
+                    modificaCorso(data);
                 });
             });
 
-            $("#btnRemGroup").on("click", function () {
-                console.log("Elimina gruppo");
-                $("#dettGruppoMod .modal-title").html("Rimozione del Gruppo");
-                $("#dettGruppoMod .modal-body").children().remove();
+            $("#btnRemCorso").on("click", function () {
+                $("#dettCorsoMod .modal-title").html("Rimozione del Corso");
+                $("#dettCorsoMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").show().html("Conferma Rimozione");
 
                 let cod = "";
                 cod += '<div class="row">';
                 cod += '<div class="col-lg-12 text-center">';
-                cod += '<p>Sei sicuro di voler rimuovere il gruppo? Tutti i dati ad esso collegati verranno rimossi</p>';
+                cod += '<p>Sei sicuro di voler rimuovere il corso? Tutti i dati ad esso collegati verranno rimossi</p>';
                 cod += '<p class="msg"></p>';
                 cod += '</div>';
                 cod += '</div>';
 
-                $("#dettGruppoMod .modal-body").append(cod);
+                $("#dettCorsoMod .modal-body").append(cod);
             });
         }
-        else if (data.ris == "componente")
-            $("#btnIscrivitiGruppo").hide();
+        else if (data.ris == "iscritto"){
+            $("#btnIscrivitiCorso").hide();
+            //$("#btnIscriviGruppoCorso").hide(); // da controllare il caso in cui un'utente è iscritto ed è mod di un gruppo (bisogna dargli la possibilità di iscrivere il gruppo)
+        }
+    });
+}
+
+function dettArgomento(argomenti){
+    console.log(argomenti);
+    let codHtml = "";
+    $(".modal-body .msg").html("");
+    $("#risultato").remove();
+
+    if (argomenti.length > 0) {
+        codHtml += '<div class="row" id="risultato">';
+        codHtml += '<table class="table">';
+        codHtml += "<tr>";
+        codHtml += '<th>Descrizione</th>';
+        codHtml += '<th>Azione</th>';
+        codHtml += '</tr>';
+
+        argomenti.forEach(argomento => {
+            codHtml += '<tr id="riga_' + argomento._id + '">';
+            codHtml += '<td>' + argomento.descrizione + '</td>';
+            codHtml += '<td><button class="genric-btn success circle" onclick="addArgCorso(' + argomento._id + ')"><i class="fa fa-plus" aria-hidden="true"></i></button></td>';
+            codHtml += '</tr>';
+        });
+
+        codHtml += '</table>';
+        codHtml += '</div>';
+    }
+    else {
+        $(".modal-body .msg").text("Nessun argomento trovato");
+        $("#risultato").remove();
+    }
+
+    $("#dettCorsoMod .modal-body").append(codHtml);
+}
+
+function addArgCorso(idArg){
+    console.log("Argomento: " + idArg);
+    $(".modal-body .msg").text("").css("color", "red");
+
+    let chkToken = inviaRichiesta('/api/insNuovoArgCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idArg": idArg });
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        if (jqXHR.status == 612)  // argomento già presente in corso
+            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+        else
+            printErrors(jqXHR, ".modal-body .msg");
+    });
+    chkToken.done(function (data) {
+        if (data.nModified == 1)
+            window.location.reload();
+        else
+            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta dell'argomento al corso");
+    });
+}
+
+function dettLezione(lezioni) {
+    console.log(lezioni);
+    let codHtml = "";
+    $(".modal-body .msg").html("");
+    $("#risultato").remove();
+
+    if (lezioni.length > 0) {
+        codHtml += '<div class="row" id="risultato">';
+        codHtml += '<table class="table">';
+        codHtml += "<tr>";
+        codHtml += '<th>Titolo</th>';
+        codHtml += '<th>Azione</th>';
+        codHtml += '</tr>';
+
+        lezioni.forEach(lezione => {
+            codHtml += '<tr id="riga_' + lezione._id + '">';
+            codHtml += '<td>' + lezione.titolo + '</td>';
+            codHtml += '<td><button class="genric-btn success circle" onclick="addLezCorso(' + lezione._id + ')"><i class="fa fa-plus" aria-hidden="true"></i></button></td>';
+            codHtml += '</tr>';
+        });
+
+        codHtml += '</table>';
+        codHtml += '</div>';
+    }
+    else {
+        $(".modal-body .msg").text("Nessuna lezione trovata");
+        $("#risultato").remove();
+    }
+
+    $("#dettCorsoMod .modal-body").append(codHtml);
+}
+
+function addLezCorso(idLez) {
+    console.log("Lezione: " + idLez);
+    $(".modal-body .msg").text("").css("color", "red");
+
+    let chkToken = inviaRichiesta('/api/insNuovaLezCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idLez": idLez });
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        if (jqXHR.status == 613)  // lezione già presente in corso
+            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+        else
+            printErrors(jqXHR, ".modal-body .msg");
+    });
+    chkToken.done(function (data) {
+        if (data.nModified == 1)
+            window.location.reload();
+        else
+            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta della lezione al corso");
+    });
+}
+
+function modificaCorso(dettCorso) {
+    /*
+        nome
+        descrizione
+        foto (?)
+        tipo di gruppo
+        ...
+    */
+    let codHtml = "";
+    codHtml += '<div class="row">';
+    codHtml += '<div class="col-lg-12 text-center container">';
+    codHtml += '<h4>Dettagli del Corso</h4>';
+    codHtml += '<form>';
+    codHtml += '<div class="form-group row">';
+    codHtml += '<label for="nome" class="col-sm-1-12 col-form-label">Nome Corso</label>';
+    codHtml += '<div class="col-sm-1-12">';
+    codHtml += '<input type="text" class="form-control" name="nome" id="nome" value="' + dettCorso[0].descrizione + '" placeholder="Inserisci qui il nome del corso...">';
+    codHtml += '</div>';
+    codHtml += '</div>';
+    // codHtml += '<div class="form-group row">';
+    // codHtml += '<label for="descrizione" class="col-sm-1-12 col-form-label">Descrizione Corso</label>'; // Non c'è la desc su DB, la mettiamo ??
+    // codHtml += '<div class="col-sm-1-12">';
+    // codHtml += '<input type="text" class="form-control" name="descrizione" id="descrizione" value="' + dettCorso[0].descrizione + '" placeholder="Inserisci qui la descrizione del corso...">';
+    // codHtml += '</div>';
+    // codHtml += '</div>';
+    // codHtml += '<div class="form-group row">'; // foto da gestire...
+    // codHtml += '<label for="nome" class="col-sm-1-12 col-form-label">Foto del Corso</label>';
+    // codHtml += '<div class="col-sm-1-12">';
+    // codHtml += '<input type="text" class="form-control" name="nome" id="nome" placeholder="Inserisci qui il nome del gruppo...">';
+    // codHtml += '</div>';
+    // codHtml += '</div>';
+    codHtml += '<div class="form-group">';
+    codHtml += '<label for="tipiCorsi">Tipo di Corso</label>';
+    codHtml += '<select class="form-control" name="tipiCorsi" id="tipiCorsi">';
+    codHtml += '</select>';
+    codHtml += '</div>';
+    codHtml += '<div class="form-group">';
+    codHtml += '<label for="materie">Materia</label>';
+    codHtml += '<select class="form-control" name="materie" id="materie">';
+    codHtml += '</select>';
+    codHtml += '</div>';
+    codHtml += '</form>';
+
+    codHtml += '<br>';
+    codHtml += '<h4>Argomenti del Corso</h4>';
+    codHtml += '<div class="content" id="contArgMod">';
+
+    if (dettCorso[0]["argomentiModulo"] != undefined && dettCorso[0]["argomentiModulo"].length > 0) {
+        codHtml += '<div class="row">';
+        codHtml += '<div class="col-lg-12 text-center" id="tabArgCorso">';
+        codHtml += '<table class="table">';
+        codHtml += "<tr>";
+        codHtml += '<th>Descrizione</th>';
+        codHtml += '<th>Azione</th>';
+        codHtml += '</tr>';
+
+        dettCorso[0]["argomentiModulo"].forEach(argomento => {
+            codHtml += '<tr>';
+            codHtml += '<td scope="row">' + argomento.descrizione + '</td>';
+            codHtml += '<td><button class="genric-btn danger circle" onclick="removeArgCorso(' + argomento._id + ')"><i class="fa fa-minus" aria-hidden="true"></i></button></td>';
+            codHtml += '</tr>';
+        });
+
+        codHtml += '</table>';
+        codHtml += '</div>';
+        codHtml += '</div>';
+    }
+    else {
+        codHtml += '<p>Al momento non ci sono ancora degli argomenti relativi al corso</p>';
+    }
+
+    codHtml += '</div>';
+    codHtml += '<br>';
+    codHtml += '<h4>Lezioni del Corso</h4>';
+    codHtml += '<div class="content" id="contLezMod">';
+
+    if (dettCorso[0]["lezioniModulo"] != undefined && dettCorso[0]["lezioniModulo"].length > 0) {
+        codHtml += '<div class="row">';
+        codHtml += '<div class="col-lg-12 text-center" id="tabLezCorso">';
+        codHtml += '<table class="table">';
+        codHtml += "<tr>";
+        codHtml += '<th>Titolo</th>';
+        codHtml += '<th>Data Aggiunta</th>';
+        codHtml += '</tr>';
+
+        for (let i = 0; i < dettCorso[0]["lezioniModulo"].length; i++) {
+            codHtml += '<tr>';
+            codHtml += '<td>' + dettCorso[0]["lezioniModulo"][i].titolo + '</td>';
+            codHtml += '<td>' + new Date(dettCorso[0]["lezioni"][i].dataAggiunta).toLocaleDateString() + '</td>';
+            codHtml += '<td><button class="genric-btn danger circle" onclick="removeLezCorso(' + dettCorso[0]["lezioniModulo"][i]._id + ')"><i class="fa fa-minus" aria-hidden="true"></i></button></td>';
+            codHtml += '</tr>';
+        };
+
+        codHtml += '</table>';
+        codHtml += '</div>';
+        codHtml += '</div>';
+    }
+    else {
+        codHtml += '<p>Al momento non ci sono ancora delle lezioni relative al corso</p>';
+    }
+
+    codHtml += '</div>';
+
+    codHtml += '<p class="msg" style="margin-top:5px"></p>';
+    codHtml += '</div>';
+    codHtml += '</div>';
+    $("#dettCorsoMod .modal-body").append(codHtml);
+
+    let tipiCorsi = inviaRichiesta('/api/elTipiCorsi', 'POST', {});
+    tipiCorsi.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+    });
+    tipiCorsi.done(function (data) {
+        data.forEach(tipocorso => {
+            $("#tipiCorsi").append("<option value='" + tipocorso._id + "' " + (tipocorso._id == dettCorso[0].codTipoModulo ? "selected" : "") + ">" + tipocorso.descrizione + "</option>");
+            //$("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
+        });
+    });
+
+    let materie = inviaRichiesta('/api/elSimpleMaterie', 'POST', {});
+    materie.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+    });
+    materie.done(function (data) {
+        data.forEach(materia => {
+            $("#materie").append("<option value='" + materia._id + "' " + (materia._id == dettCorso[0].codMateria ? "selected" : "") + ">" + materia.descrizione + "</option>");
+            //$("#default-select-1 .list").append("<li data-value='" + materia._id + "' class='option'>" + materia.descrizione + "</li>");
+        });
+    });
+}
+
+function chkCorrettezzaDati() {
+    $(".modal-body .msg").text("").css("color", "red");
+
+    if ($("#nome").val().trim() == "") {
+        $(".modal-body .msg").text("Devi inserire il nome del corso");
+    }
+    /*else if ($("#descrizione").val().trim() == "") {
+        $(".modal-body .msg").text("Devi inserire la descrizione del gruppo");
+    }*/
+    else {
+        return true;
+    }
+    return false;
+}
+
+function removeArgCorso(idArgomento) {
+    $(".modal-body .msg").text("").css("color", "red");
+
+    let chkToken = inviaRichiesta('/api/removeArgCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idArgomento": idArgomento });
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".modal-body .msg");
+    });
+    chkToken.done(function (data) {
+        if (data.nModified == 1) {
+            $(".modal-body .msg").css("color", "green").text("Argomento rimosso dal corso");
+            let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
+            chkToken.fail(function (jqXHR, test_status, str_error) {
+                printErrors(jqXHR, ".modal-body .msg");
+            });
+            chkToken.done(function (dettCorso) {
+                if (dettCorso[0]["argomentiModulo"] != undefined && dettCorso[0]["argomentiModulo"].length > 0) {
+                    $("#tabArgCorso").children().remove();
+                    let codHtml = '<table class="table">';
+                    codHtml += "<tr>";
+                    codHtml += '<th>Descrizione</th>';
+                    codHtml += '<th>Azione</th>';
+                    codHtml += '</tr>';
+
+                    dettCorso[0]["argomentiModulo"].forEach(argomento => {
+                        codHtml += '<tr>';
+                        codHtml += '<td scope="row">' + argomento.descrizione + '</td>';
+                        codHtml += '<td><button class="genric-btn danger circle" onclick="removeArgCorso(' + argomento._id + ')"><i class="fa fa-minus" aria-hidden="true"></i></button></td>';
+                        codHtml += '</tr>';
+                    });
+
+                    codHtml += '</table>';
+                    $("#tabArgCorso").append(codHtml);
+                }
+                else {
+                    $("#contArgMod").children().remove();
+                    $("#contArgMod").append('<p>Al momento non ci sono ancora degli argomenti relativi al corso</p>');
+                }
+            });
+        }
+        else
+            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione dell'argomento dal corso");
+    });
+}
+
+function removeLezCorso(idLezione) {
+    $(".modal-body .msg").text("").css("color", "red");
+
+    let chkToken = inviaRichiesta('/api/removeLezCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idLezione": idLezione });
+    chkToken.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, ".modal-body .msg");
+    });
+    chkToken.done(function (data) {
+        if (data.nModified == 1) {
+            $(".modal-body .msg").css("color", "green").text("Lezione rimossa dal corso");
+            let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
+            chkToken.fail(function (jqXHR, test_status, str_error) {
+                printErrors(jqXHR, ".modal-body .msg");
+            });
+            chkToken.done(function (dettCorso) {
+                if (dettCorso[0]["lezioniModulo"] != undefined && dettCorso[0]["lezioniModulo"].length > 0) {
+                    $("#tabLezCorso").children().remove();
+                    let codHtml = '<table class="table">';
+                    codHtml += "<tr>";
+                    codHtml += '<th>Titolo</th>';
+                    codHtml += '<th>Data Aggiunta</th>';
+                    codHtml += '</tr>';
+
+                    for (let i = 0; i < dettCorso[0]["lezioniModulo"].length; i++) {
+                        codHtml += '<tr>';
+                        codHtml += '<td>' + dettCorso[0]["lezioniModulo"][i].titolo + '</td>';
+                        codHtml += '<td>' + new Date(dettCorso[0]["lezioni"][i].dataAggiunta).toLocaleDateString() + '</td>';
+                        codHtml += '<td><button class="genric-btn danger circle" onclick="removeLezCorso(' + dettCorso[0]["lezioniModulo"][i]._id + ')"><i class="fa fa-minus" aria-hidden="true"></i></button></td>';
+                        codHtml += '</tr>';
+                    };
+
+                    codHtml += '</table>';
+                    $("#tabLezCorso").append(codHtml);
+                }
+                else {
+                    $("#contLezMod").children().remove();
+                    $("#contLezMod").append('<p>Al momento non ci sono ancora delle lezioni relative al corso</p>');
+                }
+            });
+        }
+        else
+            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione della lezione dal corso");
     });
 }

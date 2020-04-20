@@ -108,17 +108,39 @@ ERRORS.create({
     defaultMessage: 'Esiste già un Appunto con il medesimo Titolo e Autore'
 });
 
-ERRORS.create({
-    code: 608,
-    name: 'USER_ALREADY_IN_GROUP',
-    defaultMessage: 'L\'utente è già presente nel gruppo'
-});
-
 // code 609 - Author of group can't be removed
 ERRORS.create({
     code: 609,
     name: 'AUTH_NOT_REMOVED',
     defaultMessage: 'L\'autore del gruppo non può essere rimosso'
+});
+
+// code 610 - User already in group
+ERRORS.create({
+    code: 610,
+    name: 'USER_ALREADY_IN_GROUP',
+    defaultMessage: 'L\'utente è già presente nel gruppo'
+});
+
+// code 611 - User already in course
+ERRORS.create({
+    code: 611,
+    name: 'USER_ALREADY_IN_COURSE',
+    defaultMessage: 'L\'utente è già iscritto al corso'
+});
+
+// code 612 - Argoument already in course
+ERRORS.create({
+    code: 612,
+    name: 'ARG_ALREADY_IN_COURSE',
+    defaultMessage: 'L\'argomento è già presente nel corso'
+});
+
+// code 613 - Lession already in course
+ERRORS.create({
+    code: 613,
+    name: 'LEZ_ALREADY_IN_COURSE',
+    defaultMessage: 'La lezione è già presente nel corso'
 });
 
 const HTTPS = require('https');
@@ -846,9 +868,9 @@ app.post("/api/cercaCorso", function (req, res) {
     if (filtri.corsiDaCercare == "all") { // controllo se i corsi da cercare sono tutti o solo quelli del gruppo
         let filtriFind;
         if (filtri.tipoCorso != "none") // controllo se è stato specificato un tipo di corso
-            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), codTipoModulo: parseInt(filtri.tipoCorso) };
+            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), codTipoModulo: parseInt(filtri.tipoCorso), validita : true };
         else
-            filtriFind = { descrizione: new RegExp(req.body.valore, "i") };
+            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), validita: true };
 
         moduli.find(filtriFind).exec().then(results => {
             if (results.length > 0) {
@@ -919,8 +941,13 @@ app.post("/api/cercaCorso", function (req, res) {
                     $lookup:
                     {
                         from: moduli.collection.name,
-                        localField: "moduliGruppi.codModulo",
-                        foreignField: "_id",
+                        // localField: "moduliGruppi.codModulo",
+                        // foreignField: "_id",
+                        "let": { "moduli": "$moduliGruppi.codModulo" },
+                        "pipeline": [
+                            { "$match": { "$expr": { "$in": ["$_id", "$$moduli"] } } },
+                            { "$match": { "$expr": { "$eq": ["$validita", true] } } },
+                        ],
                         as: "moduliTrovati"
                     }
                 }
@@ -999,7 +1026,8 @@ app.post("/api/cercaCorso", function (req, res) {
                         "let": { "moduli": "$moduliGruppi.codModulo" },
                         "pipeline": [
                             { "$match": { "$expr": { "$in": ["$_id", "$$moduli"] } } },
-                            { "$match": { "$expr": { "$eq": ["$codTipoModulo", tipoCorso] } } }
+                            { "$match": { "$expr": { "$eq": ["$codTipoModulo", tipoCorso] } } },
+                            { "$match": { "$expr": { "$eq": ["$validita", true] } } },
                         ],
                         as: "moduliTrovati"
                     }
@@ -1073,6 +1101,7 @@ app.post("/api/cercaCorso", function (req, res) {
 app.post("/api/datiCorsoById", function (req, res) {
     moduli.aggregate([
         { $match: { "_id": parseInt(req.body.idCorso) } },
+        { $match: { "validita": true } },
         {
             $lookup:
             {
@@ -1313,7 +1342,7 @@ app.post("/api/datiGruppoById", function (req, res) {
                 "pipeline": [
                     { "$unwind" : "$gruppo" },
                     { "$match": { "$expr": { "$and": [{ "$eq": ["$$gruppo", "$gruppo.codGruppo"] }, { "$eq": [null, "$gruppo.dataFine"] }] } } }
-				],
+					],
                 as: "componenti"
             }
         },
@@ -1357,15 +1386,19 @@ app.post("/api/chkModGruppo", function (req, res) {
         }
         else {
             utenti.aggregate([
-                { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
-                { $match: { $expr: { $eq: ["$gruppo.codGruppo", parseInt(req.body.idGruppo)] } } }
+                {
+                    $match:
+                    {
+                        "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                        $expr: { $in: [parseInt(req.body.idGruppo), "$gruppo.codGruppo"] }
+                    }
+                }
             ]).exec().then(results => {
-                console.log(results);
-                if (results == [])
+                if (results.length == 0)
                     risp = { "ris": "noAutNoComp" };
                 else
-                    risp = { "ris": "componente" }; // da controllare
-
+                    risp = { "ris": "componente" };
+				
                 let token = createToken(req.payload);
                 writeCookie(res, token);
                 res.writeHead(200, { "Content-Type": "application/json" });
@@ -1514,7 +1547,7 @@ app.post("/api/elGruppiAdmin", function (req, res) {
 });
 
 app.post("/api/chkModCorso", function (req, res) {
-    corsi.findById(parseInt(req.body.idCorso)).exec().then(result => {
+    moduli.findById(parseInt(req.body.idCorso)).exec().then(result => {
         let risp = {};
         if (result.codAutore == parseInt(JSON.parse(JSON.stringify(req.payload))._id)) {
             risp = { "ris": "autore" };
@@ -1525,13 +1558,20 @@ app.post("/api/chkModCorso", function (req, res) {
         }
         else {
             utenti.aggregate([
-                { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
-                { $match: { $expr: { $eq: ["$corsi.codCorso", parseInt(req.body.idCorso)] } } }
+                { $match: 
+                    { 
+                        "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id), 
+                        $or: [
+                            { $expr: { $in: [parseInt(req.body.idCorso), "$moduli.codModulo"] } },
+                            { $expr: { $in: [parseInt(req.body.idCorso), "$moduliGruppi.codModulo"] } }
+                        ] 
+                    }
+                }
             ]).exec().then(results => {
-                if (results == [])
-                    risp = { "ris": "noAutNoComp" };
+                if (results.length == 0)
+                    risp = { "ris": "noAutNoIsc" };
                 else
-                    risp = { "ris": "componente" }; // da controllare
+                    risp = { "ris": "iscritto" };
 
                 let token = createToken(req.payload);
                 writeCookie(res, token);
@@ -1973,6 +2013,267 @@ app.post("/api/removeAppunto", function (req, res) {
     } else {
         gestErrorePar(req, res);
     }
+});
+
+app.post("/api/iscriviUtenteCorso", function (req, res) {
+    utenti.findOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).select("moduli moduliGruppi").exec().then(result => {
+        let add = true;
+        result.moduli.forEach(modulo => {
+            if(modulo.codModulo == parseInt(req.body.idCorso))
+                add = false;
+        });
+        
+        if (add) {
+            result.moduliGruppi.forEach(modulo => {
+                if (modulo.codModulo == parseInt(req.body.idCorso))
+                    add = false;
+            });
+
+            if(add){
+                let now = new Date().toISOString();
+                utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { $push: { moduli: { codModulo: parseInt(req.body.idCorso), dataInizio: now, scadenza: null } } })
+                    .exec()
+                    .then(results => {
+                        //console.log(results);
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify(results));
+                    })
+                    .catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+            }
+            else {
+                error(req, res, null, JSON.stringify(new ERRORS.USER_ALREADY_IN_COURSE({})));
+            }
+        }
+        else {
+            error(req, res, null, JSON.stringify(new ERRORS.USER_ALREADY_IN_COURSE({})));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/elGruppiIscrivibiliCorso", function (req, res) {
+    gruppi.aggregate([
+        { $match: { $expr: { $eq: ["$codAutore", parseInt(JSON.parse(JSON.stringify(req.payload))._id)] } } },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "codAutore",
+                foreignField: "_id",
+                as: "gruppiAutore"
+            }
+        },
+        {
+            $project:
+            {
+                _id: 1,
+                "gruppiAutore.moduliGruppi": 1
+            }
+        }
+    ]).exec().then(results => {
+        let codModulo = parseInt(req.body.idCorso);
+        let gruppiIscritti = [];
+        results.forEach(gruppo => {
+            if (gruppo.gruppiAutore[0].moduliGruppi.length > 0) {
+                gruppo.gruppiAutore[0].moduliGruppi.forEach(modGr => {
+                    if (modGr.codModulo == codModulo && (modGr.dataFine == null || modGr.dataFine == undefined))
+                        gruppiIscritti.push(modGr.codGruppo);
+                });
+            }
+        });
+        console.log(gruppiIscritti);
+
+        gruppi.find({ _id: { $nin: gruppiIscritti }, codAutore: parseInt(JSON.parse(JSON.stringify(req.payload))._id)}).select("nome").exec().then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/iscriviGruppoCorso", function (req, res) {
+    let now = new Date().toISOString();
+    utenti.updateMany({ "gruppo.codGruppo": parseInt(req.body.idGruppo), "gruppo.dataFine" : null }, { $push: { moduliGruppi: { codGruppo : parseInt(req.body.idGruppo), codModulo: parseInt(req.body.idCorso), dataInizio: now, dataFine : null, scadenza: null } } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/elSimpleMaterie", function (req, res) {
+    materie.find({}).select("descrizione").exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/modificaCorso", function (req, res) {
+    moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $set: { descrizione: req.body.nome, /*descrizione: req.body.descrizione,*/ codTipoModulo: parseInt(req.body.tipoCorso), codMateria: parseInt(req.body.materia) } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/removeArgCorso", function (req, res) {
+    let now = new Date().toISOString();
+    moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $pull: { "argomenti": { codArgomento: parseInt(req.body.idArgomento) } } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/removeLezCorso", function (req, res) {
+    let now = new Date().toISOString();
+    moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $pull: { "lezioni": { codLezione: parseInt(req.body.idLezione) } } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/cercaArgAggiuntaCorso", function (req, res) {
+    argomenti.find( { descrizione: new RegExp(req.body.valore, "i") } ).select("_id descrizione").exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/insNuovoArgCorso", function (req, res) {
+    moduli.findOne({ _id: parseInt(req.body.idCorso) }).exec().then(result => {
+        let add = true;
+        result.argomenti.forEach(argomento => {
+            if (add && argomento.codArgomento == parseInt(req.body.idArg))
+                add = false;
+        });
+        console.log("Aggiunta: " + add);
+
+        if (add) {
+            moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $push: { argomenti: { codArgomento: parseInt(req.body.idArg) } } })
+                .exec()
+                .then(results => {
+                    //console.log(results);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results));
+                })
+                .catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+        }
+        else {
+            error(req, res, null, JSON.stringify(new ERRORS.ARG_ALREADY_IN_COURSE({})));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/cercaLezAggiuntaCorso", function (req, res) {
+    lezioni.find({ titolo: new RegExp(req.body.valore, "i"), dataScadenza: { $exists: false } }).select("_id titolo").exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/insNuovaLezCorso", function (req, res) {
+    moduli.findOne({ _id: parseInt(req.body.idCorso) }).exec().then(result => {
+        let add = true;
+        result.lezioni.forEach(lezione => {
+            if (add && lezione.codLezione == parseInt(req.body.idLez))
+                add = false;
+        });
+        console.log("Aggiunta: " + add);
+
+        if (add) {
+            let now = new Date().toISOString();
+            moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $push: { lezioni: { codLezione: parseInt(req.body.idLez), dataAggiunta: now } } })
+                .exec()
+                .then(results => {
+                    //console.log(results);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results));
+                })
+                .catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+        }
+        else {
+            error(req, res, null, JSON.stringify(new ERRORS.LEZ_ALREADY_IN_COURSE({})));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/rimuoviCorso", function (req, res) {
+    moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $set: { validita: false } }).exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
 });
 
 /* createToken si aspetta un generico json contenente i campi indicati.
