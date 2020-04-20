@@ -16,7 +16,8 @@ const textToSpeech = new TextToSpeechV1({
 });
 require('dotenv').config();
 const port = process.env.PORT || 8888;
-const textract = require('textract');
+const fileContentReader = require("./FileReader/filecontentReader");
+var zip = require('express-zip');
 
 const multer = require("multer"); // Modulo per salvataggio immagini su server
 // Impostazioni multer
@@ -2003,29 +2004,15 @@ app.post("/api/TTSVoices", function (req, res) {
 app.post("/api/TTS", function (req, res) {
     if (req.body.elencoAllegati.length > 0) {
         if (req.body.voce != "") {
-            textract.fromFileWithPath("static/allegati/2020-04-14T18-47-09.756Z_Massa - VictorianAge.docx", function (err, text) {
+            eseguiTTS(req.body.elencoAllegati, res, req).then(ris=>{
+                return ris;
+            }).then(audio =>{
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(audio));
+            }).catch(err=>{
                 console.log(err);
-                console.log(text);
-                const params = {
-                    text: text,
-                    voice: req.body.voce,
-                    accept: 'audio/wav'
-                };
-                textToSpeech.synthesize(params).then(response => {
-                    const audio = response.result;
-                    return textToSpeech.repairWavHeaderStream(audio);
-                }).then(repairedFile => {
-                    const now = new Date().toISOString();
-                    const date = now.replace(/:/g, '-');
-                    let percorso = 'static/audio/' + date + "prova" + ".wav";
-                    fs.writeFileSync(percorso, repairedFile);
-                    let token = createToken(req.payload);
-                    writeCookie(res, token);
-                    res.writeHead(200, { "Content-Type": "application/json" });
-                    res.end(JSON.stringify(percorso));
-                }).catch(err => {
-                    error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
-                });
             });
         } else {
             gestErrorePar(req, res);
@@ -2035,15 +2022,77 @@ app.post("/api/TTS", function (req, res) {
     }
 });
 
+function eseguiTTS(allegati, res, req) {
+    return new Promise((resolve, reject) =>{
+        let percorsiAudio = new Array();
+        let I = 0;
+        allegati.forEach(element => {
+            getFilePath(element).then(file => {
+                fileContentReader.readFilesHandler(file, res).then(contFile => {
+                    console.log("ContFile: " + contFile);
+                    const params = {
+                        text: contFile,
+                        voice: req.body.voce,
+                        accept: 'audio/wav'
+                    };
+                    textToSpeech.synthesize(params).then(response => {
+                        const audio = response.result;
+                        return textToSpeech.repairWavHeaderStream(audio);
+                    }).then(repairedFile => {
+                        const now = new Date().toISOString();
+                        const date = now.replace(/:/g, '-');
+                        let percorso = 'static/audio/' + date + "_" + file.name.split(".")[file.name.split(".").length - 1] + ".wav";
+                        fs.writeFileSync(percorso, repairedFile);
+                        percorsiAudio.push(percorso);
+                        if (I != allegati.length - 1) {
+                            I++;
+                        } else {
+                            resolve(percorsiAudio);
+                        }
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
+                    });
+                }).catch(errFileReader => {
+                    console.log(errFileReader);
+                });
+            }).catch(errFilePath => {
+                console.log(errFilePath);
+            });
+        });
+    });
+    
+}
+
 function getFilePath(codFile) {
     return new Promise((resolve, reject) =>{
-        allegati.findOne({ "_id": parseInt(codFile) }).exec.then(result => {
-            resolve(result.percorso);
+        allegati.findOne({ "_id": parseInt(codFile) }).exec().then(result => {
+            let ret = {};
+            //escludere \ da nome file
+            ret["path"] = result.percorso;
+            ret["name"] = result.percorso.split("\\")[result.percorso.split("\\").length - 1];
+            console.log(ret["name"]);
+            resolve(ret);
         }).catch(err => {
             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
         });
     });
 }
+
+app.get("/api/downloadAudioTTS", function (req, res) {
+    let files = new Array();
+    if (req.query.elencoAllegati.length > 0) {
+        for (let i = 0; i < req.query.elencoAllegati.length; i++) {
+            files.push({ path: req.query.elencoAllegati[i], name: req.query.elencoAllegati[i].split("/")[req.query.elencoAllegati[i].split("/").length - 1] });
+        }
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        console.log(files);
+        res.setHeader('Content-Disposition', 'attachment');
+        res.zip(files, "Letture");
+    } else {
+        gestErrorePar(req, res);
+    }
+});
 
 
 /* createToken si aspetta un generico json contenente i campi indicati.

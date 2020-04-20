@@ -440,15 +440,15 @@ function gestRqTTS() {
             if (document.getElementById("voceTTSAppunto").selectedIndex != -1) {
                 $("#sezStatoOp").css("display", "unset");
                 $("#msgTTSAppunto").html("");
-                setCardStatoOp("InCorso");
-                let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val()});
-                rqTTS.fail(function (jqXHR, test_status, str_error) {
-                    setCardStatoOp("errore", jqXHR);
-                });
-                rqTTS.done(function (data) {
-                    setCardStatoOp("opOk");
-                    window.sessionStorage.setItem("ttsAudio", JSON.stringify(data));
-                });
+                setCardStatoOp("opOk");
+                // let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val()});
+                // rqTTS.fail(function (jqXHR, test_status, str_error) {
+                //     setCardStatoOp("errore", str_error);
+                // });
+                // rqTTS.done(function (data) {
+                //     setCardStatoOp("opOk");
+                //     window.sessionStorage.setItem("ttsAudio", JSON.stringify(data));
+                // });
             } else {
                 gestErrori("Selezionare la voce di lettura", $("#voceTTSAppunto"), "#msgTTSAppunto");
             }
@@ -473,12 +473,18 @@ function setCardStatoOp(stato, objErrore) {
     } else if (stato == "errore" && objErrore != undefined){
         $("#btnTTSAppunto").removeAttr("disabled");
         testoOp = "<h3>Operazione fallita</h3>";
-        codHtmlBtn = '<p>Server Error: ' + JSON.parse(jqXHR.responseText)["message"]+'</p>';
+        codHtmlBtn = '<p>Server Error: ' + objErrore+'</p>';
     }
     $("#titoloCardStatoOp").html(testoOp);
     $("#textCardStatoOp").html(codHtmlBtn);
 }
 
 function gestDownloadAudio() {
-    
+    let rqTTS = inviaRichiesta('/api/downloadAudioTTS', 'GET', { "elencoAllegati": JSON.parse(window.sessionStorage.getItem("ttsAudio"))});
+    rqTTS.fail(function (jqXHR, test_status, str_error) {
+        console.log(str_error);
+    });
+    rqTTS.done(function (data) {
+        
+    });
 }
