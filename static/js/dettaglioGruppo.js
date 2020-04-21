@@ -309,7 +309,7 @@ function addIscrittoGruppo(idUtente) {
 
     let chkToken = inviaRichiesta('/api/insNuovoMembroGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "idUtente" : idUtente });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        if (jqXHR.status == 608)  // utente già presente in gruppo
+        if (jqXHR.status == 610)  // utente già presente in gruppo
             $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
         else
             printErrors(jqXHR, ".modal-body .msg");

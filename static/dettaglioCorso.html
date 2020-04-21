@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="css/themify-icons.css">
     <!-- flaticon CSS -->
     <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <!-- font awesome CSS -->
     <link rel="stylesheet" href="css/magnific-popup.css">
     <!-- swiper CSS -->
@@ -98,6 +100,26 @@
         </div>
     </section>
     <!--================ End Course Details Area =================-->
+
+    <!-- Modal For Adding, Updating and Removing -->
+    <div class="modal fade" style="margin-top: 80px;" id="dettCorsoMod" tabindex="1" role="dialog"
+        aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" id="btnSalvaModifiche" class="genric-btn success radius">Salva Modifiche</button>
+                    <button type="button" class="genric-btn danger radius" data-dismiss="modal">Annulla</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- footer part start-->
     <footer class="footer-area">
@@ -190,6 +212,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <!-- custom js -->
     <script src="js/custom.js"></script>
     <script src="js/libreria.js"></script>
+    <script src="js/jquery-ui.js"></script>
     <script src="js/navBar.js"></script>
     <script src="js/dettaglioCorso.js"></script>
 </body>

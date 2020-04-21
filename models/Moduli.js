@@ -20,7 +20,8 @@ const moduli = mongoose.Schema({
     codMateria: { type: Number, ref:"Materie", required: true },
     codAutore: { type: Number, ref:"Moderatori", required: true }, // qui quindi mettiamo Utenti o Moderatori ???
     argomenti: [argomenti],
-    lezioni: [lezioni]
+    lezioni: [lezioni],
+    validita: { type : Boolean, required : true } 
 });
 
 //l'autore è anche amministartore
