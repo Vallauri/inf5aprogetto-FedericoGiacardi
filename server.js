@@ -11,8 +11,8 @@ var crypto = require("crypto");
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
 const textToSpeech = new TextToSpeechV1({
-    authenticator: new IamAuthenticator({ apikey: 'GIoavDcJdcfLEMrYTx3qpK4digTwJW3UeLnXSQgF3xsX' }),
-    url: 'https://api.eu-gb.text-to-speech.watson.cloud.ibm.com/instances/cc186352-e98d-4453-a9db-e71e93ffee9e'
+    authenticator: new IamAuthenticator({ apikey: process.env.APIKEY_TTS }),
+    url: process.env.URL_TTS
 });
 require('dotenv').config();
 const port = process.env.PORT || 8888;
