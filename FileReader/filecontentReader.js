@@ -15,7 +15,7 @@ module.exports.readFilesHandler = function (file, res){
                 case '.pdf':
                     new PdfReader().parseBuffer(filebuffer, function (err, item) {
                         if (err) console.log(err);
-                        else if (!item) console.log(item);
+                        else if (!item) resolve(filecontent);
                         else if (item.text) {
                             filecontent = filecontent + " " + item.text;
                         }
@@ -28,24 +28,12 @@ module.exports.readFilesHandler = function (file, res){
                         resolve(filecontent);
                     });
                     break;
-                case '.xlsx' || '.xls':
-                    var result = {};
-                    data = new Uint8Array(data);
-                    var workbook = XLSX.read(data, {
-                        type: 'array'
-                    });
-                    workbook.SheetNames.forEach(function (sheetName) {
-                        var roa = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-                            header: 1
-                        });
-                        if (roa.length) result[sheetName] = roa;
-                    });
-                    filecontent = JSON.stringify(result);
-                    break;
                 case '.txt' || '.csv':
                     filecontent = data;
+                    resolve(filecontent);
+                    break;
                 default:
-                    filecontent = filename;
+                    filecontent = "fileNonSupportato";
             }
         });
     });

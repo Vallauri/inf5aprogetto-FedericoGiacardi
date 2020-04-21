@@ -293,7 +293,7 @@
                                 <br>
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="form-group">
-                                        <a href="#sezStatoOp" id="btnTTSAppunto" class="genric-btn primary circle btn-block" style="color: #fff!important;">Leggi</a>
+                                        <a href="#sezStatoOp" id="btnLetturaAppunto" class="genric-btn primary circle btn-block" style="color: #fff!important;">Leggi</a>
                                         <a href="https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-gettingStarted"
                                             class="genric-btn link circle btn-block" style="color: #415094!important">Servizio basato su IBM Text to Speech</a>
                                     </div>
@@ -330,6 +330,31 @@
         </div>
     </section>
     <!-- Fine Sezione Stato Operazione-->
+
+    <!-- Modal Eliminazione-->
+    <div class="modal fade" id="modalMexDownload" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                <div class="alert alert-success" role="alert" style="text-align: center;">
+                                    <h4 class="alert-heading">Operazione Completata</h4>
+                                    <p class="mb-0">Download completato con successo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnConfMexDownload" class="btn btn-success"
+                        data-dismiss="modal">Prosegui</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- footer part start-->
     <footer class="footer-area">

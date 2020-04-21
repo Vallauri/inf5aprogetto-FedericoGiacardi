@@ -54,7 +54,7 @@ function inviaRichiesta(url, method, parameters = {}) {
 		data: parameters,
 		contentType: contentType,
 		dataType: "json",
-		timeout: 5000,
+		timeout: 50000,
 	});
 }
 

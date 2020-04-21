@@ -8,13 +8,13 @@ const saltRounds = 10;
 const nodemailer = require('nodemailer');
 var async = require("async");
 var crypto = require("crypto");
+require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
 const textToSpeech = new TextToSpeechV1({
-    authenticator: new IamAuthenticator({ apikey: process.env.APIKEY_TTS }),
-    url: process.env.URL_TTS
+    authenticator: new IamAuthenticator({ apikey: "GIoavDcJdcfLEMrYTx3qpK4digTwJW3UeLnXSQgF3xsX" }),
+    url: "https://api.eu-gb.text-to-speech.watson.cloud.ibm.com/instances/cc186352-e98d-4453-a9db-e71e93ffee9e"
 });
-require('dotenv').config();
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
 var zip = require('express-zip');
@@ -153,10 +153,12 @@ ERRORS.create({
 
 // code 610 - TTS Service currently unavailable
 ERRORS.create({
-    code: 609,
-    name: 'TTS_NOT_AVAILABLE',
-    defaultMessage: 'Il servizio di Text to speech non è attualmente disponibile'
+    code: 614,
+    name: 'DOWNLOAD_FAILED',
+    defaultMessage: 'Il download richiesto è fallito'
 });
+
+
 
 const HTTPS = require('https');
 
@@ -2069,29 +2071,30 @@ function eseguiTTS(allegati, res, req) {
         allegati.forEach(element => {
             getFilePath(element).then(file => {
                 fileContentReader.readFilesHandler(file, res).then(contFile => {
-                    console.log("ContFile: " + contFile);
-                    const params = {
-                        text: contFile,
-                        voice: req.body.voce,
-                        accept: 'audio/wav'
-                    };
-                    textToSpeech.synthesize(params).then(response => {
-                        const audio = response.result;
-                        return textToSpeech.repairWavHeaderStream(audio);
-                    }).then(repairedFile => {
-                        const now = new Date().toISOString();
-                        const date = now.replace(/:/g, '-');
-                        let percorso = 'static/audio/' + date + "_" + file.name.split(".")[file.name.split(".").length - 1] + ".wav";
-                        fs.writeFileSync(percorso, repairedFile);
-                        percorsiAudio.push(percorso);
-                        if (I != allegati.length - 1) {
-                            I++;
-                        } else {
-                            resolve(percorsiAudio);
-                        }
-                    }).catch(err => {
-                        error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
-                    });
+                    if (contFile != "fileNonSupportato") {
+                        console.log("Contenuto File: "+contFile);
+                        const params = {
+                            text: contFile,
+                            voice: req.body.voce,
+                            accept: 'audio/wav'
+                        };
+                        textToSpeech.synthesize(params).then(response => {
+                            const audio = response.result;
+                            return textToSpeech.repairWavHeaderStream(audio);
+                        }).then(repairedFile => {
+                            console.log("Nome File:" + file.name);
+                            let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav";
+                            fs.writeFileSync(percorso, repairedFile);
+                            percorsiAudio.push(percorso);
+                            if (I != allegati.length - 1) {
+                                I++;
+                            } else {
+                                resolve(percorsiAudio);
+                            }
+                        }).catch(err => {
+                            error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
+                        });
+                    }
                 }).catch(errFileReader => {
                     console.log(errFileReader);
                 });
@@ -2119,16 +2122,10 @@ function getFilePath(codFile) {
 }
 
 app.get("/api/downloadAudioTTS", function (req, res) {
-    let files = new Array();
-    if (req.query.elencoAllegati.length > 0) {
-        for (let i = 0; i < req.query.elencoAllegati.length; i++) {
-            files.push({ path: req.query.elencoAllegati[i], name: req.query.elencoAllegati[i].split("/")[req.query.elencoAllegati[i].split("/").length - 1] });
-        }
+    if (req.query.allegato != undefined) {
         let token = createToken(req.payload);
         writeCookie(res, token);
-        console.log(files);
-        res.setHeader('Content-Disposition', 'attachment');
-        res.zip(files, "Letture");
+        res.download(req.query.allegato);
     } else {
         gestErrorePar(req, res);
     }

@@ -28,7 +28,7 @@ $(document).ready(function () {
         $("#btnConfElAppunto").on("click", eliminaAppunto);
         $("#btnConfMexElimina").on("click", function () { window.location = "appunti.html";});
         $("#linguaTTSAppunto").on("change", loadVociTTS);
-        $("#btnTTSAppunto").on("click", gestRqTTS);
+        $("#btnLetturaAppunto").on("click", gestRqTTS);
     });
 });
 
@@ -355,6 +355,11 @@ function gestTTS() {
         $("#btnModAppunto").html('<i class="fas fa-edit"></i>Modifica');
     }else{
         $("#btnTTSAppunto").attr("stato", "chiuso");
+        clearSezTTS();
+        $("#contVoceTTSAppunto").css("display", "none");
+        $("#titoloCardStatoOp").html("");
+        $("#textCardStatoOp").html("");
+        $("#sezStatoOp").css("display", "none");
         $("#sezioneTTSAppunti").css("display", "none");
         $("#btnTTSAppunto").html('<i class="fa fa-volume-up" aria-hidden="true"></i>Lettura');
     }
@@ -440,15 +445,15 @@ function gestRqTTS() {
             if (document.getElementById("voceTTSAppunto").selectedIndex != -1) {
                 $("#sezStatoOp").css("display", "unset");
                 $("#msgTTSAppunto").html("");
-                setCardStatoOp("opOk");
-                // let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val()});
-                // rqTTS.fail(function (jqXHR, test_status, str_error) {
-                //     setCardStatoOp("errore", str_error);
-                // });
-                // rqTTS.done(function (data) {
-                //     setCardStatoOp("opOk");
-                //     window.sessionStorage.setItem("ttsAudio", JSON.stringify(data));
-                // });
+                setCardStatoOp("InCorso");
+                let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val()});
+                rqTTS.fail(function (jqXHR, test_status, str_error) {
+                    setCardStatoOp("errore", str_error);
+                });
+                rqTTS.done(function (data) {
+                    setCardStatoOp("opOk");
+                    window.sessionStorage.setItem("ttsAudio", JSON.stringify(data));
+                });
             } else {
                 gestErrori("Selezionare la voce di lettura", $("#voceTTSAppunto"), "#msgTTSAppunto");
             }
@@ -464,14 +469,17 @@ function setCardStatoOp(stato, objErrore) {
     let testoOp = "", codHtmlBtn = "";
     if (stato == "InCorso") {
         $("#btnTTSAppunto").attr("disabled", "disabled");
+        $("#btnLetturaAppunto").attr("disabled", "disabled");
         testoOp = "<h3>Attendere il completamento dell' operazione</h3>";
         codHtmlBtn = '<button id="btnStatoOp" class="btn btn-primary" type="button" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Lettura in corso</button >';
     }else if(stato == "opOk"){
         $("#btnTTSAppunto").removeAttr("disabled");
-        testoOp = "<h3>Lettura completata</h3>";
-        codHtmlBtn = '<button id="btnStatoOp" onclick="gestDownloadAudio();" class="btn btn-primary" type="button"><i class="fa fa-download" aria-hidden="true"></i> Download Audio</button >';
+        $("#btnLetturaAppunto").removeAttr("disabled");
+        testoOp = "<h3>Lettura completata</h3><div id='msgDownloadAppunto' class='msg'> </div>";
+        codHtmlBtn = '<button id="btnStatoOp" onclick="gestDownloadAudio();" class="btn btn-primary" type="button"><i class="fa fa-download" aria-hidden="true"></i> Download Audio</button>';
     } else if (stato == "errore" && objErrore != undefined){
         $("#btnTTSAppunto").removeAttr("disabled");
+        $("#btnLetturaAppunto").removeAttr("disabled");
         testoOp = "<h3>Operazione fallita</h3>";
         codHtmlBtn = '<p>Server Error: ' + objErrore+'</p>';
     }
@@ -480,11 +488,45 @@ function setCardStatoOp(stato, objErrore) {
 }
 
 function gestDownloadAudio() {
-    let rqTTS = inviaRichiesta('/api/downloadAudioTTS', 'GET', { "elencoAllegati": JSON.parse(window.sessionStorage.getItem("ttsAudio"))});
-    rqTTS.fail(function (jqXHR, test_status, str_error) {
-        console.log(str_error);
-    });
-    rqTTS.done(function (data) {
-        
-    });
+    $("#btnTTSAppunto").attr("disabled", "disabled");
+    $("#btnLetturaAppunto").attr("disabled", "disabled");
+    $("#msgDownloadAppunto").html("");
+    let vetAus = JSON.parse(window.sessionStorage.getItem("ttsAudio"));
+    for (let i = 0; i < vetAus.length; i++) {
+        fetch('/api/downloadAudioTTS?allegato=' + vetAus[i])
+            .then(resp => resp.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                // the filename you want
+                a.download = vetAus[i].split('/')[vetAus[i].split('/').length-1];
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                clearSezTTS();
+                $("#contVoceTTSAppunto").css("display", "none");
+                $("#sezioneTTSAppunti").css("display", "none");
+                $("#titoloCardStatoOp").html("");
+                $("#textCardStatoOp").html("");
+                $("#sezStatoOp").css("display", "none");
+                $("#btnTTSAppunto").html('<i class="fa fa-volume-up" aria-hidden="true"></i>Lettura');
+                $("#btnTTSAppunto").removeAttr("disabled");
+                $("#btnTTSAppunto").attr("stato", "chiuso");
+                $("#btnLetturaAppunto").removeAttr("disabled");
+                $('#modalMexDownload').modal('show');
+            })
+            .catch(() => {
+                gestErrori("Download fallito", $("#msgDownloadAppunto"), "#msgDownloadAppunto");
+                $("#btnTTSAppunto").removeAttr("disabled");
+                $("#btnLetturaAppunto").removeAttr("disabled");
+            });
+    }
+}
+
+function clearSezTTS() {
+    document.getElementById("allegatiTTSAppunto").selectedIndex = -1;
+    document.getElementById("linguaTTSAppunto").selectedIndex = -1;
+    document.getElementById("voceTTSAppunto").selectedIndex = -1;
 }
