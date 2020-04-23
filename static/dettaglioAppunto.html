@@ -102,7 +102,7 @@
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user-circle"> </i>
+                                                <i class="fas fa-heading"></i>
                                             </span>
                                             <input type="text" id="descModAppunto" name="descModAppunto" placeholder="Descrizione"
                                                 onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
@@ -133,7 +133,7 @@
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
+                                                <i class="fas fa-tag"></i>
                                             </span>
                                             <div>
                                                 <div class="bootstrap-select-wrapper">
@@ -146,7 +146,7 @@
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
+                                                <i class="fas fa-file"></i>
                                             </span>
                                             <div>
                                                 <div class="bootstrap-select-wrapper">
@@ -160,7 +160,7 @@
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-image"> </i>
+                                                <i class="fas fa-file-upload"></i>
                                             </span>
                                             <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
                                             <div class="custom-file">
@@ -246,21 +246,24 @@
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
+                                                <i class="fas fa-file"></i>
                                             </span>
                                             <div>
                                                 <div class="bootstrap-select-wrapper">
                                                     <select id="allegatiTTSAppunto" title="Allegati da leggere" multiple="true"
-                                                        data-multiple-separator=", ">
+                                                        data-multiple-separator=", " aria-describedby="descallegatiTTSAppunto">
                                                     </select>
                                                 </div>
                                             </div>
                                         </div>
+                                        <small id="descallegatiTTSAppunto" class="form-text text-muted">
+                                            Sono ammessi solo file PDF e Docx
+                                        </small>
                                     </div>
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
+                                                <i class="fas fa-language"></i>
                                             </span>
                                             <div>
                                                 <div class="bootstrap-select-wrapper">
@@ -275,7 +278,7 @@
                                     <div id="contVoceTTSAppunto" class="input-group form-group" style="display: none;">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
+                                                <i class="fas fa-file-audio"></i>
                                             </span>
                                             <div>
                                                 <div class="bootstrap-select-wrapper">
@@ -288,6 +291,7 @@
                                             Le Voci V 1, 2 e 3 sono basate su Deep Learning
                                         </small>
                                     </div>
+                                    <br>
                                     <div id="msgTTSAppunto" class="msg"> </div>
                                 </div>
                                 <br>

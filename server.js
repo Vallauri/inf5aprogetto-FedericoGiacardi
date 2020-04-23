@@ -12,12 +12,11 @@ require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
 const textToSpeech = new TextToSpeechV1({
-    authenticator: new IamAuthenticator({ apikey: process.env.APIKEYTTS }),
-    url: process.env.URLTTS
+    authenticator: new IamAuthenticator({ apikey: "GIoavDcJdcfLEMrYTx3qpK4digTwJW3UeLnXSQgF3xsX" }),
+    url: "https://api.eu-gb.text-to-speech.watson.cloud.ibm.com/instances/cc186352-e98d-4453-a9db-e71e93ffee9e"
 });
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
-var zip = require('express-zip');
 
 const multer = require("multer"); // Modulo per salvataggio immagini su server
 // Impostazioni multer
@@ -151,11 +150,18 @@ ERRORS.create({
     defaultMessage: 'La lezione è già presente nel corso'
 });
 
-// code 610 - TTS Service currently unavailable
+// code 614 - TTS Service currently unavailable
 ERRORS.create({
     code: 614,
     name: 'DOWNLOAD_FAILED',
     defaultMessage: 'Il download richiesto è fallito'
+});
+
+// code 614 - TTS error
+ERRORS.create({
+    code: 614,
+    name: 'TTS_ERROR',
+    defaultMessage: 'Si verificato un errore durante la conversione'
 });
 
 
@@ -1945,10 +1951,10 @@ function gestModAddArgomenti(req, res) {
             aus["argomenti"] = new Array();
             let ausVet = req.body.addArgomenti.split(',');
             for (let i = 0; i < ausVet.length; i++) {
-                aus["argomenti"].push({ "codArgomento": parseInt(ausVet[i]), "dataAggiunta": new Date().toJSON() });
+                aus["argomenti"].push({ "codArgomento": parseInt(ausVet[i]), "dataAggiunta": new Date() });
             }
         } else {
-            aus["argomenti"] = { "codArgomento": parseInt(req.body.addArgomenti[0]), "dataAggiunta": new Date().toJSON() };
+            aus["argomenti"] = { "codArgomento": parseInt(req.body.addArgomenti[0]), "dataAggiunta": new Date() };
         }
         codQuery["$push"] = aus;
         appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, codQuery).exec().then(results => { resolve() }).catch(err => { error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
@@ -2046,15 +2052,15 @@ app.post("/api/TTSVoices", function (req, res) {
 app.post("/api/TTS", function (req, res) {
     if (req.body.elencoAllegati.length > 0) {
         if (req.body.voce != "") {
-            eseguiTTS(req.body.elencoAllegati, res, req).then(ris=>{
+            eseguiTTS(req.body.elencoAllegati, res, req).then(ris => {
                 return ris;
-            }).then(audio =>{
+            }).then(audio => {
                 let token = createToken(req.payload);
                 writeCookie(res, token);
                 res.writeHead(200, { "Content-Type": "application/json" });
                 res.end(JSON.stringify(audio));
-            }).catch(err=>{
-                console.log(err);
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.TTS_ERROR({})));
             });
         } else {
             gestErrorePar(req, res);
@@ -2071,35 +2077,31 @@ function eseguiTTS(allegati, res, req) {
         allegati.forEach(element => {
             getFilePath(element).then(file => {
                 fileContentReader.readFilesHandler(file, res).then(contFile => {
-                    if (contFile != "fileNonSupportato") {
-                        console.log("Contenuto File: "+contFile);
-                        const params = {
-                            text: contFile,
-                            voice: req.body.voce,
-                            accept: 'audio/wav'
-                        };
-                        textToSpeech.synthesize(params).then(response => {
-                            const audio = response.result;
-                            return textToSpeech.repairWavHeaderStream(audio);
-                        }).then(repairedFile => {
-                            console.log("Nome File:" + file.name);
-                            let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav";
-                            fs.writeFileSync(percorso, repairedFile);
-                            percorsiAudio.push(percorso);
-                            if (I != allegati.length - 1) {
-                                I++;
-                            } else {
-                                resolve(percorsiAudio);
-                            }
-                        }).catch(err => {
-                            error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
-                        });
-                    }
+                    const params = {
+                        text: contFile,
+                        voice: req.body.voce,
+                        accept: 'audio/wav'
+                    };
+                    textToSpeech.synthesize(params).then(response => {
+                        const audio = response.result;
+                        return textToSpeech.repairWavHeaderStream(audio);
+                    }).then(repairedFile => {
+                        let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav";
+                        fs.writeFileSync(percorso, repairedFile);
+                        percorsiAudio.push(percorso);
+                        if (I != allegati.length - 1) {
+                            I++;
+                        } else {
+                            resolve(percorsiAudio);
+                        }
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.TTS_NOT_AVAILABLE({})));
+                    });
                 }).catch(errFileReader => {
-                    console.log(errFileReader);
+                    reject(errFileReader);
                 });
             }).catch(errFilePath => {
-                console.log(errFilePath);
+                reject(errFilePath);
             });
         });
     });
@@ -2113,7 +2115,6 @@ function getFilePath(codFile) {
             //escludere \ da nome file
             ret["path"] = result.percorso;
             ret["name"] = result.percorso.split("\\")[result.percorso.split("\\").length - 1];
-            console.log(ret["name"]);
             resolve(ret);
         }).catch(err => {
             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));

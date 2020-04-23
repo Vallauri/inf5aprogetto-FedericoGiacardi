@@ -97,7 +97,7 @@ function caricamentoDatiCorso(appunto) {
             for (let i = 0; i < appunto[0]["detArgomenti"].length; i++) {
                 codHtml += '<li class="justify-content-between align-items-center d-flex">';
                 codHtml += '<p class="descAppunto" codArgomento="' + appunto[0]["detArgomenti"][i]._id+'">' + appunto[0]["detArgomenti"][i].descrizione + '</p>';
-                codHtml += '<p>Data aggiunta: ' + new Date(appunto[0]["detArgomenti"][i].dataAggiunta).toLocaleDateString() + '</p>';
+                codHtml += '<p>Data aggiunta: ' + new Date(appunto[0]["argomenti"][i].dataAggiunta).toLocaleDateString() + '</p>';
                 codHtml += '</li>';
             }
         }
@@ -117,7 +117,7 @@ function caricamentoDatiCorso(appunto) {
             for (let i = 0; i < appunto[0]["detAllegati"].length; i++) {
                 codHtml += '<li class="justify-content-between align-items-center d-flex">';
                 ausVet = appunto[0]["detAllegati"][i].percorso.split('\\');
-                ausVet = ausVet[ausVet.length - 1].split("_");
+                ausVet = ausVet[ausVet.length - 1].split(/_(.+)/);
                 codHtml += '<p class="descAllegati" codAllegato="' + appunto[0]["detAllegati"][i]._id+'">' + ausVet[1] + '</p>';
                 codHtml += '<p>Data aggiunta: ' + new Date(appunto[0]["detAllegati"][i].dataCaricamento).toLocaleDateString() + '</p>';
                 codHtml += '</li>';
@@ -210,7 +210,7 @@ function loadAllegati(idSelect) {
         let ausVet = new Array();
         data.forEach(allegato => {
             ausVet = allegato.percorso.split('\\');
-            ausVet = ausVet[ausVet.length - 1].split("_");
+            ausVet = ausVet[ausVet.length - 1].split(/_(.+)/);
             codHtml += '<option value="' + allegato._id + '">' + ausVet[1] + '</option>';
         });
         document.getElementById(idSelect).selectedIndex = -1;
@@ -430,7 +430,6 @@ function loadVociTTS() {
             $("#voceTTSAppunto").html(codhtml).selectpicker("refresh");
             $("#contVoceTTSAppunto").css("display", "unset");
         }).catch(err => {
-            console.log(err);
             $("#msgTTSAppunto").html("Errore Caricamento Voci");
         });       
     }else{
@@ -441,31 +440,54 @@ function loadVociTTS() {
 
 function gestRqTTS() {
     if (document.getElementById("allegatiTTSAppunto").selectedIndex != -1) {
-        if (document.getElementById("linguaTTSAppunto").selectedIndex != -1) {
-            if (document.getElementById("voceTTSAppunto").selectedIndex != -1) {
-                $("#sezStatoOp").css("display", "unset");
-                $("#msgTTSAppunto").html("");
-                setCardStatoOp("InCorso");
-                let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val()});
-                rqTTS.fail(function (jqXHR, test_status, str_error) {
-                    setCardStatoOp("errore", str_error);
-                });
-                rqTTS.done(function (data) {
-                    setCardStatoOp("opOk");
-                    window.sessionStorage.setItem("ttsAudio", JSON.stringify(data));
-                });
+        if (chkEstensioneAllegati($("#allegatiTTSAppunto").val())) {
+            if (document.getElementById("linguaTTSAppunto").selectedIndex != 0) {
+                if (document.getElementById("voceTTSAppunto").selectedIndex != 0) {
+                    $("#sezStatoOp").css("display", "unset");
+                    $("#msgTTSAppunto").html("");
+                    setCardStatoOp("InCorso");
+                    let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val() });
+                    rqTTS.fail(function (jqXHR, test_status, str_error) {
+                        setCardStatoOp("errore", jqXHR.responseJSON.message);
+                    });
+                    rqTTS.done(function (data) {
+                        setCardStatoOp("opOk");
+                        window.sessionStorage.setItem("ttsAudio", JSON.stringify(data));
+                    });
+                } else {
+                    gestErrori("Selezionare la voce di lettura", $("#voceTTSAppunto"), "#msgTTSAppunto");
+                }
             } else {
-                gestErrori("Selezionare la voce di lettura", $("#voceTTSAppunto"), "#msgTTSAppunto");
+                gestErrori("Selezionare la lingua di lettura", $("#linguaTTSAppunto"), "#msgTTSAppunto");
             }
         } else {
-            gestErrori("Selezionare la lingua di lettura", $("#linguaTTSAppunto"), "#msgTTSAppunto");
+            gestErrori("Formato allegati non valido", $("#allegatiTTSAppunto"), "#msgTTSAppunto");
         }
+        
     }else{
         gestErrori("Selezionare almeno un allegato", $("#allegatiTTSAppunto"), "#msgTTSAppunto");
     }
 }
 
-function setCardStatoOp(stato, objErrore) {
+function chkEstensioneAllegati(allegati) {
+    let ret = true;
+    let valore = "";
+
+    for (let I = 0; I < allegati.length; I++) {
+        valore = $("#allegatiTTSAppunto option[value=" + allegati[I]+"]").text()
+        if (getEstensioneFile(valore) != "pdf" && getEstensioneFile(valore) != "docx") {
+            ret = false;
+        }
+    }
+
+    return ret;
+}
+
+function getEstensioneFile(fileName) {
+    return fileName.slice((fileName.lastIndexOf(".") - 1 >>> 0) + 2);
+}
+
+function setCardStatoOp(stato, msgErrore) {
     let testoOp = "", codHtmlBtn = "";
     if (stato == "InCorso") {
         $("#btnTTSAppunto").attr("disabled", "disabled");
@@ -477,11 +499,11 @@ function setCardStatoOp(stato, objErrore) {
         $("#btnLetturaAppunto").removeAttr("disabled");
         testoOp = "<h3>Lettura completata</h3><div id='msgDownloadAppunto' class='msg'> </div>";
         codHtmlBtn = '<button id="btnStatoOp" onclick="gestDownloadAudio();" class="btn btn-primary" type="button"><i class="fa fa-download" aria-hidden="true"></i> Download Audio</button>';
-    } else if (stato == "errore" && objErrore != undefined){
+    } else if (stato == "errore" && msgErrore != undefined){
         $("#btnTTSAppunto").removeAttr("disabled");
         $("#btnLetturaAppunto").removeAttr("disabled");
         testoOp = "<h3>Operazione fallita</h3>";
-        codHtmlBtn = '<p>Server Error: ' + objErrore+'</p>';
+        codHtmlBtn = '<p>Server Error: ' + msgErrore+'</p>';
     }
     $("#titoloCardStatoOp").html(testoOp);
     $("#textCardStatoOp").html(codHtmlBtn);
