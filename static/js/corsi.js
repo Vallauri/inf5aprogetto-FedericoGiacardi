@@ -6,7 +6,7 @@ $(document).ready(function () {
         $(".msg").text("");
 
         if ($("#txtRicerca").val() != "") {
-            let ricerca = inviaRichiesta('/api/cercaCorso', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "corsiDaCercare": $("#default-select .selected").attr("data-value"), "tipoCorso": $("#default-select-1 .selected").attr("data-value") } });
+            let ricerca = inviaRichiesta('/api/cercaCorso', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "corsiDaCercare": $("#tipoRicerca option:selected").val(), "tipoCorso": $("#tipoCorso option:selected").val() } });
             ricerca.fail(function (jqXHR, test_status, str_error) {
                 printErrors(jqXHR, ".msg");
             });
@@ -29,7 +29,7 @@ $(document).ready(function () {
                 type: "POST",
                 data: {
                     valore: req.term,
-                    filtri: { "corsiDaCercare": $("#default-select .selected").attr("data-value"), "tipoCorso": $("#default-select-1 .selected").attr("data-value") }
+                    filtri: { "corsiDaCercare": $("#tipoRicerca option:selected").val(), "tipoCorso": $("#tipoCorso option:selected").val() }
                 },
                 success: function (data) {
                     creazioneElencoCorsi(data);
