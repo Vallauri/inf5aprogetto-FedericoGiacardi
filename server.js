@@ -144,7 +144,7 @@ ERRORS.create({
     defaultMessage: 'L\'argomento è già presente nel corso'
 });
 
-// code 613 - Lession already in course
+// code 613 - Lesson already in course
 ERRORS.create({
     code: 613,
     name: 'LEZ_ALREADY_IN_COURSE',
@@ -158,7 +158,19 @@ ERRORS.create({
     defaultMessage: 'Il download richiesto è fallito'
 });
 
+// code 615 - User already in Lesson
+ERRORS.create({
+    code: 615,
+    name: 'USER_ALREADY_IN_LESSON',
+    defaultMessage: 'L\'utente partecipa già alla lezione'
+});
 
+// code 616 - Appunto already in Lesson
+ERRORS.create({
+    code: 616,
+    name: 'APP_ALREADY_IN_LESSON',
+    defaultMessage: 'L\'appunto è già presente nella lezione'
+});
 
 const HTTPS = require('https');
 
@@ -505,7 +517,7 @@ app.post("/api/reimpostaPwd", function (req, res) {
                                         from: 'learnonthenet7@gmail.com',
                                         to: result.mail,
                                         subject: 'Aggiornamento Password',
-                                        text: "Gentile Utente, le scriviamo per notificarle il cambiamento della Password del suo account sulla Piattaform Learn On The Net.\n La preghiamo di contattare l'amministratore all'indirizzo: learnonthenet7@gmail.com in caso di problemi."
+                                        text: "Gentile Utente, le scriviamo per notificarle il cambiamento della Password del suo account sulla Piattaforma Learn On The Net.\n La preghiamo di contattare l'amministratore all'indirizzo: learnonthenet7@gmail.com in caso di problemi."
                                     };
 
                                     transporter.sendMail(mailOptions, function (error, info) {
@@ -2293,6 +2305,259 @@ app.post("/api/removeLezCorso", function (req, res) {
         });
 });
 
+app.post("/api/datiLezioneById", function (req, res) {
+    lezioni.aggregate([
+        { $match: { "_id": parseInt(req.body.idLezione) } },
+        {
+            $lookup:
+            {
+                from: utenti.collection.name,
+                localField: "autore",
+                foreignField: "_id",
+                as: "dettAutore"
+            }
+        },
+        {
+            $lookup: {
+                from: appunti.collection.name,
+                localField: "appunti.codAppunto",
+                foreignField: "_id",
+                as: "elencoAppunti"
+            }
+        }
+    ]).exec().then(result => {
+        //console.log(result);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/chkModLezione", function (req, res) {
+    lezioni.findById(parseInt(req.body.idLez)).exec().then(result => {
+        let risp = {};
+        if (result.autore == parseInt(JSON.parse(JSON.stringify(req.payload))._id)) {
+            risp = { "ris": "autore" };
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(risp));
+        }
+        else {
+            utenti.aggregate([
+                {
+                    $match:
+                    {
+                        "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                        $expr: { $in: [parseInt(req.body.idLez), "$lezioni.codLez"] }
+                    }
+                }
+            ]).exec().then(results => {
+                if (results.length == 0)
+                    risp = { "ris": "noAutNoIsc" };
+                else
+                    risp = { "ris": "iscritto" };
+
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(risp));
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/partecipaLezione", function (req, res) {
+    utenti.findOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).select("lezioni").exec().then(result => {
+        let add = true;
+        result.lezioni.forEach(lezione => {
+            if (lezione.codLez == parseInt(req.body.idLez))
+                add = false;
+        });
+
+        if (add) {
+            lezioni.findById(parseInt(req.body.idLez)).exec().then(result => {
+                let now = new Date().toISOString();
+                utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, {
+                    $push:
+                    {
+                        lezioni: {
+                            codLez: parseInt(req.body.idLez),
+                            dataInizio: now,
+                            dataFine: result.dataScadenza
+                        }
+                    }
+                }).exec().then(results => {
+                    //console.log(results);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results));
+                })
+                    .catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+        else {
+            error(req, res, null, JSON.stringify(new ERRORS.USER_ALREADY_IN_LESSON({})));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/cercaAppuntoAggiuntaLez", function (req, res) {
+    appunti.find({ descrizione: new RegExp(req.body.valore, "i") }).select("_id descrizione nomeAutore cognomeAutore").exec().then(results => {
+        //console.log(results);
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/insNuovoAppuntoLez", function (req, res) {
+    lezioni.findOne({ _id: parseInt(req.body.idLez) }).exec().then(result => {
+        let add = true;
+        result.appunti.forEach(appunto => {
+            if (add && appunto.codAppunto == parseInt(req.body.idAppunto))
+                add = false;
+        });
+        console.log("Aggiunta: " + add);
+
+        if (add) {
+            let now = new Date().toISOString();
+            appunti.findById(parseInt(req.body.idAppunto)).exec().then(result => {
+                lezioni.updateOne({ _id: parseInt(req.body.idLez) }, { $push: { appunti: { codAppunto: result._id, codUtente: result.autore, dataAggiunta: now } } })
+                    .exec()
+                    .then(results => {
+                        //console.log(results);
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify(results));
+                    })
+                    .catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+        else {
+            error(req, res, null, JSON.stringify(new ERRORS.APP_ALREADY_IN_LESSON({})));
+        }
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/modificaLezione", function (req, res) {
+    let dataScad;
+    if (req.body.dataScadenza == "")
+        dataScad = null;
+    else
+        dataScad = new Date(req.body.dataScadenza).toISOString();
+
+    lezioni.updateOne({ _id: parseInt(req.body.idLez) }, { $set: { titolo: req.body.titolo, dataScadenza: dataScad } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/elAppuntiLez", function (req, res) {
+    lezioni.aggregate([
+        { $match: { "_id": parseInt(req.body.idLezione) } },
+        {
+            $lookup: {
+                from: appunti.collection.name,
+                localField: "appunti.codAppunto",
+                foreignField: "_id",
+                as: "elencoAppunti"
+            }
+        }
+    ]).exec().then(results => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/removeAppuntoLez", function (req, res) {
+    let now = new Date().toISOString();
+    lezioni.updateOne({ _id: parseInt(req.body.idLez) }, { $pull: { "appunti": { codAppunto: parseInt(req.body.idAppunto) } } })
+        .exec()
+        .then(results => {
+            //console.log(results);
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        })
+        .catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+});
+
+app.post("/api/rimuoviLezione", function (req, res) {
+    lezioni.findOneAndRemove({ _id: parseInt(req.body.idLez) }, (err, response) => {
+        utenti.updateMany({}, {
+            $pull: {
+                "lezioni": { codLezione: parseInt(req.body.idLez) }
+            }
+        }).exec().then(results => {
+            //console.log(results);
+            if (results.ok == 1) {
+                moduli.updateMany({}, {
+                    $pull: {
+                        "lezioni": { codLezione: parseInt(req.body.idLez) }
+                    }
+                }).exec().then(results => {
+                    //console.log(results);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results));
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }
+            else {
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(results));
+            }
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }).exec().catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

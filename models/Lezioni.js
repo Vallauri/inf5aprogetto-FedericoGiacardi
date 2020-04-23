@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const appunti = mongoose.Schema({
     codAppunto: { type: Number, ref:"Appunti", required: true },
-    codUtente: { type: Number, ref:"Utenti", required: true },
+    codUtente: { type: Number, ref:"Utenti", required: true },// utente che ha creato l'appunto
     dataAggiunta: { type: Date, required: true }
 });
 
