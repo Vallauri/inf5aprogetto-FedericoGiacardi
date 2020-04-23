@@ -14,7 +14,7 @@ exports.extract = function (filePath) {
                     var content = tags[1].replace(/<.*$/, "")
                     body += content + ' '
                 }
-                resolve(body)
+                resolve(body);
             })
         }
     )

@@ -65,7 +65,7 @@ function loadAllegati() {
         let ausVet = new Array();
         data.forEach(allegato => {
             ausVet = allegato.percorso.split('\\');
-            ausVet = ausVet[ausVet.length - 1].split("_");
+            ausVet = ausVet[ausVet.length - 1].split(/_(.+)/);
             codHtml += '<option value="' + allegato._id + '">' + ausVet[1] + '</option>';
         });
         document.getElementById("allPresentiAppunto").selectedIndex = -1;

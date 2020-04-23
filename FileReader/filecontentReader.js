@@ -1,12 +1,11 @@
 var fs = require('fs');
 var PdfReader = require("pdfreader").PdfReader;
 var filereader = require('./filereader');
-var XLSX = require('xlsx');
+
 module.exports.readFilesHandler = function (file, res){
     return new Promise((resolve, reject)=>{
         var filecontent = "";
         fs.readFile(file.path, (err, data) => {
-            console.log(err);
             let filePath = file.path;
             let filebuffer = data;
             let filename = file.name;
@@ -14,7 +13,7 @@ module.exports.readFilesHandler = function (file, res){
             switch (fileextension) {
                 case '.pdf':
                     new PdfReader().parseBuffer(filebuffer, function (err, item) {
-                        if (err) console.log(err);
+                        if (err) reject(err);
                         else if (!item) resolve(filecontent);
                         else if (item.text) {
                             filecontent = filecontent + " " + item.text;
@@ -23,7 +22,7 @@ module.exports.readFilesHandler = function (file, res){
                     break;
                 case '.docx':
                     filereader.extract(filePath).then(function (res, err) {
-                        if (err) { console.log("ErroreDocx: " + err); }
+                        if (err) reject(err);
                         filecontent = res;
                         resolve(filecontent);
                     });
@@ -33,7 +32,8 @@ module.exports.readFilesHandler = function (file, res){
                     resolve(filecontent);
                     break;
                 default:
-                    filecontent = "fileNonSupportato";
+                    reject({"message":"File non supportato"});
+                    break;
             }
         });
     });
