@@ -1820,7 +1820,15 @@ app.post("/api/datiAppuntoById", function (req, res) {
 });
 
 app.post("/api/elencoAllegati", function (req, res) {
-    allegati.find({}).exec().then(results => {
+    allegati.aggregate([{$match:{}}, {
+        $lookup: 
+        {
+            from: utenti.collection.name, 
+            localField: "codUtente",
+            foreignField: "_id",
+            as: "autoreCaricamento"
+        }
+    }]).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -1828,6 +1836,14 @@ app.post("/api/elencoAllegati", function (req, res) {
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
+    // allegati.find({}).exec().then(results => {
+    //     let token = createToken(req.payload);
+    //     writeCookie(res, token);
+    //     res.writeHead(200, { "Content-Type": "application/json" });
+    //     res.end(JSON.stringify(results));
+    // }).catch(err => {
+    //     error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    // });
 });
 
 app.post("/api/modificaAppunto", uploadAllegati.array("newAllegati"),function (req, res) {
