@@ -6,7 +6,7 @@ $(document).ready(function () {
         $(".msg").text("");
 
         if ($("#txtRicerca").val() != "") {
-            let ricerca = inviaRichiesta('/api/cercaGruppo', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "gruppiDaCercare": $("#default-select .selected").attr("data-value"), "tipoGruppo": $("#default-select-1 .selected").attr("data-value") } });
+            let ricerca = inviaRichiesta('/api/cercaGruppo', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "gruppiDaCercare": $("#tipoRicerca option:selected").val(), "tipoGruppo": $("#tipoGruppo option:selected").val() } });
             ricerca.fail(function (jqXHR, test_status, str_error) {
                 printErrors(jqXHR, ".msg");
             });
@@ -29,7 +29,7 @@ $(document).ready(function () {
                 type: "POST",
                 data: {
                     valore: req.term,
-                    filtri: { "gruppiDaCercare": $("#default-select .selected").attr("data-value"), "tipoGruppo": $("#default-select-1 .selected").attr("data-value") }
+                    filtri: { "gruppiDaCercare": $("#tipoRicerca option:selected").val(), "tipoGruppo": $("#tipoGruppo option:selected").val() }
                 },
                 success: function (data) {
                     creazioneElencoGruppi(data);
