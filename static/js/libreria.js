@@ -71,6 +71,6 @@ function printErrors(jqXHR, par) {
 	if (jqXHR.status == 401 || jqXHR.status == 403) { // unauthorized
 		window.location = "index.html";
 	} else{
-		$(par).show().text("Server Error: "+JSON.parse(jqXHR.responseText)["message"]);
+		$(par).show().text("Server Error: " + JSON.parse(JSON.parse(JSON.stringify(jqXHR.responseText)))["message"]);
 	}
 }

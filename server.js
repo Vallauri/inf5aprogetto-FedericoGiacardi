@@ -170,7 +170,7 @@ const storageAllegati = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
     if (file.mimetype.includes("image/")) {
-        if (!file.originalname.includes("unset")) {
+        if (!file.originalname.includes("unset") && !file.originalname.includes("noChange")) {
             cb(null, true);
         } else {
             cb(null, false);
@@ -2323,7 +2323,6 @@ app.post("/api/removeLezCorso", function (req, res) {
     moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $pull: { "lezioni": { codLezione: parseInt(req.body.idLezione) } } })
         .exec()
         .then(results => {
-            //console.log(results);
             let token = createToken(req.payload);
             writeCookie(res, token);
             res.writeHead(200, { "Content-Type": "application/json" });
@@ -2356,6 +2355,138 @@ app.get("/api/downloadAllegato", function (req, res) {
        gestErrorePar(req, res);
    }
 });
+
+app.post("/api/getDatiProfilo", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+       utenti.findOne({ "_id": parseInt(req.payload._id) }).select({"_id":0,"nome":1,"cognome":1, "dataNascita":1, "mail":1, "telefono":1, "user":1}).exec().then(result =>{
+           let token = createToken(req.payload);
+           writeCookie(res, token);
+           res.writeHead(200, { "Content-Type": "application/json" });
+           res.end(JSON.stringify(result));
+       }).catch(err => {
+           error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+       })
+   } else {
+       gestErrorePar(req, res);
+   }
+});
+
+app.post("/api/modificaProfilo", upload.single("foto"), function (req, res) {
+    let objModifica = {};
+    let path;
+
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        if (req.body.nome != "") {
+            if (req.body.cognome != "") {
+                if (Date.parse(req.body.dataNascita)) {
+                    if (chkEtaMinima(new Date(req.body.dataNascita)) >= 2920) {
+                        if (validaEmail(req.body.email)) {
+                            if (validaTelefono(req.body.telefono)) {
+                                if (req.body.username != "") {
+                                    if (req.fileValidationError != "fileNonValido") {
+                                        utenti.findOne({ "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(result => {
+                                            async.series([
+                                                function (callback) {
+                                                    if (result.mail != req.body.email) {
+                                                        utenti.count({ "mail": req.body.email }).exec().then(nUtMail => {
+                                                            if (nUtMail != 0)
+                                                                callback(JSON.stringify(new ERRORS.EMAIL_USED({})), null);
+                                                            else
+                                                                callback(null, null);
+                                                        }).catch(errMail => {
+                                                            callback(JSON.stringify(new ERRORS.QUERY_EXECUTE({})), null);
+                                                        });
+                                                    } else
+                                                        callback(null, null);
+                                                },
+                                                function (callback) {
+                                                    if (result.telefono != req.body.telefono) {
+                                                        utenti.count({ "telefono": req.body.telefono }).exec().then(nUtTel => {
+                                                            if (nUtTel != 0)
+                                                                callback(JSON.stringify(new ERRORS.TELEPHONE_USED({})), null);
+                                                            else
+                                                                callback(null, null);
+                                                        }).catch(errTel => {
+                                                            callback(JSON.stringify(new ERRORS.QUERY_EXECUTE({})), null);
+                                                        });
+                                                    } else
+                                                        callback(null, null);
+                                                },
+                                                function (callback) {
+                                                    if (result.user != req.body.username) {
+                                                        utenti.count({ "user": req.body.username }).exec().then(nUtUser => {
+                                                            if (nUtUser != 0)
+                                                                callback(JSON.stringify(new ERRORS.USERNAME_USED({})), null);
+                                                            else
+                                                                callback(null, null);
+                                                        }).catch(errUser => {
+                                                            callback(JSON.stringify(new ERRORS.QUERY_EXECUTE({})), null);
+                                                        });
+                                                    } else
+                                                        callback(null, null);
+                                                }
+                                            ], function (err, data) {
+                                                if (!err) {
+                                                    objModifica["$set"] = { "nome": req.body.nome, "cognome": req.body.cognome, "dataNascita": req.body.dataNascita, "mail": req.body.email, "telefono": req.body.telefono, "user": req.body.username};
+                                                    console.log(req.body.foto);
+                                                    if (req.body.foto != "noChange") {
+                                                        if (req.file == undefined) {
+                                                            path = "static\\images\\default.png";
+                                                        } else {
+                                                            path = req.file.path;
+                                                        }
+                                                        objModifica["$set"]["foto"] = path;
+                                                    }
+                                                    console.log(objModifica);
+                                                    utenti.updateOne({ "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, objModifica).exec().then(result => {
+                                                        res.set("Set-Cookie", "token=;max-age=-1;Path=/;httponly=true");
+                                                        res.send({ "ris": "modProfiloOk" });
+                                                    }).catch(err => {
+                                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                    });
+                                                } else {
+                                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                }
+                                            });
+                                        }).catch(errFindUt => {
+                                            error(req, res, errFindUt, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                        });
+                                    } else {
+                                        error(req, res, null, JSON.stringify(new ERRORS.INVALID_ATTACHMENT_ERROR({})));
+                                    }
+                                } else {
+                                    gestErrorePar(req, res);
+                                }
+                            } else {
+                                gestErrorePar(req, res);
+                            }
+                        } else {
+                            gestErrorePar(req, res);
+                        }
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        }
+        else {
+            gestErrorePar(req, res);
+        }
+    }else{
+        gestErrorePar(req, res);
+    }
+    
+});
+
+function chkEtaMinima(dataNascita) {
+    let dataBase = new Date('1/1/' + (new Date().getFullYear() - 8));
+    let diffTime = Math.abs(dataNascita - dataBase);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */

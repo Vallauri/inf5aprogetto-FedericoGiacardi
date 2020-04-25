@@ -46,12 +46,12 @@ function gestReg() {
                                 let foto = "unset";
                                 if ($('#fotoReg').prop('files')[0] != "") {
                                     foto = $('#fotoReg').prop('files')[0];
-                                    // if ($('#fotoReg').prop('files')[0].type.includes("image/")) {
-                                    //     foto = $('#fotoReg').prop('files')[0];
-                                    // }else{
-                                    //     gestErrori("La foto inserita non è valida", $("#fotoReg"));
-                                    //     return;
-                                    // }
+                                    if ($('#fotoReg').prop('files')[0].type.includes("image/")) {
+                                        foto = $('#fotoReg').prop('files')[0];
+                                    }else{
+                                        gestErrori("La foto inserita non è valida", $("#fotoReg"));
+                                        return;
+                                    }
                                 }
                                 formData.append('foto', foto);
                                 let registratiRQ = inviaRichiestaMultipart('/api/registrati', 'POST', formData);

@@ -18,7 +18,7 @@ function setNavBar() {
             codHtml += "</a>";
             codHtml += '<div class="dropdown-menu dropdown-menu-lg-right dropdown-secondary" aria-labelledby="navbarDropdownMenuLink-55">';
             codHtml += '<a class="dropdown-item" href="areaPersonale.html"><i class="fas fa-user"></i> Dashboard</a>';
-            codHtml += '<a class="dropdown-item" href="#"><i class="fas fa-user-cog"></i> Opzioni</a>';
+            codHtml += '<a class="dropdown-item" href="modificaProfilo.html"><i class="fas fa-user-cog"></i> Opzioni</a>';
             codHtml += '<a class="dropdown-item" href="#" onclick="doLogOut();"><i class="fas fa-sign-out-alt"></i> Logout</a>';
         }
         $("#profiloUtNavBar").html(codHtml);
