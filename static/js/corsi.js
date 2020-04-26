@@ -3,12 +3,12 @@ $(document).ready(function () {
     loadPagina();
 
     $("#btnRicerca").on("click", function () {
-        $(".msg").text("");
+        $("#msgRicerca").text("");
 
         if ($("#txtRicerca").val() != "") {
             let ricerca = inviaRichiesta('/api/cercaCorso', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "corsiDaCercare": $("#tipoRicerca option:selected").val(), "tipoCorso": $("#tipoCorso option:selected").val() } });
             ricerca.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".msg");
+                printErrors(jqXHR, "#msgRicerca");
             });
             ricerca.done(function (data) {
                 console.log(data);
@@ -16,7 +16,7 @@ $(document).ready(function () {
             });
         }
         else {
-            $(".msg").text("Inserire un valore per la ricerca");
+            $("#msgRicerca").text("Inserire un valore per la ricerca");
             $("#txtRicerca").focus();
         }
     });
@@ -35,7 +35,7 @@ $(document).ready(function () {
                     creazioneElencoCorsi(data);
                 },
                 error: function (xhr) {
-                    alert(xhr.status + ' : ' + xhr.statusText);
+                    alert(xhr.status + ' : ' + xhr.statusText); // da vedere
                 }
             });
         },
@@ -44,27 +44,16 @@ $(document).ready(function () {
         }
     });
 
-    let tipiCorsi = inviaRichiesta('/api/elTipiCorsi', 'POST', {});
-    tipiCorsi.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
-    });
-    tipiCorsi.done(function (data) {
-        console.log(data);
-        data.forEach(tipocorso => {
-            $("#tipoCorso").append("<option value='" + tipocorso._id + "'>" + tipocorso.descrizione + "</option>");
-            //$("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
-        });
-    });
-
     $("#btnInviaCorso").on("click", aggiuntaCorso);
     loadTipiModuli();
     loadMaterie();
+    $('#tipoRicerca').selectpicker('refresh');
 });
 
 function loadPagina() {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        //printErrors(jqXHR, ".msg"); // vedere se va bene o se da cambiare campo di segnalazione errore
+        //printErrors(jqXHR, "#msgRicerca"); // vedere se va bene o se da cambiare campo di segnalazione errore
         console.log(jqXHR + " " + test_status + " " + str_error);
         window.location.href = "login.html";
     });
@@ -86,6 +75,8 @@ function loadTipiModuli() {
         $("#tipoModuloAdd").html(codHtml);
         $('#tipoModuloAdd').selectpicker('refresh');
         document.getElementById("tipoModuloAdd").selectedIndex = -1;
+        $("#tipoCorso").html("<option value='none' selected>-----------------</option>" + codHtml);
+        $('#tipoCorso').selectpicker('refresh');
     });
 }
 
