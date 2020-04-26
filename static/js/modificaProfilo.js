@@ -9,6 +9,7 @@ $(document).ready(function () {
 });
 
 function loadPagina() {
+    setMinDate();
     document.getElementById("gestFotoModProfilo").selectedIndex = -1;
     $('#gestFotoModProfilo').selectpicker('refresh');
     $("#contFotoModProfilo").css("display", "none");
@@ -20,6 +21,14 @@ function loadPagina() {
     rqDatiProfilo.done(function (data) {
         caricaDatiProfilo(data);
     });
+}
+
+function setMinDate() {
+    let aus = new Date();
+    aus.setDate = aus.getDate();
+    aus.setFullYear(aus.getFullYear() - 8); //imposto come data di nascita massima 8 anni fa
+    let data = aus.toISOString().split('T')[0];
+    $("#dataNascitaModProfilo").attr("max", data);
 }
 
 function caricaDatiProfilo(utente) {
@@ -159,7 +168,7 @@ function validaTelefono(telefono) {
 }
 
 function chkEtaMinima(dataNascita) {
-    let dataBase = new Date('1/1/'+(new Date().getFullYear() - 8));
-    let diffTime = Math.abs(dataNascita - dataBase);
+    let dataBase = new Date();
+    let diffTime = Math.abs(dataBase - dataNascita);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }

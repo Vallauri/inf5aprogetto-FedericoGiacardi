@@ -30,53 +30,59 @@ function gestReg() {
     if ($("#nomeReg").val() != "") {
         if ($("#cognomeReg").val() != "") {
             if (Date.parse($("#dataNascitaReg").val())) {
-                if (validaEmail($("#mailReg").val())) {
-                    if (validaTelefono($("#telReg").val())) {
-                        if ($("#usernameReg").val() != "") {
-                            if (validaPwdReg($("#pwdReg").val())) {
-                                let formData = new FormData();
-                                formData.append('nome', $("#nomeReg").val());
-                                formData.append('cognome', $("#cognomeReg").val());
-                                formData.append('dataNascita', $("#dataNascitaReg").val());
-                                formData.append('telefono', $("#telReg").val());
-                                formData.append('email', $("#mailReg").val());
-                                formData.append('username', $("#usernameReg").val());
-                                formData.append('password', $("#pwdReg").val());
+                if (chkEtaMinima(new Date($("#dataNascitaReg").val())) >= 2920) {
+                    if (validaEmail($("#mailReg").val())) {
+                        if (validaTelefono($("#telReg").val())) {
+                            if ($("#usernameReg").val() != "") {
+                                if (validaPwdReg($("#pwdReg").val())) {
+                                    let formData = new FormData();
+                                    formData.append('nome', $("#nomeReg").val());
+                                    formData.append('cognome', $("#cognomeReg").val());
+                                    formData.append('dataNascita', $("#dataNascitaReg").val());
+                                    formData.append('telefono', $("#telReg").val());
+                                    formData.append('email', $("#mailReg").val());
+                                    formData.append('username', $("#usernameReg").val());
+                                    formData.append('password', $("#pwdReg").val());
 
-                                let foto = "unset";
-                                if ($('#fotoReg').prop('files')[0] != "") {
-                                    foto = $('#fotoReg').prop('files')[0];
-                                    if ($('#fotoReg').prop('files')[0].type.includes("image/")) {
+                                    let foto = "unset";
+                                    if ($('#fotoReg').prop('files')[0] != undefined) {
                                         foto = $('#fotoReg').prop('files')[0];
-                                    }else{
-                                        gestErrori("La foto inserita non è valida", $("#fotoReg"));
-                                        return;
+                                        if ($('#fotoReg').prop('files')[0].type.includes("image/")) {
+                                            foto = $('#fotoReg').prop('files')[0];
+                                        } else {
+                                            gestErrori("La foto inserita non è valida", $("#fotoReg"));
+                                            return;
+                                        }
                                     }
+                                    formData.append('foto', foto);
+                                    let registratiRQ = inviaRichiestaMultipart('/api/registrati', 'POST', formData);
+                                    registratiRQ.fail(function (jqXHR, test_status, str_error) {
+                                        if (jqXHR.status == 603) {
+                                            $(".msg").text("Credenziali Errate o Mancanti");
+                                        }
+                                        else {
+                                            printErrors(jqXHR, ".msg");
+                                        }
+                                    });
+                                    registratiRQ.done(function (data) {
+                                        window.location.href = "login.html"
+                                    });
+                                } else {
+                                    gestErrori("Inserire una Password valida", $("#pwdReg"));
                                 }
-                                formData.append('foto', foto);
-                                let registratiRQ = inviaRichiestaMultipart('/api/registrati', 'POST', formData);
-                                registratiRQ.fail(function (jqXHR, test_status, str_error) {
-                                    if (jqXHR.status == 603) {
-                                        $(".msg").text("Credenziali Errate o Mancanti");
-                                    }
-                                    else{
-                                        printErrors(jqXHR, ".msg");}
-                                });
-                                registratiRQ.done(function (data) {
-                                    window.location.href = "login.html"
-                                });
                             } else {
-                                gestErrori("Inserire una Password valida", $("#pwdReg"));
+                                gestErrori("Inserire uno Username", $("#usernameReg"));
                             }
                         } else {
-                            gestErrori("Inserire uno Username", $("#usernameReg"));
+                            gestErrori("Il numero di Telefono deve contenere 10 numeri", $("#telReg"));
                         }
                     } else {
-                        gestErrori("Il numero di Telefono deve contenere 10 numeri", $("#telReg"));
+                        gestErrori("Inserire una Email valida", $("#mailReg"));
                     }
                 } else {
-                    gestErrori("Inserire una Email valida", $("#mailReg"));
+                    gestErrori("Occorre avere almeno 8 anni", $("#dataNascitaReg"));
                 }
+                
             } else {
                 gestErrori("Inserire una Data di Nascita valida", $("#dataNascitaReg"));
             }
@@ -107,4 +113,10 @@ function validaTelefono(telefono) {
 function validaPwdReg(pwdReg) {
     let re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
     return re.test(pwdReg);
+}
+
+function chkEtaMinima(dataNascita) {
+    let dataBase = new Date();
+    let diffTime = Math.abs(dataBase - dataNascita);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }

@@ -12,8 +12,8 @@ require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
 const textToSpeech = new TextToSpeechV1({
-    authenticator: new IamAuthenticator({ apikey: process.env.APIKEYTTS }),
-    url: process.env.URLTTS
+    authenticator: new IamAuthenticator({ apikey: "GIoavDcJdcfLEMrYTx3qpK4digTwJW3UeLnXSQgF3xsX" }),
+    url: "https://api.eu-gb.text-to-speech.watson.cloud.ibm.com/instances/cc186352-e98d-4453-a9db-e71e93ffee9e"
 });
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
@@ -370,86 +370,89 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
     let path = "";
     if (req.body.nome != "") {
         if (req.body.cognome != "") {
-            //FARE CONTROLLO ETA MINIMA 8 ANNI
             if (Date.parse(req.body.dataNascita)) {
-                if (validaEmail(req.body.email)) {
-                    if (validaTelefono(req.body.telefono)) {
-                        if (req.body.username != "") {
-                            if (validaPwdReg(req.body.password)) {
-                                if (req.fileValidationError != "fileNonValido") {
-                                    utenti.count({ "mail": req.body.email }).exec().then(nUtMail => {
-                                        if (nUtMail == 0) {
-                                            utenti.count({ "telefono": req.body.telefono }).exec().then(nUtTel => {
-                                                if (nUtTel == 0) {
-                                                    utenti.count({ "user": req.body.username }).exec().then(nUtUser => {
-                                                        if (nUtUser == 0) {
-                                                            //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
-                                                            bcrypt.hash(req.body.password, saltRounds, function (errUtPwd, hashUtPwd) {
-                                                                if (errUtPwd) {
-                                                                    error(req, res, errUtPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                                                } else {
-                                                                    utenti.count({ "pwd": hashUtPwd }).exec().then(nPwdUser => {
-                                                                        if (nPwdUser == 0) {
-                                                                            utenti.find().sort({ _id: 1 }).exec().then(results => {
-                                                                                let vet = JSON.parse(JSON.stringify(results));
-                                                                                if (req.file == undefined) {
-                                                                                    path = "static\\images\\default.png";
-                                                                                } else {
-                                                                                    path = req.file.path;
-                                                                                }
+                if (chkEtaMinima(new Date(req.body.dataNascita)) >= 2920) {
+                    if (validaEmail(req.body.email)) {
+                        if (validaTelefono(req.body.telefono)) {
+                            if (req.body.username != "") {
+                                if (validaPwdReg(req.body.password)) {
+                                    if (req.fileValidationError != "fileNonValido") {
+                                        utenti.count({ "mail": req.body.email }).exec().then(nUtMail => {
+                                            if (nUtMail == 0) {
+                                                utenti.count({ "telefono": req.body.telefono }).exec().then(nUtTel => {
+                                                    if (nUtTel == 0) {
+                                                        utenti.count({ "user": req.body.username }).exec().then(nUtUser => {
+                                                            if (nUtUser == 0) {
+                                                                //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
+                                                                bcrypt.hash(req.body.password, saltRounds, function (errUtPwd, hashUtPwd) {
+                                                                    if (errUtPwd) {
+                                                                        error(req, res, errUtPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                                    } else {
+                                                                        utenti.count({ "pwd": hashUtPwd }).exec().then(nPwdUser => {
+                                                                            if (nPwdUser == 0) {
+                                                                                utenti.find().sort({ _id: 1 }).exec().then(results => {
+                                                                                    let vet = JSON.parse(JSON.stringify(results));
+                                                                                    if (req.file == undefined) {
+                                                                                        path = "static\\images\\default.png";
+                                                                                    } else {
+                                                                                        path = req.file.path;
+                                                                                    }
 
-                                                                                const utInsert = new utenti({
-                                                                                    _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                                                                    nome: req.body.nome,
-                                                                                    cognome: req.body.cognome,
-                                                                                    dataNascita: req.body.dataNascita,
-                                                                                    mail: req.body.email,
-                                                                                    telefono: req.body.telefono,
-                                                                                    user: req.body.username,
-                                                                                    pwd: hashUtPwd,
-                                                                                    foto: path
-                                                                                });
-                                                                                utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                                                                    const utInsert = new utenti({
+                                                                                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                                        nome: req.body.nome,
+                                                                                        cognome: req.body.cognome,
+                                                                                        dataNascita: req.body.dataNascita,
+                                                                                        mail: req.body.email,
+                                                                                        telefono: req.body.telefono,
+                                                                                        user: req.body.username,
+                                                                                        pwd: hashUtPwd,
+                                                                                        foto: path
+                                                                                    });
+                                                                                    utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
 
-                                                                                /* Poi da rimuovere in Deploy */
-                                                                                const utPwdColl = new pwdInChiaro({
-                                                                                    _id: new mongoose.Types.ObjectId(),
-                                                                                    idUt: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                                                                    user: req.body.username,
-                                                                                    pwd: req.body.password
+                                                                                    /* Poi da rimuovere in Deploy */
+                                                                                    const utPwdColl = new pwdInChiaro({
+                                                                                        _id: new mongoose.Types.ObjectId(),
+                                                                                        idUt: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                                        user: req.body.username,
+                                                                                        pwd: req.body.password
+                                                                                    });
+                                                                                    utPwdColl.save().then(results => { console.log("Pwd salvata su Collection in chiaro") }).catch(errSave => { console.log("Errore salvataggio Pwd in chiaro; err: " + errSave) });
+                                                                                }).catch(err => {
+                                                                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                                                                 });
-                                                                                utPwdColl.save().then(results => { console.log("Pwd salvata su Collection in chiaro") }).catch(errSave => { console.log("Errore salvataggio Pwd in chiaro; err: " + errSave) });
-                                                                            }).catch(err => {
-                                                                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                                                            });
-                                                                        } else {
-                                                                            error(req, res, null, JSON.stringify(new ERRORS.PWD_USED({})));
-                                                                        }
-                                                                    }).catch(errPwdUser => {
-                                                                        error(req, res, errPwdUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                                                    });
-                                                                }
-                                                            });
-                                                        } else {
-                                                            error(req, res, null, JSON.stringify(new ERRORS.USERNAME_USED({})));
-                                                        }
-                                                    }).catch(errUser => {
-                                                        error(req, res, errUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                                    });
-                                                } else {
-                                                    error(req, res, null, JSON.stringify(new ERRORS.TELEPHONE_USED({})));
-                                                }
-                                            }).catch(errTel => {
-                                                error(req, res, errTel, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                            });
-                                        } else {
-                                            error(req, res, null, JSON.stringify(new ERRORS.EMAIL_USED({})));
-                                        }
-                                    }).catch(errMail => {
-                                        error(req, res, errMail, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                    });
-                                }else{
-                                    error(req, res, null, JSON.stringify(new ERRORS.INVALID_ATTACHMENT_ERROR({})));
+                                                                            } else {
+                                                                                error(req, res, null, JSON.stringify(new ERRORS.PWD_USED({})));
+                                                                            }
+                                                                        }).catch(errPwdUser => {
+                                                                            error(req, res, errPwdUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                                        });
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                error(req, res, null, JSON.stringify(new ERRORS.USERNAME_USED({})));
+                                                            }
+                                                        }).catch(errUser => {
+                                                            error(req, res, errUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                        });
+                                                    } else {
+                                                        error(req, res, null, JSON.stringify(new ERRORS.TELEPHONE_USED({})));
+                                                    }
+                                                }).catch(errTel => {
+                                                    error(req, res, errTel, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                });
+                                            } else {
+                                                error(req, res, null, JSON.stringify(new ERRORS.EMAIL_USED({})));
+                                            }
+                                        }).catch(errMail => {
+                                            error(req, res, errMail, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                        });
+                                    } else {
+                                        error(req, res, null, JSON.stringify(new ERRORS.INVALID_ATTACHMENT_ERROR({})));
+                                    }
+                                } else {
+                                    gestErrorePar(req, res);
                                 }
                             } else {
                                 gestErrorePar(req, res);
@@ -2497,8 +2500,8 @@ app.post("/api/modificaProfilo", upload.single("foto"), function (req, res) {
 });
 
 function chkEtaMinima(dataNascita) {
-    let dataBase = new Date('1/1/' + (new Date().getFullYear() - 8));
-    let diffTime = Math.abs(dataNascita - dataBase);
+    let dataBase = new Date();
+    let diffTime = Math.abs(dataBase - dataNascita);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
