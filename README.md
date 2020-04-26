@@ -1,6 +1,6 @@
 # LearnOnTheNet
 
-![](/Home_1.PNG)
+![](/Immagini/Home_1.PNG)
 
 ## Descrizione:
 Piattaforma di e-learning che consente di seguire, individualmente o come parte di un gruppo, corsi relativi a determinati argomenti. 
@@ -29,7 +29,7 @@ Progetto in fase di sviluppo
 
 ## Sezioni Sito:
 * Home: Pagina di presentazione del sito con breve descrizione, elenco dei principali servizi offerti,  statistiche di utilizzo e recensioni. Pagina relizzata da Giacardi.
-![](/immagini/Home_1.PNG)
+![](/Immagini/Home_1.PNG)
 * Registrati: Sezione con form di iscrizione. Una volta completata la registrazione si viene re-indirizzati alla pagina di login. Pagina relizzata da Giacardi.
 ![](/immagini/Registrati.PNG)
 * Login: Pagina con form di login che richiede l'inserimento di Username e Password. Qualora il login vada a buon fine, si viene re-indirizzati sulla propria area personale. Pagina relizzata da Giacardi.
