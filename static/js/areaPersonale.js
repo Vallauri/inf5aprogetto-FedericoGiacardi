@@ -147,7 +147,7 @@ function creazioneCalendario() {
                     }
                     evento["end"] = utente.moduli[I].scadenza;
                 }
-                evento["raw"] = 'moduliUt;'+stato;//Memorizzo il tipo di evento per sapere quale tab itnerrogare
+                evento["raw"] = 'moduliUt;'+stato;//Memorizzo il tipo di evento per sapere quale tab interrogare
                 contEventi++;
                 vetEventi.push(evento);
             }
@@ -183,7 +183,7 @@ function creazioneCalendario() {
                         evento["borderColor"] = 'red';
                         stato = "scaduto";
                     }
-                    evento["end"] = utente.moduli[I].scadenza;
+                    evento["end"] = utente.moduli[I].scadenza; // è giusto?? o dovrebbe essere moduliGruppi??
                 }
                 evento["raw"] = 'moduliGr;'+stato;
                 contEventi++;

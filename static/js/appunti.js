@@ -90,55 +90,59 @@ function ricercaAppunti() {
 function stampaRisRicerca(appunti) {
     //fare segnalazione nessun risultato
     console.log(appunti);
+    $("#contRis").html("");
+    $("#msgRic").text("");
     if (appunti.length == 0) {
         $("#msgRic").text("Non è stato individuato alcun appunto");
     }else{
-        $("#contRis").html("");
-        $("#msgRic").text("");
-        let codHtml = '<div class="row">';
-        let I = 0;
         let appuntiFiltered = appunti.filter(chkAppunti);
-        appuntiFiltered.forEach(appunto => {
-            if (I == 0) {
-                if (appuntiFiltered.length == 1) {
-                    codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>';
-                } else if (appuntiFiltered.length == 2) {
-                    codHtml += '<div class="col-sm-12 col-md-2 col-lg-2 col-xs-2"></div>';
-                }
-            }
-
-            codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4">';
-            if (appunto != undefined) {
-                codHtml += '<a href="dettaglioAppunto.html?appunto='+appunto._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
-                codHtml += '<div class="d-flex w-100 justify-content-between">';
-                codHtml += '<h5 class="mb-1">' + appunto.descrizione + '</h5>';
-                codHtml += '</div>';
-                codHtml += '<p class="mb-1">Autore: ' + appunto.nomeAutore + ' ' + appunto.cognomeAutore + '<br>Argomenti: ';
-                for (let i = 0; i < appunto.detArgomenti.length; i++) {
-                    codHtml += appunto.detArgomenti[i].descrizione;
-                    if (i != appunto.detArgomenti.length - 1) {
-                        codHtml += ", ";
+        if (appuntiFiltered.length == 0) {
+            $("#msgRic").text("Non è stato individuato alcun appunto");
+        }
+        else{
+            let codHtml = '<div class="row">';
+            let I = 0;
+            appuntiFiltered.forEach(appunto => {
+                if (I == 0) {
+                    if (appuntiFiltered.length == 1) {
+                        codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>';
+                    } else if (appuntiFiltered.length == 2) {
+                        codHtml += '<div class="col-sm-12 col-md-2 col-lg-2 col-xs-2"></div>';
                     }
                 }
-            } else {
-                codHtml += "<p style='text-align:center'>Dati non disponibili</p>";
-            }
-            codHtml += "</div>";
-            if (I == 2) {
-                codHtml += '</div><div class="row">';
-                I = 0;
-            } else if (I == appuntiFiltered.length - 1) {
-                if (appuntiFiltered.length == 1) {
-                    codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>';
-                } else if (appuntiFiltered.length == 2) {
-                    codHtml += '<div class="col-sm-12 col-md-2 col-lg-2 col-xs-2"></div>';
+
+                codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4">';
+                if (appunto != undefined) {
+                    codHtml += '<a href="dettaglioAppunto.html?appunto=' + appunto._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
+                    codHtml += '<div class="d-flex w-100 justify-content-between">';
+                    codHtml += '<h5 class="mb-1">' + appunto.descrizione + '</h5>';
+                    codHtml += '</div>';
+                    codHtml += '<p class="mb-1">Autore: ' + appunto.nomeAutore + ' ' + appunto.cognomeAutore + '<br>Argomenti: ';
+                    for (let i = 0; i < appunto.detArgomenti.length; i++) {
+                        codHtml += appunto.detArgomenti[i].descrizione;
+                        if (i != appunto.detArgomenti.length - 1) {
+                            codHtml += ", ";
+                        }
+                    }
+                } else {
+                    codHtml += "<p style='text-align:center'>Dati non disponibili</p>";
                 }
                 codHtml += "</div>";
-            }
-            I++;
-        });
-
-        $("#contRis").html(codHtml);
+                if (I == 2) {
+                    codHtml += '</div><div class="row">';
+                    I = 0;
+                } else if (I == appuntiFiltered.length - 1) {
+                    if (appuntiFiltered.length == 1) {
+                        codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>';
+                    } else if (appuntiFiltered.length == 2) {
+                        codHtml += '<div class="col-sm-12 col-md-2 col-lg-2 col-xs-2"></div>';
+                    }
+                    codHtml += "</div>";
+                }
+                I++;
+            });
+            $("#contRis").html(codHtml);
+        }
     }
 }
 

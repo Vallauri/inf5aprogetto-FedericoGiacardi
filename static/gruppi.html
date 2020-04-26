@@ -24,7 +24,9 @@
     <!-- swiper CSS -->
     <link rel="stylesheet" href="css/slick.css">
     <!-- style CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.12/dist/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
@@ -56,6 +58,9 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link active" href="gruppi.html">Gruppi</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="appunti.html">Appunti</a>
                                 </li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
@@ -108,17 +113,16 @@
                         <div class="container" id="divRicAvanzata" style="margin-top: 25px;">
                             <h4>Filtri di Ricerca</h4>
                             <form>
+                                <label for="tipoRicerca">Gruppi da cercare</label>
                                 <div class="form-select" id="default-select">
-                                    <label for="tipoRicerca">Gruppi da cercare</label>
-                                    <select name="tipoRicerca" id="tipoRicerca">
+                                    <select name="tipoRicerca" id="tipoRicerca" title="Ricerca Gruppi">
                                         <option value="all" selected>Tutti i gruppi</option>
                                         <option value="yourGroup">I miei gruppi</option>
-                                        <option></option>
                                     </select>
                                 </div>
+                                <label for="tipoGruppo">Tipi di gruppo da cercare</label>
                                 <div class="form-select" id="default-select-1">
-                                    <label for="tipoGruppo">Tipi di gruppo da cercare</label>
-                                    <select name="tipoGruppo" id="tipoGruppo">
+                                    <select name="tipoGruppo" id="tipoGruppo" title="Tipo Gruppo">
                                         <option value="none" selected>-------------------</option>
                                     </select>
                                 </div>
@@ -136,6 +140,67 @@
         </div>
     </section>
     <!--::blog_part end::-->
+
+    <!-- sezione aggiunta gruppo -->
+    <section class="section_padding">
+        <div class="container-fluid">
+            <h2 align="center" class="section_tittle">Inserimento Gruppo</h2>
+            <div class="row">
+                <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                    <div class="card card-signin my-5">
+                        <div div class="card-body">
+                            <form id="formInsGruppo" class="form-contact">
+                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                                    <div class="input-group form-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user-circle"> </i>
+                                            </span>
+                                            <input type="text" id="nomeGruppo" name="nomeGruppo" placeholder="Nome"
+                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                onblur="this.placeholder = 'Nome'" required class="single-input">
+                                        </div>
+                                    </div>
+                                    <div class="input-group form-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user-circle"> </i>
+                                            </span>
+                                            <input type="text" id="descGruppo" name="descGruppo" placeholder="Descrizione"
+                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                onblur="this.placeholder = 'Descrizione'" required class="single-input">
+                                        </div>
+                                    </div>
+                                    <div class="input-group form-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user"> </i>
+                                            </span>
+                                            <div>
+                                                <select id="tipoGruppoAdd" required title="Scegli il Tipo di Gruppo"
+                                                    data-live-search="true"
+                                                    data-live-search-placeholder="Cerca Tipo Gruppo">
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="msgAddGruppo" class="msg"> </div>
+                                </div>
+                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                                    <div class="form-group">
+                                        <a id="btnInviaGruppo" class="genric-btn primary circle btn-block"
+                                            style="color: #fff!important;">Invia</a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+    
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Fine sezione aggiunta gruppo -->
 
     <!-- footer part start-->
     <footer class="footer-area">
@@ -216,16 +281,17 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="js/jquery.magnific-popup.js"></script>
     <!-- swiper js -->
     <script src="js/swiper.min.js"></script>
+    <script src="js/jquery.nice-select.min.js"></script>
     <!-- swiper js -->
     <script src="js/masonry.pkgd.js"></script>
     <!-- particles js -->
     <script src="js/owl.carousel.min.js"></script>
-    <script src="js/jquery.nice-select.min.js"></script>
     <!-- swiper js -->
     <script src="js/slick.min.js"></script>
     <script src="js/jquery.counterup.min.js"></script>
     <script src="js/waypoints.min.js"></script>
     <!-- custom js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.12/dist/js/bootstrap-select.min.js"></script>
     <script src="js/custom.js"></script>
     <script src="js/libreria.js"></script>
     <script src="js/jquery-ui.js"></script>
