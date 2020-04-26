@@ -12,8 +12,8 @@ require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
 const textToSpeech = new TextToSpeechV1({
-    authenticator: new IamAuthenticator({ apikey: process.env.APIKEYTTS }),
-    url: process.env.URLTTS
+    authenticator: new IamAuthenticator({ apikey: "" }),
+    url: ""
 });
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
@@ -2539,6 +2539,7 @@ app.get("/api/downloadAudioTTS", function (req, res) {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.download(req.query.allegato);
+        fs.unlinkSync(req.query.allegato);
     } else {
         gestErrorePar(req, res);
     }
