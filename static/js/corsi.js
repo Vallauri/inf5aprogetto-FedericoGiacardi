@@ -52,10 +52,13 @@ $(document).ready(function () {
         console.log(data);
         data.forEach(tipocorso => {
             $("#tipoCorso").append("<option value='" + tipocorso._id + "'>" + tipocorso.descrizione + "</option>");
-            $("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
+            //$("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
         });
     });
 
+    $("#btnInviaCorso").on("click", aggiuntaCorso);
+    loadTipiModuli();
+    loadMaterie();
 });
 
 function loadPagina() {
@@ -67,6 +70,93 @@ function loadPagina() {
     });
     chkToken.done(function (data) {
     });
+}
+
+function loadTipiModuli() {
+    let elTipiModuli = inviaRichiesta('/api/elTipiCorsi', 'POST', {});
+    elTipiModuli.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, "#msgAddCorso");
+    });
+    elTipiModuli.done(function (data) {
+        let codHtml = '';
+        console.log(data);
+        data.forEach(tipocorso => {
+            codHtml += '<option value="' + tipocorso._id + '">' + tipocorso.descrizione + '</option>';
+        });
+        $("#tipoModuloAdd").html(codHtml);
+        $('#tipoModuloAdd').selectpicker('refresh');
+        document.getElementById("tipoModuloAdd").selectedIndex = -1;
+    });
+}
+
+function loadMaterie() {
+    let elMaterie = inviaRichiesta('/api/elSimpleMaterie', 'POST', {});
+    elMaterie.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, "#msgAddCorso");
+    });
+    elMaterie.done(function (data) {
+        let codHtml = '';
+        console.log(data);
+        data.forEach(materia => {
+            codHtml += '<option value="' + materia._id + '">' + materia.descrizione + '</option>';
+        });
+        $("#materiaCorso").html(codHtml);
+        $('#materiaCorso').selectpicker('refresh');
+        document.getElementById("materiaCorso").selectedIndex = -1;
+    });
+}
+
+function aggiuntaCorso(){
+    $("#descCorso").removeClass("alert-danger");
+    $("#tipoModuloAdd").removeClass("alert-danger");
+    $("#materiaCorso").removeClass("alert-danger");
+    $("#msgAddCorso").text("");
+
+
+    if ($("#descCorso").val() != "") {
+        if (document.getElementById("tipoModuloAdd").selectedIndex != -1) {
+            if (document.getElementById("materiaCorso").selectedIndex != -1) {
+                let formData = {
+                    'descrizione' : $("#descCorso").val(),
+                    'tipoCorso' : $("#tipoModuloAdd").val(),
+                    'materia' : $("#materiaCorso").val()
+                };
+
+                let aggCorso = inviaRichiesta('/api/aggiungiCorso', 'POST', formData);
+                aggCorso.fail(function (jqXHR, test_status, str_error) {
+                    if (jqXHR.status == 603) {
+                        $("#msgAddCorso").text("Parametri Errati o Mancanti");
+                    }
+                    else {
+                        printErrors(jqXHR, "#msgAddCorso");
+                    }
+                });
+                aggCorso.done(function (data) {
+                    $("#msgAddCorso").text("Corso aggiunto con successo");
+                    clearInputFields();
+                });
+            } else {
+                gestErrori("Selezionare una Materia", $("#materiaCorso"), "#msgAddCorso");
+            }
+        } else {
+            gestErrori("Selezionare un Tipo di Corso", $("#tipoModuloAdd"), "#msgAddCorso");
+        }
+    } else {
+        gestErrori("Inserire la Descrizione del Corso", $("#descCorso"), "#msgAddCorso");
+    }
+}
+
+function clearInputFields() {
+    $("#descCorso").val("");
+    $('#tipoModuloAdd').selectpicker('refresh');
+    document.getElementById("tipoModuloAdd").selectedIndex = -1;
+    $('#materiaCorso').selectpicker('refresh');
+    document.getElementById("materiaCorso").selectedIndex = -1;
+}
+
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg);
+    controllo.addClass("alert-danger");
 }
 
 function creazioneElencoCorsi(tipimodulo) {
