@@ -56,6 +56,8 @@ $(document).ready(function () {
         });
     });
 
+    $("#btnInviaGruppo").on("click", aggiuntaGruppo);
+    loadTipiGruppi();
 });
 
 function loadPagina() {
@@ -67,6 +69,75 @@ function loadPagina() {
     });
     chkToken.done(function (data) {
     });
+}
+
+function loadTipiGruppi() {
+    let elTipiGruppi = inviaRichiesta('/api/elTipiGruppi', 'POST', {});
+    elTipiGruppi.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, "#msgAddGruppo");
+    });
+    elTipiGruppi.done(function (data) {
+        let codHtml = '';
+        console.log(data);
+        data.forEach(tipogruppo => {
+            codHtml += '<option value="' + tipogruppo._id + '">' + tipogruppo.descrizione + '</option>';
+        });
+        $("#tipoGruppoAdd").html(codHtml);
+        $('#tipoGruppoAdd').selectpicker('refresh');
+        document.getElementById("tipoGruppoAdd").selectedIndex = -1;
+    });
+}
+
+function aggiuntaGruppo() {
+    $("#nomeGruppo").removeClass("alert-danger");
+    $("#descGruppo").removeClass("alert-danger");
+    $("#tipoGruppoAdd").removeClass("alert-danger");
+    $("#msgAddGruppo").text("");
+
+
+    if ($("#nomeGruppo").val() != "") {
+        if ($("#descGruppo").val() != "") {
+            if (document.getElementById("tipoGruppoAdd").selectedIndex != -1) {
+                let formData = {
+                    'nome': $("#nomeGruppo").val(),
+                    'descrizione': $("#descGruppo").val(),
+                    'tipoGruppo': $("#tipoGruppoAdd").val()
+                };
+
+                let aggGruppo = inviaRichiesta('/api/aggiungiGruppo', 'POST', formData);
+                aggGruppo.fail(function (jqXHR, test_status, str_error) {
+                    if (jqXHR.status == 603) {
+                        $("#msgAddGruppo").text("Parametri Errati o Mancanti");
+                    }
+                    else {
+                        printErrors(jqXHR, "#msgAddGruppo");
+                    }
+                });
+                aggGruppo.done(function (data) {
+                    $("#msgAddGruppo").text("Gruppo aggiunto con successo");
+                    clearInputFields();
+                });
+            } else {
+                gestErrori("Selezionare un Tipo di Gruppo", $("#tipoGruppoAdd"), "#msgAddGruppo");
+            }
+        } else {
+            gestErrori("Inserire la Descrizione del Gruppo", $("#descGruppo"), "#msgAddGruppo");
+        }
+    } else {
+        gestErrori("Inserire il Nome del Gruppo", $("#nomeGruppo"), "#msgAddGruppo");
+    }
+}
+
+function clearInputFields() {
+    $("#nomeGruppo").val("");
+    $("#descGruppo").val("");
+    $('#tipoGruppoAdd').selectpicker('refresh');
+    document.getElementById("tipoGruppoAdd").selectedIndex = -1;
+}
+
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg);
+    controllo.addClass("alert-danger");
 }
 
 function creazioneElencoGruppi(gruppi) {
