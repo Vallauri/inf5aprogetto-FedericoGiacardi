@@ -152,17 +152,27 @@ function caricamentoDatiCorso(modulo) {
                     });
                     chkToken.done(function (gruppi) {
                         if(gruppi.length > 0){
-                            let cod = '<div class="form-select row" id="default-select-1">';
-                            cod += '<label for="iscriviGruppo">Scegli il Gruppo da Iscrivere</label>';
-                            cod += '<select name="iscriviGruppo" id="iscriviGruppo">';
+                            let cod = '<div class="row">';
+                            cod += '<div class="col-lg-12 text-center container">';
+                            cod += '<div class="form-select row" id="default-select">';
+                            cod += '<form>'
+                            cod += '<div class="form-group row">';
+                            cod += '<label for="iscriviGruppo" class="col-sm-6 col-form-label">Scegli il Gruppo da Iscrivere</label>';
+                            cod += '<div class="col-sm-6">';
+                            cod += '<select name="iscriviGruppo" id="iscriviGruppo" title="Scegli il Gruppo" data-live-search="true" data-live-search-placeholder="Cerca Gruppo">';
                             data.forEach(gruppo => {
                                 cod += "<option value='" + gruppo._id + "'>" + gruppo.nome + "</option>";
                                 //$("#default-select-1 .list").append("<li data-value='" + gruppo._id + "' class='option'>" + gruppo.nome + "</li>");
                             });
                             cod += '</select>';
                             cod += '</div>';
+                            cod += '</div>';
+                            cod += '</form>'
+                            cod += '</div>';
+                            cod += '</div>';
 
                             $("#dettCorsoMod .modal-body").append(cod);
+                            $('#iscriviGruppo').selectpicker('refresh');
 
                             $("#btnSalvaModifiche").on("click", function () {
                                 if ($(this).html() == "Aggiungi") {
@@ -592,32 +602,36 @@ function modificaCorso(dettCorso) {
     codHtml += '<h4>Dettagli del Corso</h4>';
     codHtml += '<form>';
     codHtml += '<div class="form-group row">';
-    codHtml += '<label for="nome" class="col-sm-1-12 col-form-label">Nome Corso</label>';
-    codHtml += '<div class="col-sm-1-12">';
+    codHtml += '<label for="nome" class="col-sm-3 col-form-label">Nome Corso</label>';
+    codHtml += '<div class="col-sm-9">';
     codHtml += '<input type="text" class="form-control" name="nome" id="nome" value="' + dettCorso[0].descrizione + '" placeholder="Inserisci qui il nome del corso...">';
     codHtml += '</div>';
     codHtml += '</div>';
     // codHtml += '<div class="form-group row">';
-    // codHtml += '<label for="descrizione" class="col-sm-1-12 col-form-label">Descrizione Corso</label>'; // Non c'è la desc su DB, la mettiamo ??
-    // codHtml += '<div class="col-sm-1-12">';
+    // codHtml += '<label for="descrizione" class="col-sm-3 col-form-label">Descrizione Corso</label>'; // Non c'è la desc su DB, la mettiamo ??
+    // codHtml += '<div class="col-sm-9">';
     // codHtml += '<input type="text" class="form-control" name="descrizione" id="descrizione" value="' + dettCorso[0].descrizione + '" placeholder="Inserisci qui la descrizione del corso...">';
     // codHtml += '</div>';
     // codHtml += '</div>';
     // codHtml += '<div class="form-group row">'; // foto da gestire...
-    // codHtml += '<label for="nome" class="col-sm-1-12 col-form-label">Foto del Corso</label>';
-    // codHtml += '<div class="col-sm-1-12">';
+    // codHtml += '<label for="nome" class="col-sm-3 col-form-label">Foto del Corso</label>';
+    // codHtml += '<div class="col-sm-9">';
     // codHtml += '<input type="text" class="form-control" name="nome" id="nome" placeholder="Inserisci qui il nome del gruppo...">';
     // codHtml += '</div>';
     // codHtml += '</div>';
-    codHtml += '<div class="form-group">';
-    codHtml += '<label for="tipiCorsi">Tipo di Corso</label>';
-    codHtml += '<select class="form-control" name="tipiCorsi" id="tipiCorsi">';
+    codHtml += '<div class="form-group row">';
+    codHtml += '<label for="tipiCorsi" class="col-sm-3 col-form-label">Tipo di Corso</label>';
+    codHtml += '<div class="col-sm-9">';
+    codHtml += '<select name="tipiCorsi" id="tipiCorsi" title="Scegli il Tipo di Corso" data-live-search="true" data-live-search-placeholder="Cerca Tipo Corso">';
     codHtml += '</select>';
     codHtml += '</div>';
-    codHtml += '<div class="form-group">';
-    codHtml += '<label for="materie">Materia</label>';
-    codHtml += '<select class="form-control" name="materie" id="materie">';
+    codHtml += '</div>';
+    codHtml += '<div class="form-group row">';
+    codHtml += '<label for="materie" class="col-sm-3 col-form-label">Materia</label>';
+    codHtml += '<div class="col-sm-9">';
+    codHtml += '<select name="materie" id="materie" title="Scegli la Materia" data-live-search="true" data-live-search-placeholder="Cerca Materia">';
     codHtml += '</select>';
+    codHtml += '</div>';
     codHtml += '</div>';
     codHtml += '</form>';
 
@@ -661,6 +675,7 @@ function modificaCorso(dettCorso) {
         codHtml += "<tr>";
         codHtml += '<th>Titolo</th>';
         codHtml += '<th>Data Aggiunta</th>';
+        codHtml += '<th>Azione</th>';
         codHtml += '</tr>';
 
         for (let i = 0; i < dettCorso[0]["lezioniModulo"].length; i++) {
@@ -695,6 +710,7 @@ function modificaCorso(dettCorso) {
             $("#tipiCorsi").append("<option value='" + tipocorso._id + "' " + (tipocorso._id == dettCorso[0].codTipoModulo ? "selected" : "") + ">" + tipocorso.descrizione + "</option>");
             //$("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
         });
+        $('#tipiCorsi').selectpicker('refresh');
     });
 
     let materie = inviaRichiesta('/api/elSimpleMaterie', 'POST', {});
@@ -706,6 +722,7 @@ function modificaCorso(dettCorso) {
             $("#materie").append("<option value='" + materia._id + "' " + (materia._id == dettCorso[0].codMateria ? "selected" : "") + ">" + materia.descrizione + "</option>");
             //$("#default-select-1 .list").append("<li data-value='" + materia._id + "' class='option'>" + materia.descrizione + "</li>");
         });
+        $('#materie').selectpicker('refresh');
     });
 }
 

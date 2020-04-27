@@ -335,20 +335,20 @@ function modificaGruppo(dettGruppo){
     cod += '<div class="col-lg-12 text-center container">';
     cod += '<form>';
     cod += '<div class="form-group row">';
-    cod += '<label for="nome" class="col-sm-1-12 col-form-label">Nome Gruppo</label>';
-    cod += '<div class="col-sm-1-12">';
+    cod += '<label for="nome" class="col-sm-3 col-form-label">Nome Gruppo</label>';
+    cod += '<div class="col-sm-9">';
     cod += '<input type="text" class="form-control" name="nome" id="nome" value="' + dettGruppo[0].nome + '" placeholder="Inserisci qui il nome del gruppo...">';
     cod += '</div>';
     cod += '</div>';
     cod += '<div class="form-group row">';
-    cod += '<label for="descrizione" class="col-sm-1-12 col-form-label">Descrizione Gruppo</label>';
-    cod += '<div class="col-sm-1-12">';
+    cod += '<label for="descrizione" class="col-sm-3 col-form-label">Descrizione Gruppo</label>';
+    cod += '<div class="col-sm-9">';
     cod += '<input type="text" class="form-control" name="descrizione" id="descrizione" value="' + dettGruppo[0].descrizione + '" placeholder="Inserisci qui la descrizione del gruppo...">';
     cod += '</div>';
     cod += '</div>';
     // cod += '<div class="form-group row">'; // foto da gestire...
-    // cod += '<label for="nome" class="col-sm-1-12 col-form-label">Foto del Gruppo</label>';
-    // cod += '<div class="col-sm-1-12">';
+    // cod += '<label for="nome" class="col-sm-3 col-form-label">Foto del Gruppo</label>';
+    // cod += '<div class="col-sm-9">';
     // cod += '<input type="text" class="form-control" name="nome" id="nome" placeholder="Inserisci qui il nome del gruppo...">';
     // cod += '</div>';
     // cod += '</div>';
@@ -358,14 +358,17 @@ function modificaGruppo(dettGruppo){
         printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
     });
     tipiGruppi.done(function (data) {
-        cod += '<div class="form-select row" id="default-select-1">';
-        cod += '<label for="tipoGruppo">Tipo di Gruppo</label>';
-        cod += '<select name="tipoGruppo" id="tipoGruppo">';
+        cod += '<div class="form-select row" id="default-select">';
+        cod += '<label for="tipoGruppo" class="col-sm-3 col-form-label">Tipo di Gruppo</label>';
+        cod += '<div class="col-sm-9">';
+        cod += '<select name="tipoGruppo" id="tipoGruppo" title="Scegli il Tipo di Gruppo" data-live-search="true" data-live-search-placeholder="Cerca Tipo Gruppo">';
+        // cod += '<select name="tipoGruppo" id="tipoGruppo">';
         data.forEach(tipogruppo => {
             cod += "<option value='" + tipogruppo._id + "' " + (tipogruppo._id == dettGruppo[0].tipoGruppo ?  "selected" : "") + ">" + tipogruppo.descrizione + "</option>";
             //$("#default-select-1 .list").append("<li data-value='" + tipogruppo._id + "' class='option'>" + tipogruppo.descrizione + "</li>");
         });
         cod += '</select>';
+        cod += '</div>';
         cod += '</div>';
         //cod += '</div>';
         cod += '</form>';
@@ -379,7 +382,7 @@ function modificaGruppo(dettGruppo){
         });
         compGruppo.done(function (componenti) {
             if(componenti != null && componenti.length > 0){
-                cod += '<div class="row">';
+                cod += '<div class="row" style="margin-top: 10px">';
                 cod += '<div class="col-lg-12 text-center" id="tabCompGruppoRem">';
                 cod += '<table class="table">';
                 cod += "<tr>";
@@ -404,6 +407,7 @@ function modificaGruppo(dettGruppo){
 
             }
             $("#dettGruppoMod .modal-body").append(cod);
+            $('#tipoGruppo').selectpicker('refresh');
         });
     });
 }
