@@ -107,7 +107,7 @@
                                     <button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>
                                 </div>
                             </div>
-                            <p class="msg" style="margin-top:5px"></p>
+                            <p id="msgRicerca" class="msg" style="margin-top:5px"></p>
                         </div>
     
                         <div class="container" id="divRicAvanzata" style="margin-top: 25px;">
@@ -121,9 +121,9 @@
                                     </select>
                                 </div>
                                 <label for="tipoCorso">Tipi di corso da cercare</label>
-                                <div class="form-select" id="default-select-1" title="Tipo di Corso">
-                                    <select name="tipoCorso" id="tipoCorso">
-                                        <option value="none" selected>-------------------</option>
+                                <div class="form-select" id="default-select-1">
+                                    <select id="tipoCorso"  title="Scegli il Tipo di Modulo" data-live-search="true"
+                                        data-live-search-placeholder="Cerca Tipo Modulo">
                                     </select>
                                 </div>
                             </form>

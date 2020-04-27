@@ -69,7 +69,7 @@ function caricamentoDatiLezione(lezione) {
                 codHtml += '<th>Descrizione</th>';
                 codHtml += '<th>Autore</th>';
                 codHtml += '<th>Data Caricamento</th>';
-                if(data.ris == "iscritto")
+                if (data.ris == "iscritto" || data.ris == "autore")
                     codHtml += '<th>Azione</th>';
                 codHtml += '</tr>';
                 lezione[0]["elencoAppunti"].forEach(appunto => {
@@ -77,7 +77,7 @@ function caricamentoDatiLezione(lezione) {
                     codHtml += '<td scope="row">' + appunto.descrizione + '</td>';
                     codHtml += '<td>' + appunto.cognomeAutore + ' ' + appunto.nomeAutore + '</td>';
                     codHtml += '<td>' + new Date(appunto.dataCaricamento).toLocaleDateString() + '</td>';
-                    if (data.ris == "iscritto")
+                    if (data.ris == "iscritto" || data.ris == "autore")
                         codHtml += '<td><a class="btn_2 text-uppercase" href="dettaglioAppunto.html?appunto=' + appunto._id + '">Visualizza Dettaglio</a></td>';
                     codHtml += '</tr>';
                 });

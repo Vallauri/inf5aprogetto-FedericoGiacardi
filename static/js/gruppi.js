@@ -3,12 +3,12 @@ $(document).ready(function () {
     loadPagina();
 
     $("#btnRicerca").on("click", function () {
-        $(".msg").text("");
+        $("#msgRicerca").text("");
 
         if ($("#txtRicerca").val() != "") {
             let ricerca = inviaRichiesta('/api/cercaGruppo', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "gruppiDaCercare": $("#tipoRicerca option:selected").val(), "tipoGruppo": $("#tipoGruppo option:selected").val() } });
             ricerca.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".msg");
+                printErrors(jqXHR, "#msgRicerca");
             });
             ricerca.done(function (data) {
                 console.log(data);
@@ -16,7 +16,7 @@ $(document).ready(function () {
             });
         }
         else {
-            $(".msg").text("Inserire un valore per la ricerca");
+            $("#msgRicerca").text("Inserire un valore per la ricerca");
             $("#txtRicerca").focus();
         }
     });
@@ -44,26 +44,15 @@ $(document).ready(function () {
         }
     });
 
-    let tipiGruppi = inviaRichiesta('/api/elTipiGruppi', 'POST', {});
-    tipiGruppi.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
-    });
-    tipiGruppi.done(function (data) {
-        console.log(data);
-        data.forEach(tipogruppo => {
-            $("#tipoGruppo").append("<option value='" + tipogruppo._id + "'>" + tipogruppo.descrizione + "</option>");
-            $("#default-select-1 .list").append("<li data-value='" + tipogruppo._id + "' class='option'>" + tipogruppo.descrizione + "</li>");
-        });
-    });
-
     $("#btnInviaGruppo").on("click", aggiuntaGruppo);
     loadTipiGruppi();
+    $('#tipoRicerca').selectpicker('refresh');
 });
 
 function loadPagina() {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        //printErrors(jqXHR, ".msg"); // vedere se va bene o se da cambiare campo di segnalazione errore
+        //printErrors(jqXHR, "#msgRicerca"); // vedere se va bene o se da cambiare campo di segnalazione errore
         console.log(jqXHR + " " + test_status + " " + str_error);
         window.location.href = "login.html";
     });
@@ -85,6 +74,8 @@ function loadTipiGruppi() {
         $("#tipoGruppoAdd").html(codHtml);
         $('#tipoGruppoAdd').selectpicker('refresh');
         document.getElementById("tipoGruppoAdd").selectedIndex = -1;
+        $("#tipoGruppo").html("<option value='none' selected>-----------------</option>" + codHtml);
+        $('#tipoGruppo').selectpicker('refresh');
     });
 }
 

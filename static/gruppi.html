@@ -107,7 +107,7 @@
                                     <button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>
                                 </div>
                             </div>
-                            <p class="msg" style="margin-top:5px"></p>
+                            <p id="msgRicerca" class="msg" style="margin-top:5px"></p>
                         </div>
     
                         <div class="container" id="divRicAvanzata" style="margin-top: 25px;">
@@ -122,8 +122,8 @@
                                 </div>
                                 <label for="tipoGruppo">Tipi di gruppo da cercare</label>
                                 <div class="form-select" id="default-select-1">
-                                    <select name="tipoGruppo" id="tipoGruppo" title="Tipo Gruppo">
-                                        <option value="none" selected>-------------------</option>
+                                    <select id="tipoGruppo" name="tipoGruppo" title="Scegli il Tipo di Gruppo" data-live-search="true"
+                                        data-live-search-placeholder="Cerca Tipo Gruppo">
                                     </select>
                                 </div>
                             </form>
