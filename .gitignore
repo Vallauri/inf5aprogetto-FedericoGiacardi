@@ -2,4 +2,4 @@
 static/allegati
 node_modules
 static/audio
-keys
+ibm-credentials.env

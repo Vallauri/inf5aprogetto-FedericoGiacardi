@@ -10,11 +10,7 @@ var async = require("async");
 var crypto = require("crypto");
 require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
-const { IamAuthenticator } = require('ibm-watson/auth');
-const textToSpeech = new TextToSpeechV1({
-    authenticator: new IamAuthenticator({ apikey: "" }),
-    url: ""
-});
+const textToSpeech = new TextToSpeechV1({});
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
 
@@ -506,7 +502,7 @@ app.post('/api/invioMailReimpostaPwd', function (req, res, next) {
                 service: 'gmail',
                 auth: {
                     user: 'learnonthenet7@gmail.com',
-                    pass: 'S8Fh!lU?y8'//process.env.PWD_GMAIL
+                    pass: process.env.PWD_GMAIL
                 }
             });
 

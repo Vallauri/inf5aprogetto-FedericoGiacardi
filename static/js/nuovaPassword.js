@@ -43,13 +43,8 @@ function gestReimpPwd() {
                     }else{
                         $("#mexEmailReimpPwd").addClass("alert alert-danger");
                     }
-                    $("#mexEmailReimpPwd").html(data["mes"]).css("display","unset");
+                    $("#mexEmailReimpPwd").html(data["mes"]).show();
                 });
-                // if (validaPwd($("#pwdReimpPwd").val())) {
-                    
-                // } else {
-                //     gestErrori("Inserire una Password valida", $("#pwdReimpPwd"));
-                // }
             } else {
                 gestErrori("Il numero di Telefono deve contenere 10 numeri", $("#telReimpPwd"));
             }

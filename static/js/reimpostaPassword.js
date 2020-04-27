@@ -30,7 +30,7 @@ function gestPwd() {
                 });
                 reimpostaPwdRQ.done(function (data) {
                     if (data["tipo"] == "errore") {
-                        $("#mexEmailReimpPwd").html(data["mes"]).addClass("alert alert-danger").css("display", "unset");
+                        $("#mexEmailReimpPwd").html(data["mes"]).addClass("alert alert-danger").show();
                     } else {
                         window.sessionStorage.removeItem("token");
                         window.location = "login.html";
