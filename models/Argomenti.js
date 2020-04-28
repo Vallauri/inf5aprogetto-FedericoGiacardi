@@ -8,6 +8,7 @@ const autoriArgomenti = mongoose.Schema({
 const argomenti = mongoose.Schema({
     _id: { type: Number, required: true },
     descrizione: { type: String, required: true },
+    codMateria: { type: Number, ref: "Materie", required: true },
     autori:[autoriArgomenti]
 });
 

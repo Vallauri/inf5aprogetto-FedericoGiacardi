@@ -12,6 +12,12 @@ function setNavBar() {
 
         if (data != undefined) {
 
+            if (data.amministratore) {
+                codHtml += '<a id="voceNavMaterie" class="nav-link" href="materie.html">Materie</a>';
+            } else if (document.getElementById("voceNavMaterie"))
+                $("#voceNavMaterie").remove();
+            $("#linkMaterie").html(codHtml);
+            codHtml = "";
             codHtml += '<a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-55" data-toggle="dropdown" aria-haspopup="true" aria - expanded="false" >';
             codHtml += '<img src="' + data.foto.replace(/\\/g, "/") + '" class="rounded-circle z-depth-0" alt = "avatar image" height = "50" ></img>';
             codHtml += data.user;

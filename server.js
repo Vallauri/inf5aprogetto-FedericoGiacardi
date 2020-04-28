@@ -287,7 +287,8 @@ app.use('/api', function (req, res, next) {
 });
 
 app.post('/api/chkToken', function (req, res) {
-    res.send({ "id": JSON.parse(JSON.stringify(req.payload))._id});
+    console.log("Valore admin: "+JSON.parse(JSON.stringify(req.payload)).admin);
+    res.send({ "id": JSON.parse(JSON.stringify(req.payload))._id, "amministratore": req.payload.amministratore});
 });
 
 function controllaToken(req, res, next) {
@@ -315,9 +316,9 @@ function controllaToken(req, res, next) {
                 else {
                     // aggiornamento del token
                     var exp = Math.floor(Date.now() / 1000) + TIMEOUT;
-                    payload = { ...payload, 'exp': exp }
-                    token = createToken(payload)
-                    writeCookie(res, token)
+                    payload = { ...payload, 'exp': exp};
+                    token = createToken(payload);
+                    writeCookie(res, token);
                     req.payload = payload;
                     next();
                 }
@@ -417,7 +418,8 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
                                                                                         telefono: req.body.telefono,
                                                                                         user: req.body.username,
                                                                                         pwd: hashUtPwd,
-                                                                                        foto: path
+                                                                                        foto: path,
+                                                                                        amministratore:false
                                                                                     });
                                                                                     utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
 
@@ -2957,12 +2959,28 @@ app.post("/api/rimuoviLezione", function (req, res) {
 });
 //#endregion
 
+app.post("/api/elMatModerate", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        materie.find({ moderatore: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end({ "admin": JSON.parse(JSON.stringify(req.payload)).admin});
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }else{
+        gestErrorePar(req, res);
+    }
+});
+
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */
-function createToken(obj) {
+function createToken(obj, username, amministratore) {
     let token = jwt.sign({
         '_id': obj._id,
         'username': obj.username,
+        'amministratore': obj.amministratore,
         'iat': obj.iat || Math.floor(Date.now() / 1000),
         'exp': obj.exp || Math.floor(Date.now() / 1000 + TIMEOUT)
     },
