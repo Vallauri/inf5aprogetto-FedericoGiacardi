@@ -77,25 +77,17 @@
     </header>
     <!-- Header part end-->
 
+    <section id="sezNoMaterie" class="section_padding" style="display: none;">
+        <div class="container-fluid" id="contNoMaterie">
 
+        </div>
+    </section>
     <!-- Sezione Elenco Materie -->
-    <section class="course_details_area section_padding">
-        <div class="container-fluid">
+    <section class="course_details_area section_padding" id="sezElMaterie">
+        <div class="container-fluid" id="contRicercheMaterie">
             <h2 align="center" class="section_tittle">Elenco Materie</h2>
-            <div class="row">
-                <div class="col-sm-12 col-md-10 col-lg-10 col-xs-10 mx-auto">
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fa fa-search"
-                                    aria-hidden="true"></i></span>
-                        </div>
-                        <input type="text" id="txtRicercaMaterie" class="form-control" placeholder="Nome Materia"
-                            aria-label="Nome Materia" aria-describedby="basic-addon1">
-                    </div>
-                </div>
-            </div>
             <div class="row" id="contElMaterie">
-                <div class="col-sm-12 col-md-10 col-lg-10 col-xs-10 mx-auto table-responsive">
+                <div class="col-sm-12 col-md-8 col-lg-8 col-xs-8 mx-auto table-responsive">
                     <table id="tabellaMaterie" class="table table-striped table-hover table-bordered">
                         <thead class="thead-inverse">
                             <tr id="rigaTabMaterie">
@@ -121,26 +113,14 @@
     <!-- Sezione Elenco Argomenti Materia -->
     <section id="sezArgMateria" class="course_details_area section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Elenco Argomenti Materia</h2>
-            <div class="row">
-                <div class="col-sm-12 col-md-10 col-lg-10 col-xs-10 mx-auto">
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fa fa-search"
-                                    aria-hidden="true"></i></span>
-                        </div>
-                        <input type="text" id="txtRicercaArgomenti" class="form-control" placeholder="Nome Argomento"
-                            aria-label="Nome Argomento" aria-describedby="basic-addon1">
-                    </div>
-                </div>
-            </div>
+            <h2 align="center" class="section_tittle">Nuovi Argomenti</h2>
             <div class="row" id="contElArgMaterie">
-                <div class="col-sm-12 col-md-10 col-lg-10 col-xs-10 mx-auto table-responsive">
+                <div class="col-sm-12 col-md-8 col-lg-8 col-xs-8 mx-auto table-responsive">
                     <table id="tabellaArgMaterie" class="table table-striped table-hover table-bordered">
                         <thead class="thead-inverse">
                             <tr id="rigaTabArgMaterie">
                                 <th>Descrizione</th>
-                                <th>Azioni</th> <!--Accetta respingi se in sospeso-->
+                                <th>Azioni</th> <!--Accetta/respingi-->
                             </tr>
                         </thead>
                         <tbody id="corpoTabArgMaterie"></tbody>
@@ -157,139 +137,32 @@
     </section>
     <!-- Fine Sezione Elenco Argomenti Materia -->
 
-    <!-- Sezione Elenco Corsi Materia -->
-    <section id="sezCorsiMateria" class="course_details_area section_padding">
-        <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Elenco Corsi Materia</h2>
-            <div class="row">
-                <div class="col-sm-12 col-md-10 col-lg-10 col-xs-10 mx-auto">
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1"><i class="fa fa-search"
-                                    aria-hidden="true"></i></span>
-                        </div>
-                        <input type="text" id="txtRicercaCorsi" class="form-control" placeholder="Nome Corso"
-                            aria-label="Nome Corso" aria-describedby="basic-addon1">
-                    </div>
-                </div>
-            </div>
-            <div class="row" id="contElCorsiMaterie">
-                <div class="col-sm-12 col-md-10 col-lg-10 col-xs-10 mx-auto table-responsive">
-                    <table id="tabellaCorsiMaterie" class="table table-striped table-hover table-bordered">
-                        <thead class="thead-inverse">
-                            <tr id="rigaTabCorsiMaterie">
-                                <th>Descrizione</th>
-                                <th>Tipo</th>
-                                <th>Autore</th>
-                                <th>Azioni</th>
-                                <!--Accetta respingi se in sospeso-->
-                            </tr>
-                        </thead>
-                        <tbody id="corpoTabCorsiMaterie"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                    <div id="msgElCorsiMaterie" class="msg"> </div>
-                </div>
-            </div>
-            <br>
-        </div>
-    </section>
-    <!-- Fine Sezione Elenco Corsi Materia -->
-
-    <!-- sezione aggiunta appunto -->
+    <!-- Sezione Aggiunta Materie -->
     <section class="section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Inserimento Appunto</h2>
+            <h2 align="center" class="section_tittle">Inserimento Materia</h2>
             <div class="row">
                 <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
                         <div div class="card-body">
-                            <form id="formInsAppunto" class="form-contact">
+                            <form id="formInsMateria" class="form-contact">
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
-                                                <i class="fas fa-user-circle"> </i>
+                                                <i class="fa fa-text-height" aria-hidden="true"></i>
                                             </span>
-                                            <input type="text" id="descAppunto" name="descAppunto" placeholder="Descrizione"
+                                            <input type="text" id="descMateria" name="descMateria" placeholder="Descrizione"
                                                 onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                                 onblur="this.placeholder = 'Descrizione'" required class="single-input">
                                         </div>
                                     </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="nomeAutoreAppunto" name="nomeAutoreAppunto"
-                                                placeholder="Nome Autore"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Nome Autore'" required class="single-input">
-                                        </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="cognomeAutoreAppunto" name="cognomeAutoreAppunto"
-                                                placeholder="Cognome Autore"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Cognome Autore'" required class="single-input">
-                                        </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-image"> </i>
-                                            </span>
-                                            <div>
-                                                <select id="argomentiAppunto" multiple required title="Scegli gli argomenti"
-                                                    data-live-search="true" data-live-search-placeholder="Cerca argomenti"
-                                                    multiple="true" data-multiple-separator=", ">
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-paperclip"> </i>
-                                            </span>
-                                            <div>
-                                                <select id="allPresentiAppunto" multiple required
-                                                    title="Scegli gli allegati" data-live-search="true"
-                                                    data-live-search-placeholder="Cerca allegati" multiple="true"
-                                                    data-multiple-separator=", ">
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-    
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-paperclip"> </i>
-                                            </span>
-                                            <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
-                                            <div class="custom-file">
-                                                <input type="file" id="allegatiAppunto" class="custom-file-input"
-                                                    name="allegatiAppunto" aria-describedby="descAllegati"
-                                                    class="single-input" multiple required>
-                                                <label class="custom-file-label" for="allegatiAppunto">Scegli
-                                                    Allegati</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="msgAddAppunto" class="msg"> </div>
+                                    <div id="msgAddMateria" class="msg"> </div>
                                 </div>
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="form-group">
-                                        <a id="btnInviaAppunto" class="genric-btn primary circle btn-block"
-                                            style="color: #fff!important;">Invia</a>
+                                        <a id="btnAddMateria" class="genric-btn primary circle btn-block"
+                                            style="color: #fff!important;"><i class="fa fa-plus" aria-hidden="true"></i> Aggiungi</a>
                                     </div>
                                 </div>
                             </form>
@@ -300,7 +173,103 @@
             </div>
         </div>
     </section>
-    <!-- Fine sezione aggiunta appunto -->
+    <!-- Fine Sezione Aggiunta Materie -->
+
+    <!-- Modal Modifica Materia-->
+    <div class="modal fade" id="modalModMateria" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                    <div class="modal-header">
+                            <h5 class="modal-title">Modifica Materia</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="col-sm-12 col-md-6 col-lg-6 mx-auto">
+                            <div class="input-group form-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fa fa-text-height" aria-hidden="true"></i>
+                                    </span>
+                                    <input type="text" id="descModMateria" name="descModMateria" placeholder="Descrizione"
+                                        onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                        onblur="this.placeholder = 'Descrizione'" required class="single-input">
+                                </div>
+                            </div>
+                            <div class="input-group form-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fa fa-calendar" aria-hidden="true"></i>
+                                    </span>
+                                    <input type="date" id="dataModMateria" name="dataModMateria" placeholder="Data Creazione"
+                                        onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                        onblur="this.placeholder = 'Data Creazione'" required class="single-input">
+                                </div>
+                            </div>
+                            <div id="msgModMateria" class="msg"> </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfModificaMateria" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Modifica Materia-->
+
+    <!-- Inizio Modal Approvazione Argomento-->
+    <div class="modal fade" id="modalApprovArgomento" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                    <div class="modal-header">
+                            <h5 class="modal-title">Conferma Operazione</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModale" style="text-align: center;"></p>
+                    </div>
+                    <div id="msgApprovArgomento" class="msg"> </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfApprovArgomento" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Approvazione Argomento-->
+
+    <!-- Inizio Modal Rifiuto Argomento-->
+    <div class="modal fade" id="modalRifiutoArgomento" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                    <div class="modal-header">
+                            <h5 class="modal-title">Conferma Operazione</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModaleRifiuto" style="text-align: center;"></p>
+                    </div>
+                    <div id="msgRifiutoArgomento" class="msg"> </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfRifiutoArgomento" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Rifiuto Argomento-->
 
     <!-- footer part start-->
     <footer class="footer-area">

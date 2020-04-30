@@ -31,7 +31,7 @@ function stampaTabAllegati(allegati) {
             colonna = $("<td></td>");
             if (campo != "_id") {
                 if (campo == "dataCaricamento") {
-                    colonna.html(new Date(allegato[campo]).toLocaleTimeString()); 
+                    colonna.html(new Date(allegato[campo]).toLocaleDateString()); 
                     riga.append(colonna);
                 } else if (campo == "percorso"){
                     ausVet = allegato[campo].split('\\');

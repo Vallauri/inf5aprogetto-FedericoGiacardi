@@ -1,3 +1,5 @@
+//Collection con gli argomenti in attesa di approvazione
+
 const mongoose = require("mongoose");
 
 const argomenti = mongoose.Schema({
@@ -7,4 +9,4 @@ const argomenti = mongoose.Schema({
     codModeratore: { type: Number, ref: "Utenti", required: true } //Colui che crea l'argomento
 });
 
-module.exports = mongoose.model("Argomenti", argomenti);
+module.exports = mongoose.model("ArgomentiTemp", argomenti);

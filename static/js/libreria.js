@@ -5,7 +5,7 @@ function sendRequest(url,method,parameters,callback){
 		contentType: "application/json; charset=UTF-8",
 		dataType: "text",   //usiamo un dato di tipo testo perchè al momento del parsing possiamo debuggarlo visualizzandolo
 		data: parameters,
-		timeout : 6000000,
+		timeout: 6000000,
 		success: callback
 		/*error : function(jqXHR, test_status, str_error){
 			//console.log("No connection to " + link);
@@ -54,7 +54,7 @@ function inviaRichiesta(url, method, parameters = {}) {
 		data: parameters,
 		contentType: contentType,
 		dataType: "json",
-		timeout: 50000,
+		timeout: 60000000,
 	});
 }
 
@@ -71,6 +71,11 @@ function printErrors(jqXHR, par) {
 	if (jqXHR.status == 401 || jqXHR.status == 403) { // unauthorized
 		window.location = "index.html";
 	} else{
-		$(par).show().text("Server Error: " + JSON.parse(JSON.parse(JSON.stringify(jqXHR.responseText)))["message"]);
+		if (jqXHR.responseText) {
+			$(par).show().text("Server Error: " + JSON.parse(JSON.parse(JSON.stringify(jqXHR.responseText)))["message"]);
+		}
+		else{
+			$(par).show().text("Server Error: " + jqXHR.statusText);
+		}
 	}
 }

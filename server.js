@@ -167,6 +167,19 @@ ERRORS.create({
     defaultMessage: 'Esiste già un Gruppo con il medesimo Nome, Descrizione e Tipo di Gruppo'
 });
 
+// code 622 - Already Existing Subject
+ERRORS.create({
+    code: 621,
+    name: 'EXISTING_SUBJECT',
+    defaultMessage: 'Esiste già una Materia con la medesima Descrizione'
+});
+
+// code 623 - Already Existing Subject
+ERRORS.create({
+    code: 623,
+    name: 'MISSING_ARGUMENT',
+    defaultMessage: 'L\' argomento richiesto non è stato individuato'
+});
 
 // Impostazioni multer
 const storage = multer.diskStorage({
@@ -222,6 +235,7 @@ const jwt = require("jsonwebtoken");
 //Mongoose
 let utenti = require("./models/Utenti.js");
 let argomenti = require("./models/Argomenti.js");
+let argomentiTemp = require("./models/ArgomentiTemp.js");
 let appunti = require("./models/Appunti.js");
 let esami = require("./models/Esami.js");
 let gruppi = require("./models/Gruppi.js");
@@ -2496,7 +2510,7 @@ function eseguiTTS(allegati, res, req) {
                         const audio = response.result;
                         return textToSpeech.repairWavHeaderStream(audio);
                     }).then(repairedFile => {
-                        let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav";
+                        let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav"; //Se esiste un file con stesso nome lo sovrascrive
                         fs.writeFileSync(percorso, repairedFile);
                         percorsiAudio.push(percorso);
                         if (I != allegati.length - 1) {
@@ -2961,15 +2975,156 @@ app.post("/api/rimuoviLezione", function (req, res) {
 
 app.post("/api/elMatModerate", function (req, res) {
     if (JSON.parse(JSON.stringify(req.payload))._id) {
-        materie.find({ moderatore: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(results => {
+        materie.find({ "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }).exec().then(results => {
             let token = createToken(req.payload);
             writeCookie(res, token);
             res.writeHead(200, { "Content-Type": "application/json" });
-            res.end({ "admin": JSON.parse(JSON.stringify(req.payload)).admin});
+            res.end(JSON.stringify(results));
         }).catch(err => {
             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
         });
     }else{
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/elArgomentiMatModerate", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        materie.aggregate([
+            { $match: { "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+            {
+                $lookup:
+                {
+                    from: argomentiTemp.collection.name,
+                    localField: "_id",
+                    foreignField: "codMateria",
+                    as: "argMatModerate"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/inserisciMateria", function (req, res) {
+    if (req.body.descMat != "") {
+        materie.find({ "descrizione": req.body.descMat }).exec().then(results =>{
+            if (results.length > 0) {
+                error(req, res, null, JSON.stringify(new ERRORS.EXISTING_SUBJECT({})));
+            }else{
+                materie.find({}).exec().then(results =>{
+                    let vet = JSON.parse(JSON.stringify(results));
+                    const addMateria = new materie({
+                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                        descrizione: req.body.descMat,
+                        dataCreazione: new Date().toISOString(),
+                        moderatore: parseInt(JSON.parse(JSON.stringify(req.payload))._id)
+                    });
+                    addMateria.save().then(results => {
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify("addMateriaOk")); 
+                    }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/modificaMateria", function (req, res) {
+    if (req.body.desc != "") {
+        if (Date.parse(req.body.data)) {
+            materie.find({ "descrizione": req.body.desc }).exec().then(results => {
+                if (results.length > 0) {
+                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_SUBJECT({})));
+                } else {
+                    materie.updateOne({ "descrizione": req.body.desc, "dataCreazione": req.body.data}).exec().then(results => { 
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify("modMateriaOk")); 
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        } else {
+            gestErrorePar(req, res);
+        }
+    }else{
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/approvaArgomento", function (req, res) {
+    if (req.body.codArgomento) {
+        argomentiTemp.findOne({ "_id": parseInt(req.body.codArgomento) }).exec().then(resultsArgTemp =>{
+            if (resultsArgTemp) {
+                argomenti.find({}).exec().then(results => {
+                    let vet = JSON.parse(JSON.stringify(results));
+                    const addArgomento = new argomenti({
+                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                        descrizione: resultsArgTemp.descrizione,
+                        codMateria: parseInt(resultsArgTemp.codMateria),
+                        codModeratore: parseInt(resultsArgTemp.codModeratore)
+                    });
+                    addArgomento.save().then(results => { 
+                        argomentiTemp.remove({ "_id": parseInt(req.body.codArgomento) }).exec().then(result =>{
+                            let token = createToken(req.payload);
+                            writeCookie(res, token);
+                            res.writeHead(200, { "Content-Type": "application/json" });
+                            res.end(JSON.stringify("approvazArgOk"));
+                        }).catch(err => {
+                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                        });
+                    }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }else{
+                error(req, res, null, JSON.stringify(new ERRORS.MISSING_ARGUMENT({})));
+            }
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/rifiutoArgomento", function (req, res) {
+    if (req.body.codArgomento) {
+        argomentiTemp.deleteOne({ "_id": parseInt(req.body.codArgomento) }).exec().then(result=>{
+            if (result.n == 1) {
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify("rifiutoArgOk"));
+            }else{
+                error(req, res, null, JSON.stringify(new ERRORS.MISSING_ARGUMENT({}))); 
+            }
+            
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        })
+    } else {
         gestErrorePar(req, res);
     }
 });
