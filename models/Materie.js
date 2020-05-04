@@ -10,6 +10,7 @@ const materie = mongoose.Schema({
     dataCreazione: { type: Date, required: true },
     moderatore: { type: Number, ref: "Utenti", required: true }, //il moderatore è l'utente che crea la materia
     // argomenti: [argomenti] messo materia di riferimento in argomenti
+    validita: { type: String, required: true, default:"true" }
 });
 
 module.exports = mongoose.model("Materie", materie);

@@ -21,7 +21,7 @@ const moduli = mongoose.Schema({
     codAutore: { type: Number, ref:"Utenti", required: true }, // qui quindi mettiamo Utenti o Moderatori ???
     argomenti: [argomenti],
     lezioni: [lezioni],
-    validita: { type : Boolean, default : true} 
+    validita: { type : String, default : "true"} 
 });
 
 //l'autore è anche amministartore

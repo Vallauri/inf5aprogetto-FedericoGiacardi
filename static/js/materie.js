@@ -223,6 +223,6 @@ function rifiutaAllegato(btn) {
             getElArgMaterie();
         });
     } else {
-        gestErrori("Codice argometo mancante. Ricaricare la pagine", $("#btnConfRifiutoArgomento"), "#modalRifiutoArgomento");
+        gestErrori("Codice argomento mancante. Ricaricare la pagine", $("#btnConfRifiutoArgomento"), "#modalRifiutoArgomento");
     }
 }

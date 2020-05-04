@@ -29,14 +29,6 @@ function loadPagina() {
             creazioneElencoAppunti(data);
         });
 
-        chkToken = inviaRichiesta('/api/elMaterie', 'POST', {});
-        chkToken.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
-        });
-        chkToken.done(function (data) {
-            creazioneElencoMaterie(data);
-        });
-
         chkToken = inviaRichiesta('/api/feedModuli', 'POST', {});
         chkToken.fail(function (jqXHR, test_status, str_error) {
             printErrors(jqXHR, ".msg");
@@ -467,10 +459,16 @@ function creazioneElencoGruppi(utenti) {
     $("#contGruppi").html("");
     let codHtml = "";
     let aus;
+    let dim = 0;
     
     utenti.forEach(utente => {
         if (utente["gruppi"] != undefined && utente["gruppi"].length > 0) {
-            for (let i = 0; i < utente["gruppi"].length; i++) {
+            if (utente["gruppi"].length < 3) {
+                dim = utente["gruppi"].length;
+            } else {
+                dim = nElementiVis;
+            }
+            for (let i = 0; i < dim; i++) {
                 codHtml += '<a href="dettaglioGruppo.html?gruppo=' + utente["gruppi"][i]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
                 codHtml += '<h5 class="mb-1">' + utente["gruppi"][i].nome + '</h5>'; //mettere il nome del gruppo
@@ -478,6 +476,20 @@ function creazioneElencoGruppi(utenti) {
                 aus = new Date(utente["gruppo"][i].dataInizio);
                 codHtml += '<p class="mb-1">' + utente["gruppi"][i].descrizione + '<br>Data iscrizione: ' + aus.toLocaleDateString() +'<br>Tipo Gruppo: ' + utente["gruppi"][i].tipoGruppo[0].descrizione+'</p>'; //tipo gruppo descrizione e data iscrizione
                 codHtml += '</a>';
+                if (i == dim - 1 && dim > 2) {
+                    codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriGruppi" aria-expanded="false"><i class="fa fa-plus"></i></button>';
+                    codHtml += '<div id="contAltriGruppi" class="collapse">';
+                    for (let k = 0; k < (utente["gruppi"].length - dim); k++) {
+                        codHtml += '<a href="dettaglioGruppo.html?gruppo=' + utente["gruppi"][i + (k + 1)]._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
+                        codHtml += '<div class="d-flex w-100 justify-content-between">';
+                        codHtml += '<h5 class="mb-1">' + utente["gruppi"][i + (k + 1)].nome + '</h5>';
+                        codHtml += '</div>';
+                        aus = new Date(utente["gruppo"][i + (k + 1)].dataInizio);
+                        codHtml += '<p class="mb-1">' + utente["gruppi"][i + (k + 1)].descrizione + '<br>Data iscrizione: ' + aus.toLocaleDateString() + '</p>';
+                        codHtml += '</a>';
+                    }
+                    codHtml += '</div>';
+                }
             }
         }else{
             codHtml += "<p style='text-align:center'>Non fai parte di alcun gruppo</p>";
@@ -486,36 +498,36 @@ function creazioneElencoGruppi(utenti) {
     $("#contGruppi").html(codHtml);
 }
 
-function creazioneElencoMaterie(utenti) {
-    $("#contMaterie").html("");
-    let codHtml = "", vetArg = "";
-    let aus;
-    utenti.forEach(utente => {
-        if (utente["materieModerate"] != undefined && utente["materieModerate"].length > 0) {
-            for (let i = 0; i < utente["materieModerate"].length; i++) {
-                codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
-                codHtml += '<div class="d-flex w-100 justify-content-between">';
-                codHtml += '<h5 class="mb-1">' + utente["materieModerate"][i].descrizione + '</h5>';
-                codHtml += '</div>';
-                aus = new Date(utente["materieModerate"][i].dataCreazione);
-                if (utente["materieModerate"][i].argomenti != undefined) {
-                    vetArg = "Argomenti: ";
-                    for (let j = 0; j < utente["materieModerate"][i].argomenti.length; j++) {
-                        vetArg += utente["materieModerate"][i].argomenti[j].descrizione;
-                        if (j != utente["materieModerate"][i].argomenti.length - 1) {
-                            vetArg += ", ";
-                        }
-                    }
-                }
-                codHtml += '<p class="mb-1">Data iscrizione: ' + aus.toLocaleDateString() + '<br>' + vetArg + '</p>';
-                codHtml += '</a>';
-            }
-        } else {
-            codHtml += "<p style='text-align:center'>Non hai creato alcuna materia</p>";
-        }
-    });
-    $("#contMaterie").html(codHtml);
-}
+// function creazioneElencoMaterie(utenti) {
+//     $("#contMaterie").html("");
+//     let codHtml = "", vetArg = "";
+//     let aus;
+//     utenti.forEach(utente => {
+//         if (utente["materieModerate"] != undefined && utente["materieModerate"].length > 0) {
+//             for (let i = 0; i < utente["materieModerate"].length; i++) {
+//                 codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+//                 codHtml += '<div class="d-flex w-100 justify-content-between">';
+//                 codHtml += '<h5 class="mb-1">' + utente["materieModerate"][i].descrizione + '</h5>';
+//                 codHtml += '</div>';
+//                 aus = new Date(utente["materieModerate"][i].dataCreazione);
+//                 if (utente["materieModerate"][i].argomenti != undefined) {
+//                     vetArg = "Argomenti: ";
+//                     for (let j = 0; j < utente["materieModerate"][i].argomenti.length; j++) {
+//                         vetArg += utente["materieModerate"][i].argomenti[j].descrizione;
+//                         if (j != utente["materieModerate"][i].argomenti.length - 1) {
+//                             vetArg += ", ";
+//                         }
+//                     }
+//                 }
+//                 codHtml += '<p class="mb-1">Data iscrizione: ' + aus.toLocaleDateString() + '<br>' + vetArg + '</p>';
+//                 codHtml += '</a>';
+//             }
+//         } else {
+//             codHtml += "<p style='text-align:center'>Non hai creato alcuna materia</p>";
+//         }
+//     });
+//     $("#contMaterie").html(codHtml);
+// }
 
 function creazioneElencoAppunti(utenti) {
     $("#contAppunti").html("");
@@ -547,28 +559,30 @@ function creazioneElencoAppunti(utenti) {
                     }
                 }
                 codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() +'</p>';
+                codHtml += '</a>';
                 if (i == dim - 1 && dim > 2) {
-                    codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriAppunti" data-parent="#acc"><i class="fa fa-plus"></i></button>';
+                    codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriAppunti" aria-expanded="false"><i class="fa fa-plus"></i></button>';
                     codHtml += '<div id="contAltriAppunti" class="collapse">';
-                    for (let k = dim; k < (utente["appuntiCaricati"].length-dim); k++) {
-                        codHtml += '<a href="dettaglioAppunto.html?appunto=' + utente["appuntiCaricati"][k]._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
+                    for (let k = 0; k < (utente["appuntiCaricati"].length-dim); k++) {
+                        codHtml += '<a href="dettaglioAppunto.html?appunto=' + utente["appuntiCaricati"][i+(k+1)]._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
                         codHtml += '<div class="d-flex w-100 justify-content-between">';
-                        codHtml += '<h5 class="mb-1">' + utente["appuntiCaricati"][k].descrizione + '</h5>';
+                        codHtml += '<h5 class="mb-1">' + utente["appuntiCaricati"][i + (k + 1)].descrizione + '</h5>';
                         codHtml += '</div>';
-                        aus = new Date(utente["appuntiCaricati"][k].dataCaricamento);
-                        if (utente["appuntiCaricati"][k].argomenti != undefined) {
+                        aus = new Date(utente["appuntiCaricati"][i + (k + 1)].dataCaricamento);
+                        if (utente["appuntiCaricati"][i + (k + 1)].argomenti != undefined) {
                             vetArg = "Argomenti: ";
-                            for (let J = 0; J < utente["appuntiCaricati"][k].argomenti.length; J++) {
-                                vetArg += utente["appuntiCaricati"][k].argomenti[J].descrizione;
-                                if (J != utente["appuntiCaricati"][k].argomenti.length - 1) {
+                            for (let J = 0; J < utente["appuntiCaricati"][i + (k + 1)].argomenti.length; J++) {
+                                vetArg += utente["appuntiCaricati"][i + (k + 1)].argomenti[J].descrizione;
+                                if (J != utente["appuntiCaricati"][i + (k + 1)].argomenti.length - 1) {
                                     vetArg += ", ";
                                 }
                             }
                         }
+                        codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() + '</p>';
+                        codHtml += '</a>';
                     }
                     codHtml += '</div>';
                 }
-                codHtml += '</a>';
             }
         }else{
             codHtml += "<p style='text-align:center'>Non hai caricato alcun appunto</p>";

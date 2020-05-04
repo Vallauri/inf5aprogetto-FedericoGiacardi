@@ -66,6 +66,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="allegati.html">Allegati</a>
                                 </li>
+                                <li class="nav-item active">
+                                    <a class="nav-link" href="argomenti.html">Argomenti</a>
+                                </li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
                             </ul>
@@ -77,114 +80,318 @@
     </header>
     <!-- Header part end-->
 
-    <section id="sezNoMaterie" class="section_padding" style="display: none;">
-        <div class="container-fluid" id="contNoMaterie">
+    <section id="sezNoArgomenti" class="section_padding" style="display: none;">
+        <div class="container-fluid" id="contNoArgomenti">
 
         </div>
     </section>
-    <!-- Sezione Elenco Materie -->
-    <section class="course_details_area section_padding" id="sezElMaterie">
-        <div class="container-fluid" id="contRicercheMaterie">
-            <h2 align="center" class="section_tittle">Elenco Materie</h2>
-            <div class="row" id="contElMaterie">
+    <!-- Sezione Elenco Argomenti -->
+    <section class="course_details_area section_padding" id="sezElArgomenti">
+        <div class="container-fluid" id="contRicercheArgomenti">
+            <h2 align="center" class="section_tittle">Elenco Argomenti</h2>
+            <div class="row" id="contElArgomenti">
                 <div class="col-sm-12 col-md-8 col-lg-8 col-xs-8 mx-auto table-responsive">
-                    <table id="tabellaMaterie" class="table table-striped table-hover table-bordered" style="text-align: center;">
+                    <table id="tabellaArgomenti" class="table table-striped table-hover table-bordered" style="text-align: center;">
                         <thead class="thead-inverse">
-                            <tr id="rigaTabMaterie">
+                            <tr id="rigaTabArgomenti">
                                 <th>Descrizione</th>
-                                <th>Data Creazione</th>
+                                <th>Materia</th>
                                 <th>Azioni</th>
                             </tr>
                         </thead>
-                        <tbody id="corpoTabMaterie"></tbody>
+                        <tbody id="corpoTabArgomenti"></tbody>
                     </table>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                    <div id="msgElMaterie" class="msg"> </div>
+                    <div id="msgElArgomenti" class="msg"> </div>
                 </div>
             </div>
             <br>
         </div>
     </section>
-    <!-- Fine Sezione Elenco Materie -->
+    <!-- Fine Sezione Elenco Argomenti -->
 
-    <!-- Sezione Elenco Argomenti Materia -->
-    <section id="sezArgMateria" class="course_details_area section_padding">
+    <!-- Modal Eliminazione Argomenti-->
+    <div class="modal fade" id="modalEliminazioneArg" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminazione Argomento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModaleEliminazioneArg" style="text-align: center;"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                            <div id="msgEliminazioneArg" role="alert" style="text-align: center;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfEliminazioneArg" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Eliminazione Argomenti-->
+
+    <!-- Sezione Elenco Appunti Argomenti -->
+    <section id="sezAppuntiArgomenti" class="course_details_area section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Nuovi Argomenti</h2>
-            <div class="row" id="contElArgMaterie">
+            <h2 align="center" class="section_tittle">Nuovi Appunti</h2>
+            <div class="row" id="contElAppuntiArgomenti">
                 <div class="col-sm-12 col-md-8 col-lg-8 col-xs-8 mx-auto table-responsive">
-                    <table id="tabellaArgMaterie" class="table table-striped table-hover table-bordered" style="text-align: center;">
+                    <table id="tabellaAppuntiArgomenti" class="table table-striped table-hover table-bordered" style="text-align: center;">
                         <thead class="thead-inverse">
-                            <tr id="rigaTabArgMaterie">
+                            <tr id="rigaTabAppuntiArgomenti">
                                 <th>Descrizione</th>
-                                <th>Azioni</th> <!--Accetta/respingi-->
+                                <th>Data Caricamento</th>
+                                <th>Autore</th>
+                                <th>Argomento</th>
+                                <th>Azioni</th>
+                                <!--Accetta/respingi-->
                             </tr>
                         </thead>
-                        <tbody id="corpoTabArgMaterie"></tbody>
+                        <tbody id="corpoTabAppuntiArgomenti"></tbody>
                     </table>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                    <div id="msgElArgMaterie" class="msg"> </div>
+                    <div id="msgElAppuntiArgomenti" role="alert" style="text-align: center;"></div>
                 </div>
             </div>
             <br>
         </div>
     </section>
-    <!-- Fine Sezione Elenco Argomenti Materia -->
+    <!-- Fine Sezione Elenco Appunti Argomenti -->
+    
 
-    <!-- Sezione Aggiunta Materie -->
+    <!-- Inizio Modal Approvazione Allegato-->
+    <div class="modal fade" id="modalApprovAllegato" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Operazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModale" style="text-align: center;"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                            <div id="msgApprovAllegato" role="alert" style="text-align: center;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfApprovAllegato" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Approvazione Allegato-->
+
+    <!-- Inizio Modal Rifiuto Allegato-->
+    <div class="modal fade" id="modalRifiutoAllegato" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Operazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModaleRifiuto" style="text-align: center;"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                            <div id="msgRifiutoAllegato" role="alert" style="text-align: center;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfRifiutoAllegato" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Rifiuto Allegato-->
+
+    <!-- Sezione Elenco Moduli Argomenti -->
+    <section id="sezModuliArgomenti" class="course_details_area section_padding">
+        <div class="container-fluid">
+            <h2 align="center" class="section_tittle">Nuovi Corsi</h2>
+            <div class="row" id="contModuliArgomenti">
+                <div class="col-sm-12 col-md-8 col-lg-8 col-xs-8 mx-auto table-responsive">
+                    <table id="tabellaModuliArgomenti" class="table table-striped table-hover table-bordered" style="text-align: center;">
+                        <thead class="thead-inverse">
+                            <tr id="rigaTabModuliArgomenti">
+                                <th>Descrizione</th>
+                                <th>Data Caricamento</th>
+                                <th>Argomento</th>
+                                <th>Azioni</th>
+                                <!--Accetta/respingi-->
+                            </tr>
+                        </thead>
+                        <tbody id="corpoTabModuliArgomenti"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                    <div id="msgElModuliArgomenti" role="alert" style="text-align: center;"></div>
+                </div>
+            </div>
+            <br>
+        </div>
+    </section>
+    <!-- Fine Sezione Elenco Moduli Argomenti -->
+
+    <!-- Inizio Modal Approvazione Modulo-->
+    <div class="modal fade" id="modalApprovModulo" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Operazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModaleApprovModulo" style="text-align: center;"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                            <div id="msgApprovModulo" role="alert" style="text-align: center;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfApprovModulo" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Approvazione Modulo-->
+
+    <!-- Inizio Modal Rifiuto Modulo-->
+    <div class="modal fade" id="modalRifiutoModulo" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Operazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p id="contModaleRifiutoModulo" style="text-align: center;"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                            <div id="msgRifiutoModulo" role="alert" style="text-align: center;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Annulla</button>
+                    <button id="btnConfRifiutoModulo" type="button" class="btn btn-success">Conferma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine Modal Rifiuto Modulo-->
+
+    <!-- Sezione Aggiunta Argomenti -->
     <section class="section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Inserimento Materia</h2>
+            <h2 align="center" class="section_tittle">Inserimento Argomento</h2>
             <div class="row">
                 <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
                         <div div class="card-body">
-                            <form id="formInsMateria" class="form-contact">
+                            <form id="formInsArgomento" class="form-contact">
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="input-group form-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
                                                 <i class="fa fa-text-height" aria-hidden="true"></i>
                                             </span>
-                                            <input type="text" id="descMateria" name="descMateria" placeholder="Descrizione"
+                                            <input type="text" id="descArgomento" name="descArgomento"
+                                                placeholder="Descrizione"
                                                 onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                                 onblur="this.placeholder = 'Descrizione'" required class="single-input">
                                         </div>
                                     </div>
-                                    <div id="msgAddMateria" class="msg"> </div>
+                                    <div class="input-group form-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-paperclip"> </i>
+                                            </span>
+                                            <div>
+                                                <select id="materiaAppunto" required title="Scegli la materia" data-live-search="true"
+                                                    data-live-search-placeholder="Cerca materia">
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                                        <div id="msgAddArgomento" role="alert" style="text-align: center;"></div>
+                                    </div>
                                 </div>
                                 <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
                                     <div class="form-group">
-                                        <a id="btnAddMateria" class="genric-btn primary circle btn-block"
-                                            style="color: #fff!important;"><i class="fa fa-plus" aria-hidden="true"></i> Aggiungi</a>
+                                        <a id="btnAddArgomento" class="genric-btn primary circle btn-block"
+                                            style="color: #fff!important;"><i class="fa fa-plus" aria-hidden="true"></i>
+                                            Aggiungi</a>
                                     </div>
                                 </div>
                             </form>
                         </div>
                     </div>
-    
+
                 </div>
             </div>
         </div>
     </section>
-    <!-- Fine Sezione Aggiunta Materie -->
+    <!-- Fine Sezione Aggiunta Argomenti -->
 
     <!-- Modal Modifica Materia-->
-    <div class="modal fade" id="modalModMateria" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
+    <!-- <div class="modal fade" id="modalModMateria" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                    <div class="modal-header">
-                            <h5 class="modal-title">Modifica Materia</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                        </div>
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifica Materia</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <div class="modal-body">
                     <div class="container-fluid">
                         <div class="col-sm-12 col-md-6 col-lg-6 mx-auto">
@@ -193,7 +400,8 @@
                                     <span class="input-group-text">
                                         <i class="fa fa-text-height" aria-hidden="true"></i>
                                     </span>
-                                    <input type="text" id="descModMateria" name="descModMateria" placeholder="Descrizione"
+                                    <input type="text" id="descModMateria" name="descModMateria"
+                                        placeholder="Descrizione"
                                         onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                         onblur="this.placeholder = 'Descrizione'" required class="single-input">
                                 </div>
@@ -203,7 +411,8 @@
                                     <span class="input-group-text">
                                         <i class="fa fa-calendar" aria-hidden="true"></i>
                                     </span>
-                                    <input type="date" id="dataModMateria" name="dataModMateria" placeholder="Data Creazione"
+                                    <input type="date" id="dataModMateria" name="dataModMateria"
+                                        placeholder="Data Creazione"
                                         onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
                                         onblur="this.placeholder = 'Data Creazione'" required class="single-input">
                                 </div>
@@ -218,19 +427,20 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- Fine Modal Modifica Materia-->
 
     <!-- Inizio Modal Approvazione Argomento-->
-    <div class="modal fade" id="modalApprovArgomento" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
+    <!-- <div class="modal fade" id="modalApprovArgomento" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                    <div class="modal-header">
-                            <h5 class="modal-title">Conferma Operazione</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                        </div>
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Operazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <div class="modal-body">
                     <div class="container-fluid">
                         <p id="contModale" style="text-align: center;"></p>
@@ -243,19 +453,20 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- Fine Modal Approvazione Argomento-->
 
     <!-- Inizio Modal Rifiuto Argomento-->
-    <div class="modal fade" id="modalRifiutoArgomento" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
+    <!-- <div class="modal fade" id="modalRifiutoArgomento" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true" style="margin-top: 10%;">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                    <div class="modal-header">
-                            <h5 class="modal-title">Conferma Operazione</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                        </div>
+                <div class="modal-header">
+                    <h5 class="modal-title">Conferma Operazione</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <div class="modal-body">
                     <div class="container-fluid">
                         <p id="contModaleRifiuto" style="text-align: center;"></p>
@@ -268,7 +479,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- Fine Modal Rifiuto Argomento-->
 
     <!-- footer part start-->
@@ -369,7 +580,7 @@
     <script src="js/libreria.js"></script>
     <script src="js/custom.js"></script>
     <script src="js/navBar.js"></script>
-    <script src="js/materie.js"></script>
+    <script src="js/argomenti.js"></script>
 </body>
 
 </html>

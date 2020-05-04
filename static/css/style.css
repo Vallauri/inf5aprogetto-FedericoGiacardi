@@ -7302,11 +7302,13 @@ h1, h2, h3, h4, h5, h6 {
 /*# sourceMappingURL=style.css.map */
 
 .btn.btn-info {
-    position: absolute;
-    z-index: 1;
+    z-index: 5;
     left: 50%;
     transform: translateX(-50%);
     border-radius: 50%;
+    margin-left: 51%;
+    margin-right: auto;
+    margin-top: -4% !important;
 }
 
 /* .collapse {
