@@ -2957,6 +2957,36 @@ app.post("/api/rimuoviLezione", function (req, res) {
 });
 //#endregion
 
+//#region ESAMI
+app.post("/api/esamiCorso", function (req, res) {
+    esami.find({codModulo : parseInt(req.body.idCorso)}).select("_id descrizione codUtente dataCreazione dataScadenza durata").exec().then(results => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(results));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/chkSvolgimentoEsame", function (req, res) {
+    utenti.count({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id), $or: [{ "eseguonoEsami.codEsame": parseInt(req.body.idEsame) }, { "eseguonoEsamiGruppi.codEsame": parseInt(req.body.idEsame) }] }).exec().then(nEsami => {
+        let risp;
+        if(nEsami > 0)
+            risp = { ris : "giàDato" };
+        else
+            risp = { ris: "nonDato" };
+
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(risp));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+//#endregion
+
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */
 function createToken(obj) {

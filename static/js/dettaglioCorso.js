@@ -214,6 +214,8 @@ function chkModeratore(idCorso) {
     });
     chkToken.done(function (data) {
         if (data.ris == "autore") {
+            aggiungiDettagliIscritto();
+            
             let codHtml = "";
             codHtml += '<div class="sidebar_top">';
             codHtml += '<div class="col-lg-12 text-center">';
@@ -426,63 +428,54 @@ function chkModeratore(idCorso) {
                 $("#dettCorsoMod .modal-body").append(cod);
             });
 
-            // Aggiunta lezioni
-            codHtml = "";
-            codHtml += '<h4 class="title">Lezioni del Corso</h4>';
-            codHtml += '<div class="content">';
-            codHtml += '<ul class="course_list">';
-
-            if (lezioni["lezioniModulo"] != undefined && lezioni["lezioniModulo"].length > 0) {
-                for (let i = 0; i < lezioni["lezioniModulo"].length; i++) {
-                    codHtml += '<li class="justify-content-between align-items-center d-flex">';
-                    codHtml += '<p>' + lezioni["lezioniModulo"][i].titolo + '</p>';
-                    codHtml += '<p>Data aggiunta: ' + new Date(lezioni["lezioni"][i].dataAggiunta).toLocaleDateString() + '</p>';
-                    codHtml += '<a class="btn_2 text-uppercase" href="dettaglioLezione.html?lezione=' + lezioni["lezioniModulo"][i]._id + '&corso=' + lezioni._id + '">Visualizza Dettaglio</a>'; // vedere se metterlo o no il dettaglio della lezione
-                    codHtml += '</li>';
-                }
-            }
-            else {
-                codHtml += '<li class="justify-content-between align-items-center d-flex">';
-                codHtml += '<p>Al momento non ci sono ancora delle lezioni relative al corso</p>';
-                codHtml += '</li>';
-            }
-
-            codHtml += '</ul>';
-            codHtml += '</div>';
-
-            $(".course_details_left").append(codHtml);
         }
         else if (data.ris == "iscritto"){
             $("#btnIscrivitiCorso").hide();
             //$("#btnIscriviGruppoCorso").hide(); // da controllare il caso in cui un'utente è iscritto ed è mod di un gruppo (bisogna dargli la possibilità di iscrivere il gruppo)
 
-            // Aggiunta lezioni
-            let codHtml = "";
-            codHtml += '<h4 class="title">Lezioni del Corso</h4>';
-            codHtml += '<div class="content">';
-            codHtml += '<ul class="course_list">';
-
-            if (lezioni["lezioniModulo"] != undefined && lezioni["lezioniModulo"].length > 0) {
-                for (let i = 0; i < lezioni["lezioniModulo"].length; i++) {
-                    codHtml += '<li class="justify-content-between align-items-center d-flex">';
-                    codHtml += '<p>' + lezioni["lezioniModulo"][i].titolo + '</p>';
-                    codHtml += '<p>Data aggiunta: ' + new Date(lezioni["lezioni"][i].dataAggiunta).toLocaleDateString() + '</p>';
-                    codHtml += '<a class="btn_2 text-uppercase" href="dettaglioLezione.html?lezione=' + lezioni["lezioniModulo"][i]._id + '&corso=' + lezioni._id + '">Visualizza Dettaglio</a>'; // vedere se metterlo o no il dettaglio della lezione
-                    codHtml += '</li>';
-                }
-            }
-            else {
-                codHtml += '<li class="justify-content-between align-items-center d-flex">';
-                codHtml += '<p>Al momento non ci sono ancora delle lezioni relative al corso</p>';
-                codHtml += '</li>';
-            }
-
-            codHtml += '</ul>';
-            codHtml += '</div>';
-
-            $(".course_details_left").append(codHtml);
+            aggiungiDettagliIscritto();
         }
         lezioni = [];
+    });
+}
+
+function aggiungiDettagliIscritto(){
+    // Aggiunta lezioni
+    let codHtml = "";
+    codHtml += '<h4 class="title">Lezioni del Corso</h4>';
+    codHtml += '<div class="content">';
+    codHtml += '<ul class="course_list">';
+
+    if (lezioni["lezioniModulo"] != undefined && lezioni["lezioniModulo"].length > 0) {
+        for (let i = 0; i < lezioni["lezioniModulo"].length; i++) {
+            codHtml += '<li class="justify-content-between align-items-center d-flex">';
+            codHtml += '<p>' + lezioni["lezioniModulo"][i].titolo + '</p>';
+            codHtml += '<p>Data aggiunta: ' + new Date(lezioni["lezioni"][i].dataAggiunta).toLocaleDateString() + '</p>';
+            codHtml += '<a class="btn_2 text-uppercase" href="dettaglioLezione.html?lezione=' + lezioni["lezioniModulo"][i]._id + '&corso=' + lezioni._id + '">Visualizza Dettaglio</a>'; // vedere se metterlo o no il dettaglio della lezione
+            codHtml += '</li>';
+        }
+    }
+    else {
+        codHtml += '<li class="justify-content-between align-items-center d-flex">';
+        codHtml += '<p>Al momento non ci sono ancora delle lezioni relative al corso</p>';
+        codHtml += '</li>';
+    }
+
+    codHtml += '</ul>';
+    codHtml += '</div>';
+
+    $(".course_details_left").append(codHtml);
+
+    // Aggiunta Button Esami
+    codHtml = "";
+    codHtml += '<div class="sidebar_top">';
+    codHtml += '<div class="col-lg-12 text-center">';
+    codHtml += '<button class="genric-btn success radius" style="margin:2px;" id="btnVisEsami">Visualizza Esami</button>';
+    codHtml += '</div>';
+    codHtml += '</div>';
+    $(".right-contents").append(codHtml);
+    $("#btnVisEsami").on("click", function(){
+        window.location.href = "esami.html?corso=" + $("#descCorso").attr("idCorso");
     });
 }
 

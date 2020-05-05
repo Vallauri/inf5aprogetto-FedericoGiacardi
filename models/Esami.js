@@ -13,10 +13,12 @@ const domande = mongoose.Schema({
 const esami = mongoose.Schema({
     _id: { type: Number, required: true },
     dataCreazione: { type: Date, required: true },
+    dataScadenza: { type: Date, required: true }, // data oltre la quale non si può più sostenere l'esame
+    durata: { type: Number, required: true }, // la salvo in secondi
     codUtente: { type: Number, ref: "Utenti", required: true },
+    codModulo: { type: Number, ref: "Moduli", required: true },
     descrizione: { type: String, required: true },
-    domande:[domande],
-    moduli: [{ type: Number, ref: "Moduli", required: true }],
+    domande:[domande]
 });
 
 module.exports = mongoose.model("Esami", esami);
