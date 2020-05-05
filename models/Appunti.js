@@ -18,7 +18,8 @@ const appunti = mongoose.Schema({
     cognomeAutore: { type: String, required: true },
     codUtente: { type: Number, ref: "Utenti", required: true },
     argomenti: [argomenti],
-    allegati: [allegati]
+    allegati: [allegati],
+    validita: { type: String, required: true, default:"true" },
 });
 
 module.exports = mongoose.model("Appunti", appunti);

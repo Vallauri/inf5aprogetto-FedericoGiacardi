@@ -4,6 +4,10 @@ const argomenti = mongoose.Schema({
     codArgomento: { type: Number, ref: "Argomenti", required: true }
 });
 
+const argomentiDaApp = mongoose.Schema({
+    codArgomento: { type: Number, ref: "Argomenti", required: true },
+});
+
 const lezioni = mongoose.Schema({
     codLezione: { type: Number, ref: "Lezioni", required: true },
     dataAggiunta: { type: Date, required: true },
@@ -20,10 +24,11 @@ const moduli = mongoose.Schema({
     codMateria: { type: Number, ref:"Materie", required: true },
     codAutore: { type: Number, ref:"Utenti", required: true }, // qui quindi mettiamo Utenti o Moderatori ???
     argomenti: [argomenti],
+    argomentiDaApprovare: [argomentiDaApp],
     lezioni: [lezioni],
-    validita: { type : String, default : "true"} 
+    validita: { type : Boolean, default : true} 
 });
 
 //l'autore è anche amministartore
 
-module.exports = mongoose.model("Moduli", moduli);
+module.exports = mongoose.model("ModuliTemp", moduli);

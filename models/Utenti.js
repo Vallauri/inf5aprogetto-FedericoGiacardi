@@ -73,6 +73,7 @@ const utenti = mongoose.Schema({
     recensione: { type: String},
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: String },
+    amministratore: { type: Boolean, default: false, required: true},
     materie: [matModerate],
     gruppo: [parteDi],
     esami: [eseguonoEsami],

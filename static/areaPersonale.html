@@ -49,7 +49,7 @@
 
                         <div class="collapse navbar-collapse main-menu-item justify-content-end"
                             id="navbarSupportedContent">
-                            <ul class="navbar-nav align-items-center">
+                            <ul id="ulNavBar" class="navbar-nav align-items-center">
                                 <li class="nav-item">
                                     <a class="nav-link" href="index.html">Home</a>
                                 </li>
@@ -67,6 +67,8 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="allegati.html">Allegati</a>
+                                </li>
+                                <li id="linkMaterie" class="nav-item">
                                 </li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
@@ -135,19 +137,14 @@
             <!-- Riga "amministratore": materie amministrate e appunti caricati -->
             <br>
             <div class="row">
-                <div class="col-sm-12 col-md-2 col-xs-2"></div>
-                <div class="col-sm-12 col-md-4 col-xs-4">
-                    <h3 align="center" class="section_tittle">Elenco Materie</h3> <!--Richiamerà poi un dettaglio materia: con possibilità di modificare/togliere/aggiungere materia e argomenti e approvare/respingere appunti-->
-                    <div id="contMaterie" class="list-group">
-                    </div>
-                </div>
+                <div class="col-sm-12 col-md-4 col-xs-4"></div>
                 <div class="col-sm-12 col-md-4 col-xs-4">
                     <h3 align="center" class="section_tittle">Elenco Appunti</h3>
                     <!--Richiamerà poi un dettaglio appunto: con possibilità di modificare/togliere appunto e allegati-->
                     <div id="contAppunti" class="list-group">
                     </div>
                 </div>
-                <div class="col-sm-12 col-md-2 col-xs-2"></div>
+                <div class="col-sm-12 col-md-4 col-xs-4"></div>
             </div>
             <div class="msg"> </div>
         </div>
@@ -243,7 +240,6 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="js/jquery.counterup.min.js"></script>
     <script src="js/waypoints.min.js"></script>
     <!-- custom js -->
-    <script src="jquery.color.min.js"></script>
     <script src="js/libreria.js"></script>
     <script src="js/custom.js"></script>
     <script src="js/navBar.js"></script>

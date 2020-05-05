@@ -167,6 +167,40 @@ ERRORS.create({
     defaultMessage: 'Esiste già un Gruppo con il medesimo Nome, Descrizione e Tipo di Gruppo'
 });
 
+// code 622 - Already Existing Subject
+ERRORS.create({
+    code: 621,
+    name: 'EXISTING_SUBJECT',
+    defaultMessage: 'Esiste già una Materia con la medesima Descrizione'
+});
+
+// code 623 - Missing Argument
+ERRORS.create({
+    code: 623,
+    name: 'MISSING_ARGUMENT',
+    defaultMessage: 'L\' argomento richiesto non è stato individuato'
+});
+
+// code 624 - Already Existing Argument
+ERRORS.create({
+    code: 624,
+    name: 'EXISTING_ARGUMENT',
+    defaultMessage: 'Esiste già un argomento con i medesimi dati'
+});
+
+// code 625 - Missing Note
+ERRORS.create({
+    code: 625,
+    name: 'MISSING_NOTE',
+    defaultMessage: 'L\' appunto richiesto non è stato individuato'
+});
+
+// code 626 - Missing Note
+ERRORS.create({
+    code: 626,
+    name: 'MISSING_COURSE',
+    defaultMessage: 'Il Corso richiesto non è stato individuato'
+});
 
 // Impostazioni multer
 const storage = multer.diskStorage({
@@ -222,6 +256,7 @@ const jwt = require("jsonwebtoken");
 //Mongoose
 let utenti = require("./models/Utenti.js");
 let argomenti = require("./models/Argomenti.js");
+let argomentiTemp = require("./models/ArgomentiTemp.js");
 let appunti = require("./models/Appunti.js");
 let esami = require("./models/Esami.js");
 let gruppi = require("./models/Gruppi.js");
@@ -232,6 +267,8 @@ let tipiModuli = require("./models/TipiModulo.js");
 let pwdInChiaro = require("./models/PwdInChiaro.js");
 let materie = require("./models/Materie.js");
 let lezioni = require("./models/Lezioni.js");
+let appuntiTemp = require("./models/AppuntiTemp.js");
+let moduliTemp = require("./models/ModuliTemp.js");
 
 
 // Online RSA Key Generator
@@ -287,7 +324,8 @@ app.use('/api', function (req, res, next) {
 });
 
 app.post('/api/chkToken', function (req, res) {
-    res.send({ "id": JSON.parse(JSON.stringify(req.payload))._id});
+    console.log("Valore admin: "+JSON.parse(JSON.stringify(req.payload)).admin);
+    res.send({ "id": JSON.parse(JSON.stringify(req.payload))._id, "amministratore": req.payload.amministratore});
 });
 
 function controllaToken(req, res, next) {
@@ -315,9 +353,9 @@ function controllaToken(req, res, next) {
                 else {
                     // aggiornamento del token
                     var exp = Math.floor(Date.now() / 1000) + TIMEOUT;
-                    payload = { ...payload, 'exp': exp }
-                    token = createToken(payload)
-                    writeCookie(res, token)
+                    payload = { ...payload, 'exp': exp};
+                    token = createToken(payload);
+                    writeCookie(res, token);
                     req.payload = payload;
                     next();
                 }
@@ -393,50 +431,42 @@ app.post("/api/registrati", upload.single("foto"),function (req, res) {
                                                     if (nUtTel == 0) {
                                                         utenti.count({ "user": req.body.username }).exec().then(nUtUser => {
                                                             if (nUtUser == 0) {
-                                                                //ATTENZIONE!!! PER ORA NON FUNGE. Bisogna scorrere il recordset con un foreach e per ogni record fare il bcrypt.compare
                                                                 bcrypt.hash(req.body.password, saltRounds, function (errUtPwd, hashUtPwd) {
                                                                     if (errUtPwd) {
                                                                         error(req, res, errUtPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                                                     } else {
-                                                                        utenti.count({ "pwd": hashUtPwd }).exec().then(nPwdUser => {
-                                                                            if (nPwdUser == 0) {
-                                                                                utenti.find().sort({ _id: 1 }).exec().then(results => {
-                                                                                    let vet = JSON.parse(JSON.stringify(results));
-                                                                                    if (req.file == undefined) {
-                                                                                        path = "static\\images\\default.png";
-                                                                                    } else {
-                                                                                        path = req.file.path;
-                                                                                    }
-
-                                                                                    const utInsert = new utenti({
-                                                                                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                                                                        nome: req.body.nome,
-                                                                                        cognome: req.body.cognome,
-                                                                                        dataNascita: req.body.dataNascita,
-                                                                                        mail: req.body.email,
-                                                                                        telefono: req.body.telefono,
-                                                                                        user: req.body.username,
-                                                                                        pwd: hashUtPwd,
-                                                                                        foto: path
-                                                                                    });
-                                                                                    utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
-
-                                                                                    /* Poi da rimuovere in Deploy */
-                                                                                    const utPwdColl = new pwdInChiaro({
-                                                                                        _id: new mongoose.Types.ObjectId(),
-                                                                                        idUt: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                                                                        user: req.body.username,
-                                                                                        pwd: req.body.password
-                                                                                    });
-                                                                                    utPwdColl.save().then(results => { console.log("Pwd salvata su Collection in chiaro") }).catch(errSave => { console.log("Errore salvataggio Pwd in chiaro; err: " + errSave) });
-                                                                                }).catch(err => {
-                                                                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                                                                                });
+                                                                        utenti.find().sort({ _id: 1 }).exec().then(results => {
+                                                                            let vet = JSON.parse(JSON.stringify(results));
+                                                                            if (req.file == undefined) {
+                                                                                path = "static\\images\\default.png";
                                                                             } else {
-                                                                                error(req, res, null, JSON.stringify(new ERRORS.PWD_USED({})));
+                                                                                path = req.file.path;
                                                                             }
-                                                                        }).catch(errPwdUser => {
-                                                                            error(req, res, errPwdUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+
+                                                                            const utInsert = new utenti({
+                                                                                _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                                nome: req.body.nome,
+                                                                                cognome: req.body.cognome,
+                                                                                dataNascita: req.body.dataNascita,
+                                                                                mail: req.body.email,
+                                                                                telefono: req.body.telefono,
+                                                                                user: req.body.username,
+                                                                                pwd: hashUtPwd,
+                                                                                foto: path,
+                                                                                amministratore: false
+                                                                            });
+                                                                            utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+
+                                                                            /* Poi da rimuovere in Deploy */
+                                                                            const utPwdColl = new pwdInChiaro({
+                                                                                _id: new mongoose.Types.ObjectId(),
+                                                                                idUt: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                                user: req.body.username,
+                                                                                pwd: req.body.password
+                                                                            });
+                                                                            utPwdColl.save().then(results => { console.log("Pwd salvata su Collection in chiaro") }).catch(errSave => { console.log("Errore salvataggio Pwd in chiaro; err: " + errSave) });
+                                                                        }).catch(err => {
+                                                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                                                         });
                                                                     }
                                                                 });
@@ -1390,7 +1420,8 @@ app.post("/api/iscriviGruppoCorso", function (req, res) {
 });
 
 app.post("/api/elSimpleMaterie", function (req, res) {
-    materie.find({}).select("descrizione").exec().then(results => {
+    //HO TOLTO IL SELECT select("descrizione")
+    materie.find({}).exec().then(results => {
         //console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
@@ -2084,27 +2115,35 @@ app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"), function (req
                     if (req.files.length > 0 || req.body.allegatiPresenti.length > 0) {
                         appunti.count({ $and: [{ "descrizione": req.body.descrizione }, { "nomeAutore": req.body.nome }, { "cognomeAutore": req.body.cognome }] }).exec().then(nAppunti =>{
                             if (nAppunti == 0) {
-                                appunti.find({}).sort({ _id: 1 }).exec().then(results => {
-                                    let vet = JSON.parse(JSON.stringify(results));
-                                    let vetArgomenti = new Array();
-                                    let vetAus = req.body.argomenti.split(',');
-                                    for (let i = 0; i < vetAus.length; i++) {
-                                        vetArgomenti[i] = { "codArgomento": parseInt(vetAus[i]), "dataAggiunta":new Date()};
-                                    }
-                                    addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati =>{
-                                        const aggAppunto = new appunti({
-                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                            descrizione: req.body.descrizione,
-                                            dataCaricamento: new Date(),
-                                            nomeAutore: req.body.nome,
-                                            cognomeAutore: req.body.cognome,
-                                            codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
-                                            argomenti: vetArgomenti,
-                                            allegati: vetAllegati
+                                appuntiTemp.count({ $and: [{ "descrizione": req.body.descrizione }, { "nomeAutore": req.body.nome }, { "cognomeAutore": req.body.cognome }] }).exec().then(nAppuntiTemp=>{
+                                    if (nAppuntiTemp == 0) {
+                                        appuntiTemp.find({}).sort({ _id: 1 }).exec().then(results => {
+                                            let vet = JSON.parse(JSON.stringify(results));
+                                            let vetArgomenti = new Array();
+                                            let vetAus = req.body.argomenti.split(',');
+                                            for (let i = 0; i < vetAus.length; i++) {
+                                                vetArgomenti[i] = { "codArgomento": parseInt(vetAus[i]), "dataAggiunta": new Date() };
+                                            }
+                                            addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati => {
+                                                const aggAppunto = new appunti({
+                                                    _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                    descrizione: req.body.descrizione,
+                                                    dataCaricamento: new Date(),
+                                                    nomeAutore: req.body.nome,
+                                                    cognomeAutore: req.body.cognome,
+                                                    codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                                                    argomenti: vetArgomenti,
+                                                    allegati: vetAllegati
+                                                });
+                                                aggAppunto.save().then(results => { res.send(JSON.stringify("aggAppuntoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                            });
+                                        }).catch(err => {
+                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                         });
-                                        aggAppunto.save().then(results => { res.send(JSON.stringify("aggAppuntoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
-                                    });
-                                }).catch(err => {
+                                    } else {
+                                        error(req, res, null, JSON.stringify(new ERRORS.EXISTING_NOTE({})));
+                                    }
+                                }).catch(err=>{
                                     error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                 });
                             }else{
@@ -2494,7 +2533,7 @@ function eseguiTTS(allegati, res, req) {
                         const audio = response.result;
                         return textToSpeech.repairWavHeaderStream(audio);
                     }).then(repairedFile => {
-                        let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav";
+                        let percorso = 'static/audio/' + file.name.replace(/\.[^/.]+$/, "") + ".wav"; //Se esiste un file con stesso nome lo sovrascrive
                         fs.writeFileSync(percorso, repairedFile);
                         percorsiAudio.push(percorso);
                         if (I != allegati.length - 1) {
@@ -2986,13 +3025,661 @@ app.post("/api/chkSvolgimentoEsame", function (req, res) {
     });
 });
 //#endregion
+app.post("/api/elMatModerate", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) { 
+        materie.find({ $and: [{ "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, {"validita":"true"}]}).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    }else{
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/elArgomentiMatModerate", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        materie.aggregate([
+            { $match: { $and: [{ "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { "validita": "true" }] } },
+            {
+                $lookup:
+                {
+                    from: argomentiTemp.collection.name,
+                    localField: "_id",
+                    foreignField: "codMateria",
+                    as: "argMatModerate"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/inserisciMateria", function (req, res) {
+    if (req.body.descMat != "") {
+        materie.find({ "descrizione": req.body.descMat }).exec().then(results =>{
+            if (results.length > 0) {
+                error(req, res, null, JSON.stringify(new ERRORS.EXISTING_SUBJECT({})));
+            }else{
+                materie.find({}).exec().then(results =>{
+                    let vet = JSON.parse(JSON.stringify(results));
+                    const addMateria = new materie({
+                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                        descrizione: req.body.descMat,
+                        dataCreazione: new Date().toISOString(),
+                        moderatore: parseInt(JSON.parse(JSON.stringify(req.payload))._id)
+                    });
+                    addMateria.save().then(results => {
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify("addMateriaOk")); 
+                    }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/modificaMateria", function (req, res) {
+    if (req.body.desc != "") {
+        if (Date.parse(req.body.data)) {
+            materie.find({ "descrizione": req.body.desc }).exec().then(results => {
+                if (results.length > 0) {
+                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_SUBJECT({})));
+                } else {
+                    materie.updateOne({ "descrizione": req.body.desc, "dataCreazione": req.body.data}).exec().then(results => { 
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify("modMateriaOk")); 
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        } else {
+            gestErrorePar(req, res);
+        }
+    }else{
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/approvaArgomento", function (req, res) {
+    if (req.body.codArgomento) {
+        argomentiTemp.findOne({ "_id": parseInt(req.body.codArgomento) }).exec().then(resultsArgTemp =>{
+            if (resultsArgTemp) {
+                argomenti.count({ $and: [{ "descrizione": req.body.descArgomento }, { "codMateria": parseInt(req.body.codMateria) }] }).exec().then(nArgs=>{
+                    if (nArgs > 0) {
+                        argomenti.find({}).exec().then(results => {
+                            let vet = JSON.parse(JSON.stringify(results));
+                            const addArgomento = new argomenti({
+                                _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                descrizione: resultsArgTemp.descrizione,
+                                codMateria: parseInt(resultsArgTemp.codMateria),
+                                codModeratore: parseInt(resultsArgTemp.codModeratore)
+                            });
+                            addArgomento.save().then(results => {
+                                argomentiTemp.remove({ "_id": parseInt(req.body.codArgomento) }).exec().then(result => {
+                                    let token = createToken(req.payload);
+                                    writeCookie(res, token);
+                                    res.writeHead(200, { "Content-Type": "application/json" });
+                                    res.end(JSON.stringify("approvazArgOk"));
+                                }).catch(err => {
+                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                });
+                            }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                        }).catch(err => {
+                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                        });
+                    }else{
+                        error(req, res, null, JSON.stringify(new ERRORS.EXISTING_ARGUMENT({})));
+                    }
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+                
+            }else{
+                error(req, res, null, JSON.stringify(new ERRORS.MISSING_ARGUMENT({})));
+            }
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/rifiutoArgomento", function (req, res) {
+    if (req.body.codArgomento) {
+        argomentiTemp.deleteOne({ "_id": parseInt(req.body.codArgomento) }).exec().then(result=>{
+            if (result.n == 1) {
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify("rifiutoArgOk"));
+            }else{
+                error(req, res, null, JSON.stringify(new ERRORS.MISSING_ARGUMENT({}))); 
+            }
+            
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        })
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/elArgomentiModerati", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        argomenti.aggregate([
+            { $match: { $and: [{ "codModeratore": parseInt(JSON.parse(JSON.stringify(req.payload))._id)}, {validita:"true"}]} },
+            {
+                $lookup:
+                {
+                    from: materie.collection.name,
+                    localField: "codMateria",
+                    foreignField: "_id",
+                    as: "matArgomento"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/inserisciArgomento", function (req, res) {
+    if (req.body.descArgomento != "") {
+        if (req.body.codMateria != "") {
+            argomentiTemp.find({ $and: [{ "descrizione": req.body.descArgomento }, {"codMateria": parseInt(req.body.codMateria) }]}).exec().then(results => {
+                if (results.length > 0) {
+                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_ARGUMENT({})));
+                } else {
+                    argomentiTemp.find({}).exec().then(results => {
+                        let vet = JSON.parse(JSON.stringify(results));
+                        let id = 1;
+                        if (vet[vet.length - 1]) {
+                            id = parseInt(vet[vet.length - 1]["_id"]) + 1
+                        }
+                        const addArgometo = new argomentiTemp({
+                            _id: id,
+                            descrizione: req.body.descArgomento,
+                            codMateria: parseInt(req.body.codMateria),
+                            codModeratore: parseInt(JSON.parse(JSON.stringify(req.payload))._id)
+                        });
+                        addArgometo.save().then(results => {
+                            let token = createToken(req.payload);
+                            writeCookie(res, token);
+                            res.writeHead(200, { "Content-Type": "application/json" });
+                            res.end(JSON.stringify("addArgomentoOk"));
+                        }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/elAppuntiArgsModerati", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        argomenti.aggregate([
+            { $match: { $and: [{ "codModeratore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { validita: "true" }] }},
+            {
+                $lookup: {
+                    from: appuntiTemp.collection.name,
+                    localField: "_id",
+                    foreignField: "argomentiDaApprovare.codArgomento",
+                    as: "argomentiDaApprovare"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/approvaAllegato", function (req, res) {
+    if (req.body.codAppunto) {
+        if (req.body.idArgomento) {
+            appuntiTemp.findOne({ "_id": parseInt(req.body.codAppunto) }).exec().then(resultsAppuntiTemp => {
+                if (resultsAppuntiTemp) {
+                    appuntiTemp.updateOne({ "_id": parseInt(req.body.codAppunto) }, { "$pull": { "argomentiDaApprovare": { "codArgomento": parseInt(req.body.idArgomento) } } }).exec().then(ris => {
+                        if ((resultsAppuntiTemp.argomentiDaApprovare.length - 1) == 0) {
+                            appunti.count({ $and: [{ "descrizione": req.body.descrizione }, { "nomeAutore": req.body.nome }, { "cognomeAutore": req.body.cognome }] }).exec().then(risChkEsistenza=>{
+                                if (risChkEsistenza == 0) {
+                                    appunti.find({}).exec().then(results => {
+                                        let vet = JSON.parse(JSON.stringify(results));
+                                        const addAppunto = new appunti({
+                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                            descrizione: resultsAppuntiTemp.descrizione,
+                                            dataCaricamento: resultsAppuntiTemp.dataCaricamento,
+                                            nomeAutore: resultsAppuntiTemp.nomeAutore,
+                                            cognomeAutore: resultsAppuntiTemp.cognomeAutore,
+                                            codUtente: resultsAppuntiTemp.codUtente,
+                                            argomenti: resultsAppuntiTemp.argomenti,
+                                            allegati: resultsAppuntiTemp.allegati
+                                        });
+                                        addAppunto.save().then(results => {
+                                            appuntiTemp.remove({ "_id": parseInt(req.body.codAppunto) }).exec().then(result => {
+                                                let token = createToken(req.payload);
+                                                writeCookie(res, token);
+                                                res.writeHead(200, { "Content-Type": "application/json" });
+                                                res.end(JSON.stringify("approvazAppuntoOk"));
+                                            }).catch(err => {
+                                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                            });
+                                        }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                    }).catch(err => {
+                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                    });
+                                }else{
+                                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_NOTE({})));
+                                }
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            });
+                            
+                        } else {
+                            let token = createToken(req.payload);
+                            writeCookie(res, token);
+                            res.writeHead(200, { "Content-Type": "application/json" });
+                            res.end(JSON.stringify("approvazAppuntoOk"));
+                        }
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    }); 
+                    
+                } else {
+                    error(req, res, null, JSON.stringify(new ERRORS.MISSING_NOTE({})));
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/rifiutoAppunto", function (req, res) {
+     if (req.body.codAppunto) {
+         appuntiTemp.deleteOne({ "_id": parseInt(req.body.codAppunto) }).exec().then(result => {
+             if (result.n == 1) {
+                 let token = createToken(req.payload);
+                 writeCookie(res, token);
+                 res.writeHead(200, { "Content-Type": "application/json" });
+                 res.end(JSON.stringify("rifiutoAppuntoOk"));
+             } else {
+                 error(req, res, null, JSON.stringify(new ERRORS.MISSING_NOTE({})));
+             }
+
+         }).catch(err => {
+             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+         });
+     } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/eliminaArgomento", function (req, res) {
+       if (req.body.codArgomento) {
+           Promise.all([gestAppuntiCollegati(req), gestModuliCollegati(req)]).then(ausRes=>{
+               argomenti.updateOne({ _id: parseInt(req.body.codArgomento) }, { $set: { validita: "true" } }).then(()=>{
+                   let token = createToken(req.payload);
+                   writeCookie(res, token);
+                   res.writeHead(200, { "Content-Type": "application/json" });
+                   res.end(JSON.stringify("elimArgOk"));
+               }).catch(err => {
+                   error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+               });
+           }).catch((err, mex) => { 
+              error(req, res, err, mex); 
+           });
+       } else {
+           gestErrorePar(req, res);
+      }
+});
+
+function gestAppuntiCollegati(req) {
+    return new Promise((resolve, reject)=>{
+        appunti.find({ "argomenti.codArgomento": parseInt(req.body.codArgomento) }).exec().then(results => {
+            appunti.updateMany({}, { $pull: { argomenti: { codArgomento: parseInt(req.body.codArgomento) } } }).exec().then(resUp => {
+                appunti.updateMany({ argomenti: { $size: 0 } }, { $set: { validita: "false" } }).exec().then(aus => {
+                    resolve();
+                }).catch(err => {
+                    reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }).catch(err => {
+                reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }).catch(err => {
+            reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+        
+    });
+}
+
+// function gestLezioni(results) {
+//     return new Promise((resolve, reject)=>{
+//         if (results.length > 0) {
+//             let vetIdAppunti = new Array();
+//             for (let i = 0; i < results.length; i++) {
+//                 vetIdAppunti.push(parseInt(results[i]._id));
+//             }
+//             lezioni.updateMany({}, { $pull: { appunti: { codAppunto: { $in: vetIdAppunti } } } }).exec().then(resLezioni => {
+//                 lezioni.updateMany({ appunti: { $size: 0 } }, { $set: { validita: "false" } }).exec().then(aus=>{
+//                     resolve();
+//                 }).catch(err => {
+//                     reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+//                 });
+//             }).catch(err => {
+//                 reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+//             });
+//         }else{
+//             resolve();
+//         }
+//     });
+// }
+
+function gestModuliCollegati(req) {
+    return new Promise((resolve, reject)=>{
+        moduli.find({ "argomenti.codArgomento": parseInt(req.body.codArgomento) }).exec().then(resValModuli=>{
+            moduli.updateMany({}, { $pull: { argomenti: { codArgomento: parseInt(req.body.codArgomento) } } }).exec().then(resPullModuli => {
+                moduli.updateMany({ argomenti: { $size: 0 } }, { $set: { validita: "false" } }).exec().then(results => {
+                    resolve();
+                }).catch(err => {
+                    reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }).catch(err => {
+                reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }).catch(err => {
+            reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+        
+    });
+}
+
+// function gestEsami(resValModuli) {
+//     return new Promise((resolve, reject) =>{
+//         if (resValModuli.length > 0) {
+//             let vetIdModuli = new Array();
+//             for (let i = 0; i < resValModuli.length; i++) {
+//                 vetIdModuli.push(parseInt(resValModuli[i]._id));
+//             }
+//             esami.updateMany({ codModulo: { $in: vetIdModuli } }, { $set: { validita: "false" } }).exec().then(aus=>{
+//                 resolve();
+//             }).catch(err => {
+//                 reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+//             });
+//         }else{
+//             resolve();
+//         }
+//     });
+// }
+
+app.post("/api/elModuliArgomenti", function (req, res) {
+    if (JSON.parse(JSON.stringify(req.payload))._id) {
+        argomenti.aggregate([
+            { $match: { $and: [{ "codModeratore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { validita: "true" }] } },
+            {
+                $lookup: {
+                    from: moduliTemp.collection.name,
+                    localField: "_id",
+                    foreignField: "argomentiDaApprovare.codArgomento",
+                    as: "argomentiDaApprovare"
+                }
+            }
+        ]).exec().then(results => {
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(results));
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/approvaModulo", function (req, res) {
+    if (req.body.codModulo) {
+        if (req.body.idArgomento) {
+            moduliTemp.findOne({ "_id": parseInt(req.body.codModulo) }).exec().then(resultsModuliTemp => {
+                if (resultsModuliTemp) {
+                    moduliTemp.updateOne({ "_id": parseInt(req.body.codModulo) }, { "$pull": { "argomentiDaApprovare": { "codArgomento": parseInt(req.body.idArgomento) } } }).exec().then(ris => {
+                        if ((resultsModuliTemp.argomentiDaApprovare.length - 1) == 0) {
+                            moduli.count({ $and: [{ "descrizione": resultsModuliTemp.descrizione }, { "codMateria": parseInt(resultsModuliTemp.codMateria) }, { "codTipoModulo": parseInt(resultsModuliTemp.codTipoModulo) }] }).exec().then(risChkEsistenza => {
+                                if (risChkEsistenza == 0) {
+                                    moduli.find({}).exec().then(results => {
+                                        let vet = JSON.parse(JSON.stringify(results));
+                                        let vetDati = {
+                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                            descrizione: resultsModuliTemp.descrizione,
+                                            dataCreazione: resultsModuliTemp.dataCreazione,
+                                            codTipoModulo: resultsModuliTemp.codTipoModulo,
+                                            codMateria: resultsModuliTemp.codMateria,
+                                            codAutore: resultsModuliTemp.codAutore,
+                                            argomenti: resultsModuliTemp.argomenti,
+                                            lezioni: resultsModuliTemp.lezioni,
+                                            validita: true
+                                        };
+                                        if (resultsModuliTemp.dataScadenza) {
+                                            vetDati["dataScadenza"] = resultsModuliTemp.dataScadenza
+                                        }
+                                        const addModulo = new moduli(vetDati);
+                                        
+                                        addModulo.save().then(results => {
+                                            moduliTemp.remove({ "_id": parseInt(req.body.codModulo) }).exec().then(result => {
+                                                let token = createToken(req.payload);
+                                                writeCookie(res, token);
+                                                res.writeHead(200, { "Content-Type": "application/json" });
+                                                res.end(JSON.stringify("approvazModuloOk"));
+                                            }).catch(err => {
+                                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                            });
+                                        }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                    }).catch(err => {
+                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                    });
+                                } else {
+                                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_COURSE({})));
+                                }
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            });
+
+                        } else {
+                            let token = createToken(req.payload);
+                            writeCookie(res, token);
+                            res.writeHead(200, { "Content-Type": "application/json" });
+                            res.end(JSON.stringify("approvazAppuntoOk"));
+                        }
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+
+                } else {
+                    error(req, res, null, JSON.stringify(new ERRORS.MISSING_COURSE({})));
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/rifiutaModulo", function (req, res) {
+    if (req.body.codModulo) {
+        moduliTemp.deleteOne({ "_id": parseInt(req.body.codModulo) }).exec().then(result => {
+            if (result.n == 1) {
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify("rifiutoModuloOk"));
+            } else {
+                error(req, res, null, JSON.stringify(new ERRORS.MISSING_COURSE({})));
+            }
+
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/registraAdmin", function (req, res) {
+    if (req.body.nome != "") {
+        if (req.body.cognome != "") {
+            if (Date.parse(req.body.dataNascita)) {
+                if (chkEtaMinima(new Date(req.body.dataNascita)) >= 6570) {
+                    if (validaEmail(req.body.email)) {
+                        if (validaTelefono(req.body.telefono)) {
+                            if (req.body.username != "") {
+                                if (validaPwdReg(req.body.password)) {
+                                    utenti.count({ "mail": req.body.email }).exec().then(nUtMail => {
+                                        if (nUtMail == 0) {
+                                            utenti.count({ "telefono": req.body.telefono }).exec().then(nUtTel => {
+                                                if (nUtTel == 0) {
+                                                    utenti.count({ "user": req.body.username }).exec().then(nUtUser => {
+                                                        if (nUtUser == 0) {
+                                                            bcrypt.hash(req.body.password, saltRounds, function (errUtPwd, hashUtPwd) {
+                                                                if (errUtPwd) {
+                                                                    error(req, res, errUtPwd, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                                } else {
+                                                                    utenti.find().sort({ _id: 1 }).exec().then(results => {
+                                                                        let vet = JSON.parse(JSON.stringify(results));
+
+                                                                        const utInsert = new utenti({
+                                                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                            nome: req.body.nome,
+                                                                            cognome: req.body.cognome,
+                                                                            dataNascita: req.body.dataNascita,
+                                                                            mail: req.body.email,
+                                                                            telefono: req.body.telefono,
+                                                                            user: req.body.username,
+                                                                            pwd: hashUtPwd,
+                                                                            foto: "static\\images\\default.png",
+                                                                            amministratore: true
+                                                                        });
+                                                                        utInsert.save().then(results => { res.send(JSON.stringify("regOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+
+                                                                        /* Poi da rimuovere in Deploy */
+                                                                        const utPwdColl = new pwdInChiaro({
+                                                                            _id: new mongoose.Types.ObjectId(),
+                                                                            idUt: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                                            user: req.body.username,
+                                                                            pwd: req.body.password
+                                                                        });
+                                                                        utPwdColl.save().then(results => { console.log("Pwd salvata su Collection in chiaro") }).catch(errSave => { console.log("Errore salvataggio Pwd in chiaro; err: " + errSave) });
+                                                                    }).catch(err => {
+                                                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                                    });
+                                                                }
+                                                            });
+                                                        } else {
+                                                            error(req, res, null, JSON.stringify(new ERRORS.USERNAME_USED({})));
+                                                        }
+                                                    }).catch(errUser => {
+                                                        error(req, res, errUser, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                                    });
+                                                } else {
+                                                    error(req, res, null, JSON.stringify(new ERRORS.TELEPHONE_USED({})));
+                                                }
+                                            }).catch(errTel => {
+                                                error(req, res, errTel, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                            });
+                                        } else {
+                                            error(req, res, null, JSON.stringify(new ERRORS.EMAIL_USED({})));
+                                        }
+                                    }).catch(errMail => {
+                                        error(req, res, errMail, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                    });
+                                } else {
+                                    gestErrorePar(req, res);
+                                }
+                            } else {
+                                gestErrorePar(req, res);
+                            }
+                        } else {
+                            gestErrorePar(req, res);
+                        }
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    }
+    else {
+        gestErrorePar(req, res);
+    }
+});
 
 /* createToken si aspetta un generico json contenente i campi indicati.
    iat e exp se non esistono vengono automaticamente creati          */
-function createToken(obj) {
+function createToken(obj, username, amministratore) {
     let token = jwt.sign({
         '_id': obj._id,
         'username': obj.username,
+        'amministratore': obj.amministratore,
         'iat': obj.iat || Math.floor(Date.now() / 1000),
         'exp': obj.exp || Math.floor(Date.now() / 1000 + TIMEOUT)
     },
@@ -3006,12 +3693,6 @@ function createToken(obj) {
 function writeCookie(res, token) {
     res.set("Set-Cookie", "token=" + token + ";max-age=" + TIMEOUT + ";Path=/;httponly=true;secure=true");
 }
-
-// Si può togliere ???
-// app.post('/api/logout', function (req, res, next) {
-//     res.set("Set-Cookie", "token=;max-age=-1;Path=/;httponly=true");
-//     res.send({ "ris": "LogOutOk" });
-// });
 
 /* ************************************************************* */
 
