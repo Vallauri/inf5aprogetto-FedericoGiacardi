@@ -20,6 +20,13 @@ const multer = require("multer"); // Modulo per salvataggio immagini su server
 mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS + "@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
 console.log("Everything seems ok...");
 
+// code 404 - database connection error
+ERRORS.create({
+    code: 404,
+    name: 'PAGE_NOT_FOUND',
+    defaultMessage: 'Risorsa non trovata'
+});
+
 // code 600 - database connection error
 ERRORS.create({
     code: 600,
@@ -286,11 +293,12 @@ var httpsServer = HTTPS.createServer(credentials, app);
 httpsServer.listen(port, '127.0.0.1', function () {
     fs.readFile("./static/error.html", function (err, content) {
         if (err)
-            content = "<h1>Risorsa non trovata</h1>"
+            content = JSON.stringify(new ERRORS.PAGE_NOT_FOUND({}));
         pageNotFound = content.toString();
     });
     console.log("Server in ascolto https://127.0.0.1: " + this.address().port);
 });
+httpsServer.timeout = 600000;
 
 /* ************************************************************ */
 app.use("/", express.static('./static'));
@@ -916,10 +924,8 @@ app.post("/api/dettaglioEventoEsame", function (req, res) {
             $lookup:
             {
                 from: moduli.collection.name,
-                "let": { "modulo": "$moduli" },
-                "pipeline": [
-                    { "$match": { "$expr": { "$in": ["$_id", "$$modulo"] } } }
-                ],
+                localField: "codModulo",
+                foreignField: "_id",
                 as: "detModuli"
             }
         }
@@ -3069,6 +3075,37 @@ app.post("/api/inserisciMateria", function (req, res) {
     }
 });
 
+app.post("/api/eliminaMateria", function (req, res) {
+    let vetArgs = new Array();
+    if (req.body.codMateria) {
+        materie.updateOne({ "_id": parseInt(req.body.codMateria) }, { $set: { validita: "false" } }).exec().then( ()=>{
+            moduli.updateMany({ "codMateria": parseInt(req.body.codMateria) }, { $set: { validita: "false" } }).exec().then(()=>{
+                argomenti.find({ "codMateria": parseInt(req.body.codMateria)}).select("_id").exec().then((elArgsMat)=>{
+                    for (let I = 0; I < elArgsMat.length; I++) {
+                        vetArgs.push(elArgsMat[I]);
+                    }
+                    eliminaArgomento(req, vetArgs).then(()=>{
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify("eliminazMatOk"));
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                }).catch(err => {
+                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                });
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }).catch(err => {
+            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+   }else{
+        gestErrorePar(req, res);
+   }
+});
+
 app.post("/api/modificaMateria", function (req, res) {
     if (req.body.desc != "") {
         if (Date.parse(req.body.data)) {
@@ -3339,27 +3376,37 @@ app.post("/api/rifiutoAppunto", function (req, res) {
 
 app.post("/api/eliminaArgomento", function (req, res) {
        if (req.body.codArgomento) {
-           Promise.all([gestAppuntiCollegati(req), gestModuliCollegati(req)]).then(ausRes=>{
-               argomenti.updateOne({ _id: parseInt(req.body.codArgomento) }, { $set: { validita: "true" } }).then(()=>{
-                   let token = createToken(req.payload);
-                   writeCookie(res, token);
-                   res.writeHead(200, { "Content-Type": "application/json" });
-                   res.end(JSON.stringify("elimArgOk"));
-               }).catch(err => {
-                   error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-               });
-           }).catch((err, mex) => { 
-              error(req, res, err, mex); 
+           eliminaArgomento(req, [parseInt(req.body.codArgomento)]).then(()=>{
+               let token = createToken(req.payload);
+               writeCookie(res, token);
+               res.writeHead(200, { "Content-Type": "application/json" });
+               res.end(JSON.stringify("eliminazArgOk"));
+           }).catch(err=>{
+               error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
            });
        } else {
            gestErrorePar(req, res);
       }
 });
 
-function gestAppuntiCollegati(req) {
+function eliminaArgomento(req, codArg) {
     return new Promise((resolve, reject)=>{
-        appunti.find({ "argomenti.codArgomento": parseInt(req.body.codArgomento) }).exec().then(results => {
-            appunti.updateMany({}, { $pull: { argomenti: { codArgomento: parseInt(req.body.codArgomento) } } }).exec().then(resUp => {
+        Promise.all([gestAppuntiCollegati(req, codArg), gestModuliCollegati(req, codArg)]).then(ausRes => {
+            argomenti.updateOne({ _id: { $in: codArg } }, { $set: { validita: "false" } }).then(() => {
+                resolve();
+            }).catch(err => {
+                reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }).catch(err => {
+            reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+        });
+    });
+}
+
+function gestAppuntiCollegati(req, codArg) {
+    return new Promise((resolve, reject) => {
+        appunti.find({ "argomenti.codArgomento": { $in: codArg} }).exec().then(results => {
+            appunti.updateMany({}, { $pull: { argomenti: { codArgomento: { $in: codArg } } } }).exec().then(resUp => {
                 appunti.updateMany({ argomenti: { $size: 0 } }, { $set: { validita: "false" } }).exec().then(aus => {
                     resolve();
                 }).catch(err => {
@@ -3371,7 +3418,7 @@ function gestAppuntiCollegati(req) {
         }).catch(err => {
             reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
         });
-        
+
     });
 }
 
@@ -3397,10 +3444,10 @@ function gestAppuntiCollegati(req) {
 //     });
 // }
 
-function gestModuliCollegati(req) {
-    return new Promise((resolve, reject)=>{
-        moduli.find({ "argomenti.codArgomento": parseInt(req.body.codArgomento) }).exec().then(resValModuli=>{
-            moduli.updateMany({}, { $pull: { argomenti: { codArgomento: parseInt(req.body.codArgomento) } } }).exec().then(resPullModuli => {
+function gestModuliCollegati(req, codArg) {
+    return new Promise((resolve, reject) => {
+        moduli.find({ "argomenti.codArgomento": { $in: codArg } }).exec().then(resValModuli => {
+            moduli.updateMany({}, { $pull: { argomenti: { codArgomento: { $in: codArg } } } }).exec().then(resPullModuli => {
                 moduli.updateMany({ argomenti: { $size: 0 } }, { $set: { validita: "false" } }).exec().then(results => {
                     resolve();
                 }).catch(err => {
@@ -3412,7 +3459,7 @@ function gestModuliCollegati(req) {
         }).catch(err => {
             reject(err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
         });
-        
+
     });
 }
 
@@ -3687,7 +3734,7 @@ function error(req, res, err, httpError) {
 app.use('/', function (req, res, next) {
     res.status(404)
     if (req.originalUrl.startsWith("/api")) {
-        res.send('Risorsa non trovata');
+        res.send(JSON.stringify(new ERRORS.PAGE_NOT_FOUND({})));
     } else {
         res.send(pageNotFound);
     }

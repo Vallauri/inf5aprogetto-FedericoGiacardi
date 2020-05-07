@@ -16,7 +16,11 @@ const esami = mongoose.Schema({
     codUtente: { type: Number, ref: "Utenti", required: true },
     descrizione: { type: String, required: true },
     domande:[domande],
-    moduli: [{ type: Number, ref: "Moduli", required: true }],
+    codModulo: { type: Number, ref: "Moduli", required: true },
+    numDomande: { type: Number, required: true, default:0 },
+    durata: { type: Number, required: true, default:0 },
+    dataScadenza: { type: Date, required: true },
+    validita: { type: String, default: "true", required: true, } 
 });
 
 module.exports = mongoose.model("Esami", esami);

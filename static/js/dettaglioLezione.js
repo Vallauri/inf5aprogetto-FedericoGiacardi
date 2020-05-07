@@ -22,7 +22,12 @@ function loadPagina() {
     }
     else{
         alert("Errore nel passaggio dei parametri");
-        window.location.href = "dettaglioCorso.html?corso=" + corso[1];
+        if (corso[0]="corso") {
+            window.location.href = "dettaglioCorso.html?corso=" + corso[1];
+        }else{
+            window.location.href = "dettaglioCorso.html?corso=" + corso[1];
+        }
+        
     }
 }
 

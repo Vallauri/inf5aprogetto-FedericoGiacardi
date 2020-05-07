@@ -58,6 +58,22 @@ function inviaRichiesta(url, method, parameters = {}) {
 	});
 }
 
+function inviaRichiestaTTS(url, method, parameters = {}) {
+	let contentType;
+
+	contentType = "application/json; charset=utf-8"
+	parameters = JSON.stringify(parameters);
+
+	return $.ajax({
+		url: url, //default: currentPage
+		type: method,
+		data: parameters,
+		contentType: contentType,
+		dataType: "json",
+		timeout: 0,
+	});
+}
+
 function error(jqXHR, testStatus, strError) {
 	if (jqXHR.status == 0)
 		alert("server timeout");
@@ -72,10 +88,15 @@ function printErrors(jqXHR, par) {
 		window.location = "index.html";
 	} else{
 		if (jqXHR.responseText) {
-			$(par).show().text("Server Error: " + JSON.parse(JSON.parse(JSON.stringify(jqXHR.responseText)))["message"]);
+			$(par).show().text("Server Error: " + JSON.parse(JSON.parse(JSON.stringify(jqXHR.responseText)))["message"]).addClass("alert alert-danger");
 		}
 		else{
-			$(par).show().text("Server Error: " + jqXHR.statusText);
+			$(par).show().text("Server Error: " + jqXHR.statusText).addClass("alert alert-danger");
 		}
 	}
+}
+
+function gestErrori(msg, controllo) {
+	$(".msg").html(msg);
+	controllo.addClass("alert alert-danger");
 }

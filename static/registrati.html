@@ -71,95 +71,110 @@
                <div class="card card-signin my-5">
                   <div div class="card-body">
                      <form id="formLogin" class="form-contact">
-                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-user-circle"> </i>
-                                 </span>
-                                 <input type="text" id="nomeReg" name="nomeReg" placeholder="Nome"
-                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Nome'" required
-                                    class="single-input">
+                        <div class="row">
+                           <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-user-circle"> </i>
+                                    </span>
+                                    <input type="text" id="nomeReg" name="nomeReg" placeholder="Nome"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Nome'"
+                                       required class="single-input">
+                                 </div>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-user"> </i>
+                                    </span>
+                                    <input type="text" id="cognomeReg" name="cognomeReg" placeholder="Cognome"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                       onblur="this.placeholder = 'Cognome'" required class="single-input">
+                                 </div>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-calendar-day"> </i>
+                                    </span>
+                                    <input type="date" id="dataNascitaReg" name="dataNascitaReg" placeholder="Data Nascita"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                       onblur="this.placeholder = 'Data Nascita'" aria-describedby="descDataNascitaReg" required
+                                       class="single-input">
+                                 </div>
+                                 <small id="descDataNascitaReg" class="form-text text-muted">
+                                    Devi avere almeno 8 anni per iscriverti
+                                 </small>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-envelope"> </i>
+                                    </span>
+                                    <input type="text" id="mailReg" name="mailReg" placeholder="Mail"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Mail'"
+                                       required class="single-input">
+                                 </div>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-image"> </i>
+                                    </span>
+                                    <input type="file" id="fotoReg" name="fotoReg" accept="image/*" aria-describedby="descFotoReg"
+                                       class="single-input">
+                                 </div>
+                                 <small id="descFotoReg" class="form-text text-muted">
+                                    Campo Opzionale
+                                 </small>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-phone-square-alt"> </i>
+                                    </span>
+                                    <input type="tel" id="telReg" name="telReg" placeholder="Telefono Prefisso Escluso"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                       onblur="this.placeholder = 'Telefono Prefisso Escluso'" required class="single-input">
+                                 </div>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-user"> </i>
+                                    </span>
+                                    <input type="text" id="usernameReg" name="usernameReg" placeholder="Username"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                       onblur="this.placeholder = 'Username'" required class="single-input">
+                                 </div>
+                              </div>
+                              <div class="input-group form-group">
+                                 <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                       <i class="fas fa-lock"> </i>
+                                    </span>
+                                    <input type="password" id="pwdReg" name="pwdReg" placeholder="Password"
+                                       onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                       onblur="this.placeholder = 'Password'" aria-describedby="descPwdReg" required class="single-input">
+                                 </div>
+                                 <small id="descPwdReg" class="form-text text-muted">
+                                    La Password deve contenere almeno 8 caratteri tra cui almeno una maiuscola, una minuscola, un numero e un
+                                    carattere tra !@#$%^&*
+                                 </small>
                               </div>
                            </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-user"> </i>
-                                 </span>
-                                 <input type="text" id="cognomeReg" name="cognomeReg" placeholder="Cognome"
-                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');" onblur="this.placeholder = 'Cognome'" required
-                                    class="single-input">
-                              </div>
-                           </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-calendar-day"> </i>
-                                 </span>
-                                 <input type="date" id="dataNascitaReg" name="dataNascitaReg" placeholder="Data Nascita" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Data Nascita'" aria-describedby="descDataNascitaReg" required class="single-input">
-                              </div>
-                              <small id="descDataNascitaReg" class="form-text text-muted">
-                                 Devi avere almeno 8 anni per iscriverti
-                              </small>
-                           </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-envelope"> </i>
-                                 </span>
-                                 <input type="text" id="mailReg" name="mailReg" placeholder="Mail" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Mail'" required class="single-input">
-                              </div>
-                           </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-image"> </i>
-                                 </span>
-                                 <input type="file" id="fotoReg" name="fotoReg" accept="image/*" aria-describedby="descFotoReg" class="single-input">
-                              </div>
-                              <small id="descFotoReg" class="form-text text-muted">
-                                 Campo Opzionale
-                              </small>
-                           </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-phone-square-alt"> </i>
-                                 </span>
-                                 <input type="tel" id="telReg" name="telReg" placeholder="Telefono Prefisso Escluso" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Telefono Prefisso Escluso'" required class="single-input">
-                              </div>
-                           </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-user"> </i>
-                                 </span>
-                                 <input type="text" id="usernameReg" name="usernameReg" placeholder="Username" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Username'" required class="single-input">
-                              </div>
-                           </div>
-                           <div class="input-group form-group">
-                              <div class="input-group-prepend">
-                                 <span class="input-group-text">
-                                    <i class="fas fa-lock"> </i>
-                                 </span>
-                                 <input type="password" id="pwdReg" name="pwdReg" placeholder="Password" onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                    onblur="this.placeholder = 'Password'" aria-describedby="descPwdReg" required class="single-input">
-                              </div>
-                              <small id="descPwdReg" class="form-text text-muted">
-                                 La Password deve contenere almeno 8 caratteri tra cui almeno una maiuscola, una minuscola, un numero e un carattere tra !@#$%^&*
-                              </small>
-                           </div>
-                           <div class="msg"> </div>
                         </div>
-                        <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                           <div class="form-group">
-                              <a id="btnInviaReg" class="genric-btn primary circle btn-block"
-                                 style="color: #fff!important;">Invia</a>
+                        <div class="row">
+                           <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                              <div class="msg" role="alert" style="text-align: center;"></div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                              <div class="form-group">
+                                 <a id="btnInviaReg" class="genric-btn primary circle btn-block" style="color: #fff!important;">Invia</a>
+                              </div>
                            </div>
                         </div>
                      </form>
@@ -174,71 +189,52 @@
 
    <!-- footer part start-->
    <footer class="footer-area">
-         <div class="container">
-             <div class="row justify-content-between">
-                 <div class="col-sm-6 col-md-4 col-xl-3">
-                     <div class="single-footer-widget footer_1">
-                         <a href="index.html"> <img src="img/logo.png" alt=""> </a>
-                         <p>But when shot real her. Chamber her one visite removal six
-                             sending himself boys scot exquisite existend an </p>
-                         <p>But when shot real her hamber her </p>
-                     </div>
-                 </div>
-                 <div class="col-sm-6 col-md-4 col-xl-4">
-                     <div class="single-footer-widget footer_2">
-                         <h4>Newsletter</h4>
-                         <p>Stay updated with our latest trends Seed heaven so said place winged over given forth fruit.
-                         </p>
-                         <form action="#">
-                             <div class="form-group">
-                                 <div class="input-group mb-3">
-                                     <input type="text" class="form-control" placeholder='Enter email address'
-                                         onfocus="this.placeholder = ''"
-                                         onblur="this.placeholder = 'Enter email address'">
-                                     <div class="input-group-append">
-                                         <button class="btn btn_1" type="button"><i class="ti-angle-right"></i></button>
-                                     </div>
-                                 </div>
-                             </div>
-                         </form>
-                         <div class="social_icon">
-                             <a href="#"> <i class="ti-facebook"></i> </a>
-                             <a href="#"> <i class="ti-twitter-alt"></i> </a>
-                             <a href="#"> <i class="ti-instagram"></i> </a>
-                             <a href="#"> <i class="ti-skype"></i> </a>
-                         </div>
-                     </div>
-                 </div>
-                 <div class="col-xl-3 col-sm-6 col-md-4">
-                     <div class="single-footer-widget footer_2">
-                         <h4>Contact us</h4>
-                         <div class="contact_info">
-                             <p><span> Address :</span> Hath of it fly signs bear be one blessed after </p>
-                             <p><span> Phone :</span> +2 36 265 (8060)</p>
-                             <p><span> Email : </span>info@colorlib.com </p>
-                         </div>
-                     </div>
-                 </div>
-             </div>
- 
+      <div class="container">
+         <div class="row justify-content-between">
+            <div class="col-sm-6 col-md-4 col-xl-3">
+               <div class="single-footer-widget footer_1">
+                  <h4>Chi Siamo</h4>
+                  <p>Una Nuova Piattaforma per apprendere in modo rapido, innovativo ed efficente.</p>
+               </div>
+            </div>
+            <div class="col-sm-6 col-md-4 col-xl-4">
+            </div>
+            <div class="col-xl-3 col-sm-6 col-md-4">
+               <div class="single-footer-widget footer_2">
+                  <h4>Contattaci</h4>
+                  <div class="contact_info">
+                     <p><span> Telefono Giacardi :</span> 3481194171 </p>
+                     <p><span> Telefono Fontana :</span> 3383789301 </p>
+                     <p><span> Email Giacardi :</span> fgiacardi01@gmail.com </p>
+                     <p><span> Email Fontana : </span> s.fontana.0447@vallauri.edu </p>
+                  </div>
+               </div>
+            </div>
          </div>
-         <div class="container-fluid">
-             <div class="row">
-                 <div class="col-lg-12">
-                     <div class="copyright_part_text text-center">
-                         <div class="row">
-                             <div class="col-lg-12">
-                                 <p class="footer-text m-0"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="ti-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
-                             </div>
-                         </div>
+   
+      </div>
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-lg-12">
+               <div class="copyright_part_text text-center">
+                  <div class="row">
+                     <div class="col-lg-12">
+                        <p class="footer-text m-0">
+                           <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                           Copyright &copy;
+                           <script>document.write(new Date().getFullYear());</script> All rights reserved | This template
+                           is made with <i class="ti-heart" aria-hidden="true"></i> by <a href="https://colorlib.com"
+                              target="_blank">Colorlib</a>
+                           <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                        </p>
                      </div>
-                 </div>
-             </div>
+                  </div>
+               </div>
+            </div>
          </div>
-     </footer>
-     <!-- footer part end-->
+      </div>
+   </footer>
+   <!-- footer part end-->
  
      <!-- jquery plugins here-->
      <!-- jquery -->

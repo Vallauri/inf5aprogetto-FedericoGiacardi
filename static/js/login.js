@@ -1,5 +1,8 @@
 "use strict";
+//Routine Inziale
 $(document).ready(function () {
+    //Controllo del token: se non è valido l'utente non è autenticato, quindi creo la pagina
+    //altrimenti indirizzo all'area personale
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         console.log(jqXHR + " " + test_status + " " + str_error);
@@ -8,22 +11,24 @@ $(document).ready(function () {
         window.location.href = "areaPersonale.html"
     });
 
+    //Gestione tentativo di login
     $("#btnLogin").on("click", function () {
         $("#usernameLogin").removeClass("alert-danger");
         $("#pwdLogin").removeClass("alert-danger");
-        $(".msg").text("");
+        $("msgLogin").text("");
 
+        //Controllo campi di input
         if ($("#usernameLogin").val() != "") {
             if ($("#pwdLogin").val() != "") {
                 let loginRQ = inviaRichiesta('/api/login', 'POST', { "username": $("#usernameLogin").val(), "password": $("#pwdLogin").val() });
                 loginRQ.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 401) { // unauthorized
-                        $(".msg").text("Credenziali non Valide");
+                        $("#msgLogin").text("Credenziali non Valide").addClass("alert alert-danger");
                     } else if (jqXHR.status == 603){
-                        $(".msg").text("Credenziali Errate o Mancanti");
+                        $("#msgLogin").text("Credenziali Errate o Mancanti").addClass("alert alert-danger");
                     }
                      else
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#msgLogin");
                 });
                 loginRQ.done(function (data) {
                    window.location.href = "areaPersonale.html"
@@ -39,6 +44,6 @@ $(document).ready(function () {
 });
 
 function gestErrori(msg, controllo) {
-    $(".msg").html(msg);
+    $("#msgLogin").html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }
