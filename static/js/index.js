@@ -1,16 +1,20 @@
 "use strict";
 
+//Routine Principale
 $(document).ready(function () {
+    //Controllo validità token utente: se non è loggato carico la home
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         gestLoadCounter();
         gestRecensioni();
     });
+    //Se è loggato lo indirizzo all'area personale
     chkToken.done(function (data) {
-        window.location.href = "about.html";
+        window.location.href = "areaPersonale.html";
     });
 });
 
+//Caricamento Couter statistiche
 function gestLoadCounter() {
     let loadCounterRQ = inviaRichiesta('/api/loadCounter', 'POST', {});
     loadCounterRQ.fail(function (jqXHR, test_status, str_error) {
@@ -26,6 +30,7 @@ function gestLoadCounter() {
     });
 }
 
+//Richiesta elenco recensione e stampa dei risultati
 function gestRecensioni() {
     let elRecensioniRQ = inviaRichiesta('/api/elRecensioni', 'POST', {});
     elRecensioniRQ.fail(function (jqXHR, test_status, str_error) {

@@ -12,7 +12,8 @@ const lezioni = mongoose.Schema({
     dataCreazione: { type: Date, required: true },
     dataScadenza: { type: Date},
     autore: { type: Number, ref:"Utenti", required: true },
-    appunti: [appunti]
+    appunti: [appunti],
+    validita: { type: String, default: "true", required: true, } 
 });
 
 module.exports = mongoose.model("Lezioni", lezioni);

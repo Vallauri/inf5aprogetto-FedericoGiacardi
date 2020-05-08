@@ -1,7 +1,7 @@
 "use strict";
 
 let lastClickSchedule;
-const nElementiVis = 3;
+const nElementiVis = 2;
 
 $(document).ready(function () {
     loadPagina();
@@ -382,7 +382,7 @@ function creazioneDetLezione(lezione, dataInizio, dataFine, stato) {
     $("#contDettaglioEvento").html("");
 
     if (lezione != undefined) {
-        codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
+        codHtml += '<a href="dettaglioLezione.html?lezione='+lezione._id+'&pag=dash" class="list-group-item list-group-item-action flex-column align-items-start">';
         codHtml += '<div class="d-flex w-100 justify-content-between">';
         codHtml += '<h5 class="mb-1">' + lezione.titolo + '</h5>';
         codHtml += '</div>';
@@ -463,7 +463,7 @@ function creazioneElencoGruppi(utenti) {
     
     utenti.forEach(utente => {
         if (utente["gruppi"] != undefined && utente["gruppi"].length > 0) {
-            if (utente["gruppi"].length < 3) {
+            if (utente["gruppi"].length < nElementiVis) {
                 dim = utente["gruppi"].length;
             } else {
                 dim = nElementiVis;
@@ -476,7 +476,7 @@ function creazioneElencoGruppi(utenti) {
                 aus = new Date(utente["gruppo"][i].dataInizio);
                 codHtml += '<p class="mb-1">' + utente["gruppi"][i].descrizione + '<br>Data iscrizione: ' + aus.toLocaleDateString() +'<br>Tipo Gruppo: ' + utente["gruppi"][i].tipoGruppo[0].descrizione+'</p>'; //tipo gruppo descrizione e data iscrizione
                 codHtml += '</a>';
-                if (i == dim - 1 && dim > 2) {
+                if (i == dim - 1) {
                     codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriGruppi" aria-expanded="false"><i class="fa fa-plus"></i></button>';
                     codHtml += '<div id="contAltriGruppi" class="collapse">';
                     for (let k = 0; k < (utente["gruppi"].length - dim); k++) {
@@ -537,7 +537,7 @@ function creazioneElencoAppunti(utenti) {
    
     utenti.forEach(utente => {
         if (utente["appuntiCaricati"] != undefined && utente["appuntiCaricati"].length > 0) {
-            if (utente["appuntiCaricati"].length < 3) {
+            if (utente["appuntiCaricati"].length < nElementiVis) {
                 dim = utente["appuntiCaricati"].length;
             }else{
                 dim = nElementiVis;
@@ -560,7 +560,7 @@ function creazioneElencoAppunti(utenti) {
                 }
                 codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() +'</p>';
                 codHtml += '</a>';
-                if (i == dim - 1 && dim > 2) {
+                if (i == dim - 1) {
                     codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriAppunti" aria-expanded="false"><i class="fa fa-plus"></i></button>';
                     codHtml += '<div id="contAltriAppunti" class="collapse">';
                     for (let k = 0; k < (utente["appuntiCaricati"].length-dim); k++) {
@@ -597,6 +597,7 @@ function creazioneElencoFeed(utenti) {
     let vetAus = new Array();
     let codHtml = "", vetArg = "";
     let aus;
+    let dim = 0;
 
     utenti.forEach(utente =>{
         for (let i = 0; i < utente["appuntiInteressati"].length; i++) {
@@ -629,7 +630,12 @@ function creazioneElencoFeed(utenti) {
 
     
     if (vetModuli.length > 0) {
-        for (let K = 0; K < vetModuli.length; K++) {
+        if (vetModuli.length < nElementiVis) {
+            dim = vetModuli.length;
+        } else {
+            dim = nElementiVis;
+        }
+        for (let K = 0; K < dim; K++) {
             codHtml += '<a href="dettaglioCorso.html?corso=' + vetModuli[K]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
             codHtml += '<div class="d-flex w-100 justify-content-between">';
             codHtml += '<h5 class="mb-1">' + vetModuli[K].desc + '</h5>';
@@ -646,6 +652,29 @@ function creazioneElencoFeed(utenti) {
             }
             codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() + '</p>';
             codHtml += '</a>';
+            if (K == dim - 1) {
+                codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltreFeed" aria-expanded="false"><i class="fa fa-plus"></i></button>';
+                codHtml += '<div id="contAltreFeed" class="collapse">';
+                for (let k = 0; k < (vetModuli.length - dim); k++) {
+                    codHtml += '<a href="dettaglioCorso.html?corso=' + vetModuli[K + (k + 1)]._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
+                    codHtml += '<div class="d-flex w-100 justify-content-between">';
+                    codHtml += '<h5 class="mb-1">' + vetModuli[K + (k + 1)].desc + '</h5>';
+                    codHtml += '</div>';
+                    aus = new Date(vetModuli[K + (k + 1)].data);
+                    if (vetModuli[K + (k + 1)].argomenti != undefined) {
+                        vetArg = "Argomenti: ";
+                        for (let j = 0; j < vetModuli[K + (k + 1)].argomenti.length; j++) {
+                            vetArg += vetModuli[K + (k + 1)].argomenti[j];
+                            if (j != vetModuli[K + (k + 1)].argomenti.length - 1) {
+                                vetArg += ", ";
+                            }
+                        }
+                    }
+                    codHtml += '<p class="mb-1">' + vetArg + '<br>Data iscrizione: ' + aus.toLocaleDateString() + '</p>';
+                    codHtml += '</a>';
+                }
+                codHtml += '</div>';
+            }
         }
     }else{
         codHtml += "<p style='text-align:center'>Non è stato individuato alcun appunto</p>";

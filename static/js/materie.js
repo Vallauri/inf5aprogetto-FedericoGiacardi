@@ -21,6 +21,7 @@ function loadPagina() {
     getElArgMaterie();
     
     $("#btnAddMateria").on("click", gestAddMateria);
+    $("#btnConfEliminazioneMat").on("click", eliminaMateria);
     $("#btnConfModificaMateria").on("click", inviaModMateria);
     $("#btnConfApprovArgomento").on("click", approvaArgomento);
     $("#btnConfRifiutoArgomento").on("click", rifiutaAllegato);
@@ -119,7 +120,30 @@ function inviaModMateria() {
 }
 
 function gestEliminaMateria(btn) {
-    
+    idMateria = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
+    $("#contModaleEliminazioneMat").text("Sei sicuro di voler eliminare questo materia? Tale operazione cancellerà tutti i dati ad essa collegati");
+    $("#btnConfEliminazioneMat").removeAttr("disabled");
+    $("#modalEliminazioneMat").modal("show");
+}
+
+function eliminaMateria() {
+    $("#contModaleEliminazioneMat").text("Operazione in corso");
+    if (idMateria) {
+        let rqEliminaMateria = inviaRichiesta('/api/eliminaMateria', 'POST', { "codMateria": idMateria });
+        rqEliminaMateria.fail(function (jqXHR, test_status, str_error) {
+            $("#btnConfEliminazioneMat").attr("disabled", "disabled");
+            $("#contModaleEliminazioneMat").text("Operazione fallita");
+            printErrors(jqXHR, "#msgEliminazioneMat");
+        });
+        rqEliminaMateria.done(function (data) {
+            $("#btnConfEliminazioneMat").removeAttr("disabled");
+            $("#contModaleEliminazioneMat").text("Operazione completata");
+            $("#modalEliminazioneMat").modal("hide");
+            getElMaterie();
+        });
+    } else {
+        gestErrori("Codice materia mancante. Ricaricare la pagina", $("#btnConfEliminazioneMat"), "#msgEliminazioneMat");
+    }
 }
 
 function gestAddMateria() {

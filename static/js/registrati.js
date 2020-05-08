@@ -1,5 +1,6 @@
 "use strict";
 
+// Routine Iniziale
 $(document).ready(function () {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.done(function (data) {
@@ -93,11 +94,6 @@ function gestReg() {
     else {
         gestErrori("Inserire il Nome", $("#nomeReg"));
     }
-}
-
-function gestErrori(msg, controllo) {
-    $(".msg").html(msg);
-    controllo.addClass("alert-danger");
 }
 
 function validaEmail(email) {

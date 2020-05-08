@@ -446,7 +446,7 @@ function gestRqTTS() {
                     $("#sezStatoOp").css("display", "unset");
                     $("#msgTTSAppunto").html("");
                     setCardStatoOp("InCorso");
-                    let rqTTS = inviaRichiesta('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val() });
+                    let rqTTS = inviaRichiestaTTS('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val() });
                     rqTTS.fail(function (jqXHR, test_status, str_error) {
                         if (jqXHR.responseJSON) {
                             setCardStatoOp("errore", jqXHR.responseJSON.message);
