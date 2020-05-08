@@ -162,7 +162,7 @@ ERRORS.create({
 
 // code 620 - Already Existing Course
 ERRORS.create({
-    code: 619,
+    code: 620,
     name: 'EXISTING_COURSE',
     defaultMessage: 'Esiste già un Corso con la medesima Descrizione, Materia e Tipo di Corso'
 });
@@ -176,7 +176,7 @@ ERRORS.create({
 
 // code 622 - Already Existing Subject
 ERRORS.create({
-    code: 621,
+    code: 622,
     name: 'EXISTING_SUBJECT',
     defaultMessage: 'Esiste già una Materia con la medesima Descrizione'
 });
@@ -207,6 +207,13 @@ ERRORS.create({
     code: 626,
     name: 'MISSING_COURSE',
     defaultMessage: 'Il Corso richiesto non è stato individuato'
+});
+
+// code 627 - Exam already exists
+ERRORS.create({
+    code: 627,
+    name: 'EXISTING_EXAM',
+    defaultMessage: 'Esiste già in questo corso un esame con la medesima Descrizione e Data di Scadenza'
 });
 
 // Impostazioni multer
@@ -3004,7 +3011,7 @@ app.post("/api/rimuoviLezione", function (req, res) {
 
 //#region ESAMI
 app.post("/api/esamiCorso", function (req, res) {
-    esami.find({codModulo : parseInt(req.body.idCorso)}).select("_id descrizione codUtente dataCreazione dataScadenza durata").exec().then(results => {
+    esami.find({codModulo : parseInt(req.body.idCorso), validita : true}).select("_id descrizione codUtente dataCreazione dataScadenza numDomande durata").exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -3030,7 +3037,299 @@ app.post("/api/chkSvolgimentoEsame", function (req, res) {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
 });
+
+app.post("/api/aggiungiEsame", function (req, res) {
+    if (req.body.idCorso != "") {
+        if (req.body.descrizione != "") {
+            if (req.body.durata != "") {
+                if (req.body.dataScadenza != "") {
+                    if (req.body.domande.length > 0) {
+                        esami.count({ $and: [{ "descrizione": req.body.descrizione }, { "dataScadenza": new Date(req.body.dataScadenza) }, { "codModulo": parseInt(req.body.idCorso) }] }).exec().then(nEsami => {
+                            if (nEsami == 0) {
+                                let dur = (parseInt(req.body.durata.split(':')[0]) * 3600) + (parseInt(req.body.durata.split(':')[1]) * 60);
+                                let elDomande = new Array();
+                                for(let i = 0; i < req.body.domande.length; i++){
+                                    let dati = req.body.domande[i].split(';');
+                                    let dom, risp, r;
+                                    switch(dati[0]){
+                                        case "trueFalse":
+                                            dom = new Object();
+                                            dom.testo = dati[1];
+                                            dom.tipoDomanda = dati[0];
+
+                                            risp = new Array();
+                                            r = new Object();
+                                            r.testo = "Vero";
+                                            r.corretta = (dati[2] == "Vero" ? true : false);
+                                            risp.push(r);
+
+                                            r = new Object();
+                                            r.testo = "Falso";
+                                            r.corretta = (dati[2] == "Falso" ? true : false);
+                                            risp.push(r);
+
+                                            dom.risposte = risp;
+                                            elDomande.push(dom);
+                                            break;
+
+                                        case "multi":
+                                            dom = new Object();
+                                            dom.testo = dati[1];
+                                            dom.tipoDomanda = dati[0];
+
+                                            risp = new Array();
+                                            let risposte = dati[2].split('-')[0].trim(' ').split(',');
+                                            let rispGiuste = dati[2].split('-')[1].trim(' ').split(':')[1].trim(' ').split(',');
+
+                                            for(let k = 0; k < risposte.length; k++){
+                                                r = new Object();
+                                                r.testo = risposte[k];
+                                                for(let j = 0; j < rispGiuste.length; j++){
+                                                    if(k+1 == parseInt(rispGiuste[j])){
+                                                        r.corretta = true;
+                                                        break;
+                                                    }
+                                                    else
+                                                        r.corretta = false;
+                                                }
+                                                risp.push(r);
+                                            }
+
+                                            dom.risposte = risp;
+                                            elDomande.push(dom);
+                                            break;
+
+                                        case "open": // da controllare ??!?!?!
+                                            dom = new Object();
+                                            dom.testo = dati[1];
+                                            dom.tipoDomanda = dati[0];
+
+                                            risp = new Array();
+                                            r = new Object();
+                                            r.testo = dati[2];
+                                            r.corretta = true;
+                                            risp.push(r);
+
+                                            dom.risposte = risp;
+                                            elDomande.push(dom);
+                                            break;
+
+                                        case "close":
+                                            dom = new Object();
+                                            dom.testo = dati[1];
+                                            dom.tipoDomanda = dati[0];
+
+                                            risp = new Array();
+                                            r = new Object();
+                                            r.testo = dati[2];
+                                            r.corretta = true;
+                                            risp.push(r);
+
+                                            dom.risposte = risp;
+                                            elDomande.push(dom);
+                                            break;
+                                    }
+                                }
+                                
+                                esami.find({}).sort({ _id: 1 }).exec().then(results => {
+                                    let vet = JSON.parse(JSON.stringify(results));
+                                    const aggEsame = new esami({
+                                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                        descrizione: req.body.descrizione,
+                                        dataCreazione: new Date(),
+                                        dataScadenza: new Date(req.body.dataScadenza),
+                                        durata: dur,
+                                        numDomande: parseInt(req.body.domande.length),
+                                        codModulo: parseInt(req.body.idCorso),
+                                        codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                                        domande : elDomande
+                                    });
+                                    aggEsame.save().then(results => { res.send(JSON.stringify("aggEsameOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                }).catch(err => {
+                                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                });
+                            } else {
+                                error(req, res, null, JSON.stringify(new ERRORS.EXISTING_EXAM({})));
+                            }
+                        }).catch(err => {
+                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                        });
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/datiEsameById", function (req, res) {
+    esami.findById(parseInt(req.body.idEsame)).exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/modificaEsame", function (req, res) {
+    if (req.body.idEsame != "") {
+        if (req.body.idCorso != "") {
+            if (req.body.descrizione != "") {
+                if (req.body.durata != "") {
+                    if (req.body.dataScadenza != "") {
+                        if (req.body.domande.length > 0) {
+                            esami.count({ $and: [{ "descrizione": req.body.descrizione }, { "dataScadenza": new Date(req.body.dataScadenza) }, { "codModulo": parseInt(req.body.idCorso) }] }).exec().then(nEsami => {
+                                if (nEsami == 0) {
+                                    let dur = (parseInt(req.body.durata.split(':')[0]) * 3600) + (parseInt(req.body.durata.split(':')[1]) * 60);
+                                    let elDomande = new Array();
+                                    for (let i = 0; i < req.body.domande.length; i++) {
+                                        let dati = req.body.domande[i].split(';');
+                                        let dom, risp, r;
+                                        switch (dati[0]) {
+                                            case "trueFalse":
+                                                dom = new Object();
+                                                dom.testo = dati[1];
+                                                dom.tipoDomanda = dati[0];
+
+                                                risp = new Array();
+                                                r = new Object();
+                                                r.testo = "Vero";
+                                                r.corretta = (dati[2] == "Vero" ? true : false);
+                                                risp.push(r);
+
+                                                r = new Object();
+                                                r.testo = "Falso";
+                                                r.corretta = (dati[2] == "Falso" ? true : false);
+                                                risp.push(r);
+
+                                                dom.risposte = risp;
+                                                elDomande.push(dom);
+                                                break;
+
+                                            case "multi":
+                                                dom = new Object();
+                                                dom.testo = dati[1];
+                                                dom.tipoDomanda = dati[0];
+
+                                                risp = new Array();
+                                                let risposte = dati[2].split('-')[0].trim(' ').split(',');
+                                                let rispGiuste = dati[2].split('-')[1].trim(' ').split(':')[1].trim(' ').split(',');
+
+                                                for (let k = 0; k < risposte.length; k++) {
+                                                    r = new Object();
+                                                    r.testo = risposte[k];
+                                                    for (let j = 0; j < rispGiuste.length; j++) {
+                                                        if (k + 1 == parseInt(rispGiuste[j])) {
+                                                            r.corretta = true;
+                                                            break;
+                                                        }
+                                                        else
+                                                            r.corretta = false;
+                                                    }
+                                                    risp.push(r);
+                                                }
+
+                                                dom.risposte = risp;
+                                                elDomande.push(dom);
+                                                break;
+
+                                            case "open": // da controllare ??!?!?!
+                                                dom = new Object();
+                                                dom.testo = dati[1];
+                                                dom.tipoDomanda = dati[0];
+
+                                                risp = new Array();
+                                                r = new Object();
+                                                r.testo = dati[2];
+                                                r.corretta = true;
+                                                risp.push(r);
+
+                                                dom.risposte = risp;
+                                                elDomande.push(dom);
+                                                break;
+
+                                            case "close":
+                                                dom = new Object();
+                                                dom.testo = dati[1];
+                                                dom.tipoDomanda = dati[0];
+
+                                                risp = new Array();
+                                                r = new Object();
+                                                r.testo = dati[2];
+                                                r.corretta = true;
+                                                risp.push(r);
+
+                                                dom.risposte = risp;
+                                                elDomande.push(dom);
+                                                break;
+                                        }
+                                    }
+
+                                    esami.updateOne({_id : parseInt(req.body.idEsame)}, {
+                                        $set: {
+                                            descrizione: req.body.descrizione,
+                                            dataScadenza: new Date(req.body.dataScadenza),
+                                            durata: dur,
+                                            numDomande: parseInt(req.body.domande.length),
+                                            domande: elDomande
+                                        }
+                                    }).exec().then(results=> {
+                                        let token = createToken(req.payload);
+                                        writeCookie(res, token);
+                                        res.writeHead(200, { "Content-Type": "application/json" });
+                                        res.end(JSON.stringify("modEsameOk")); 
+                                    }).catch(err => {
+                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                    });
+                                } else {
+                                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_EXAM({})));
+                                }
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            });
+                        } else {
+                            gestErrorePar(req, res);
+                        }
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
+});
+
+app.post("/api/rimuoviEsame", function (req, res) {
+    esami.updateOne({ _id: parseInt(req.body.idEsame) }, { $set: { validita: false } }).exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify("rimEsameOk"));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
 //#endregion
+
 app.post("/api/elMatModerate", function (req, res) {
     if (JSON.parse(JSON.stringify(req.payload))._id) { 
         materie.find({ $and: [{ "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, {"validita":"true"}]}).exec().then(results => {
