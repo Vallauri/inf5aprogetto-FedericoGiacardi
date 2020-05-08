@@ -96,7 +96,10 @@ function printErrors(jqXHR, par) {
 	}
 }
 
-function gestErrori(msg, controllo) {
-	$(".msg").html(msg);
-	controllo.addClass("alert alert-danger");
+//Funzione di visualizzazione errori
+function gestErrori(msg, controllo, contMsgErrore) {
+	$(contMsgErrore).html(msg).addClass("alert alert-danger").show();
+	if (controllo != undefined) {
+		controllo.addClass("alert-danger");
+	}
 }

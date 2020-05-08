@@ -34,16 +34,16 @@ $(document).ready(function () {
                    window.location.href = "areaPersonale.html"
                 });
             }else{
-                gestErrori("Inserire la Password", $("#pwdLogin"));
+                gestErrori("Inserire la Password", $("#pwdLogin"), "#msgLogin");
             }
         }
         else{
-            gestErrori("Inserire uno Username", $("#usernameLogin"));
+            gestErrori("Inserire uno Username", $("#usernameLogin"), "#msgLogin");
         }
     });
 });
 
-//Funzione di visualizzazione errori
+
 function gestErrori(msg, controllo) {
     $("#msgLogin").html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
