@@ -99,7 +99,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-12">
                     <div class="section_tittle text-center">
-                        <p class="msg"></p>
+                        <div id="msgGenEsame" class="msg"></div>
                     </div>
                 </div>
             </div>
@@ -109,7 +109,27 @@
     </section>
     <!--================ End Course Details Area =================-->
 
-    <section id="contModDomdande"></section>
+    <section id="contModDomande"></section>
+
+    <!-- Modale per Modifica/Elimina Esame -->
+    <div class="modal fade"  style="margin-top: 80px;" id="dettEsameMod" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnSalvaModifiche" class="genric-btn success radius"></button>
+                    <button type="button" id="btnAnnulla" class="genric-btn danger radius" data-dismiss="modal">Annulla</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- footer part start-->
     <footer class="footer-area">
