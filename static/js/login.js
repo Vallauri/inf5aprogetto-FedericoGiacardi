@@ -22,9 +22,9 @@ $(document).ready(function () {
             if ($("#pwdLogin").val() != "") {
                 let loginRQ = inviaRichiesta('/api/login', 'POST', { "username": $("#usernameLogin").val(), "password": $("#pwdLogin").val() });
                 loginRQ.fail(function (jqXHR, test_status, str_error) {
-                    if (jqXHR.status == 401) { // unauthorized
+                    if (jqXHR.status == 401) {
                         $("#msgLogin").text("Credenziali non Valide").addClass("alert alert-danger");
-                    } else if (jqXHR.status == 603){
+                    } else if (jqXHR.status == 603){ 
                         $("#msgLogin").text("Credenziali Errate o Mancanti").addClass("alert alert-danger");
                     }
                      else
@@ -43,6 +43,7 @@ $(document).ready(function () {
     });
 });
 
+//Funzione di visualizzazione errori
 function gestErrori(msg, controllo) {
     $("#msgLogin").html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
