@@ -988,9 +988,9 @@ app.post("/api/cercaCorso", function (req, res) {
     if (filtri.corsiDaCercare == "all") { // controllo se i corsi da cercare sono tutti o solo quelli del gruppo
         let filtriFind;
         if (filtri.tipoCorso != "none") // controllo se è stato specificato un tipo di corso
-            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), codTipoModulo: parseInt(filtri.tipoCorso), validita : true };
+            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), codTipoModulo: parseInt(filtri.tipoCorso), validita : "true" };
         else
-            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), validita: true };
+            filtriFind = { descrizione: new RegExp(req.body.valore, "i"), validita: "true" };
 
         moduli.find(filtriFind).exec().then(results => {
             if (results.length > 0) {
@@ -1221,7 +1221,7 @@ app.post("/api/cercaCorso", function (req, res) {
 app.post("/api/datiCorsoById", function (req, res) {
     moduli.aggregate([
         { $match: { "_id": parseInt(req.body.idCorso) } },
-        { $match: { "validita": true } },
+        { $match: { "validita": "true" } },
         {
             $lookup:
             {
@@ -1579,7 +1579,7 @@ app.post("/api/insNuovaLezCorso", function (req, res) {
 });
 
 app.post("/api/rimuoviCorso", function (req, res) {
-    moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $set: { validita: false } }).exec().then(results => {
+    moduli.updateOne({ _id: parseInt(req.body.idCorso) }, { $set: { validita: "false" } }).exec().then(results => {
         //console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
@@ -3011,7 +3011,7 @@ app.post("/api/rimuoviLezione", function (req, res) {
 
 //#region ESAMI
 app.post("/api/esamiCorso", function (req, res) {
-    esami.find({codModulo : parseInt(req.body.idCorso), validita : true}).select("_id descrizione codUtente dataCreazione dataScadenza numDomande durata").exec().then(results => {
+    esami.find({codModulo : parseInt(req.body.idCorso), validita : true}).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -3172,11 +3172,29 @@ app.post("/api/aggiungiEsame", function (req, res) {
 });
 
 app.post("/api/datiEsameById", function (req, res) {
-    esami.findById(parseInt(req.body.idEsame)).exec().then(result => {
-        let token = createToken(req.payload);
-        writeCookie(res, token);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(result));
+    let par = {};
+    if(req.body.idCorso != undefined)
+        par = { _id: parseInt(req.body.idEsame), codModulo: parseInt(req.body.idCorso), validita: true };
+    else
+        par = { _id: parseInt(req.body.idEsame), validita: true };
+
+    esami.count(par).exec().then(nEsami => {
+        if(nEsami > 0){
+            esami.findById(parseInt(req.body.idEsame)).exec().then(result => {
+                let token = createToken(req.payload);
+                writeCookie(res, token);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(result));
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+        else{
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify("esameNonValido"));
+        }
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
@@ -3324,6 +3342,25 @@ app.post("/api/rimuoviEsame", function (req, res) {
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify("rimEsameOk"));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/getDomandaEsame", function (req, res) {
+    esami.findById(parseInt(req.body.idEsame)).exec().then(result => {
+        if (parseInt(req.body.pos) >= 0 && parseInt(req.body.pos) < result.numDomande){
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(result.domande[parseInt(req.body.pos)]));
+        }
+        else{
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify("domandaNonEsiste"));
+        }
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });

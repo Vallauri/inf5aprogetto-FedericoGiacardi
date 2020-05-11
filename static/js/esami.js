@@ -88,7 +88,7 @@ function calcolaDurata(s){
     return measuredTime.toISOString().substr(11, 8);
 }
 
-function vaiAEsame(idEsame){
+function vaiAEsame(idEsame, idCorso){
     let chkToken = inviaRichiesta('/api/chkSvolgimentoEsame', 'POST', { "idEsame": idEsame }); // gli esami non vanno eliminati completamente dal DB, vanno solo resi nulli altrimenti gli id si sfanculano (pensa a storia esami svolti utenti) ?
     chkToken.fail(function (jqXHR, test_status, str_error) {
         console.log(jqXHR);
@@ -96,7 +96,7 @@ function vaiAEsame(idEsame){
     });
     chkToken.done(function (data) {
         if (data.ris == "nonDato"){
-            window.location.href = "svolgimentoEsame.html?esame=" + idEsame;
+            window.location.href = "svolgimentoEsame.html?esame=" + idEsame + "&corso=" + idCorso;
         }
         else
             alert("Hai già sostenuto l'esame");
@@ -110,219 +110,224 @@ function chkModeratore(idCorso) {
         printErrors(jqXHR, "#msgGenEsame");
     });
     chkToken.done(function (data) {
-        let codHtml = "";
-        esamiPerTabella.forEach(esame => {
-            codHtml += '<tr>';
-            codHtml += '<td scope="row">' + esame.descrizione + '</td>';
-            codHtml += '<td>' + new Date(esame.dataCreazione).toLocaleDateString() + '</td>';
-            codHtml += '<td>' + new Date(esame.dataScadenza).toLocaleDateString() + ' - ' + new Date(esame.dataScadenza).toLocaleTimeString().substring(0,5) + '</td>';
-            codHtml += '<td>' + esame.numDomande + '</td>';
-            codHtml += '<td>' + calcolaDurata(parseInt(esame.durata)) + '</td>';
-            codHtml += '<td>' + (new Date(esame.dataScadenza) >= new Date() ? "In corso" : "Terminato") + '</td>';
-            codHtml += '<td>';
-            codHtml += (new Date(esame.dataScadenza) >= new Date() ? '<button class="genric-btn info circle" onclick="vaiAEsame(' + esame._id + ')"><i class="fas fa-arrow-right"></i></button>' : '');
-            if (data.ris == "autore") {
-                codHtml += '<button class="genric-btn info circle" data-toggle="modal" data-target="#dettEsameMod" onclick="modificaEsame(' + esame._id + ')"><i class="fas fa-edit"></i></button>';
-                codHtml += '<button class="genric-btn danger circle" data-toggle="modal" data-target="#dettEsameMod" onclick="rimuoviEsame(' + esame._id + ')"><i class="fas fa-trash-alt"></i></button>';
-            }
-            codHtml += '</td>';
-            codHtml += '</tr>';
-        });
-        $("#bodyTabEsame").html(codHtml);
-        esamiPerTabella = [];
-
-        if (data.ris == "autore") {
-            // devo mettere anche la parte per l'inserimento di un nuovo esame
-            codHtml = "";
-            codHtml += '<div class="col-md-12 col-lg-12 mx-auto text-center">';
-            codHtml += '<h4 class="title_top">Nuovo Esame</h4>';
-            codHtml += '<div class="row">';
-            codHtml += '<div class="col-sm-9 col-md-7 col-lg-5 mx-auto">';
-            codHtml += '<div class="card card-signin my-5">';
-            codHtml += '<div class="card-body">';
-            codHtml += '<form id="formInsEsame" class="form-contact">';
-            codHtml += '<div class="row">';
-            codHtml += '<div class="col-sm-8 col-md-8 col-lg-6 mx-auto">';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="fas fa-user-circle"> </i>';
-            codHtml += '</span>';
-            codHtml += '<input type="text" id="descEsame" name="descEsame" placeholder="Descrizione" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Descrizione\'" required class="single-input">';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="far fa-clock"></i>';
-            codHtml += '</span>';
-            codHtml += '<input type="time" id="durata" name="durata" aria-describedby="helpDur" required class="single-input">'; // se trovo il modo faccio selezionare anche i secondi, se no va beh
-            codHtml += '<small id="helpDur" class="form-text text-muted">Durata (hh:mm)</small>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="fas fa-hourglass-end"></i>';
-            codHtml += '</span>';
-            codHtml += '<input type="date" id="dataScadenza" name="dataScadenza" aria-describedby="helpScad" required class="single-input">';
-            codHtml += '<small id="helpScad" class="form-text text-muted">Data Scadenza Esame</small>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="far fa-clock"></i>';
-            codHtml += '</span>';
-            codHtml += '<input type="time" id="oraFineEsame" name="oraFineEsame" aria-describedby="helpScadTime" required class="single-input">';
-            codHtml += '<small id="helpScadTime" class="form-text text-muted">Ora Scadenza Esame</small>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<a class="genric-btn info circle btn-block" data-toggle="modal" data-target="#insNuovaDomanda" style="margin:2px; color: #fff!important;" id="btnAddDomanda">Aggiungi Domanda</a>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="row text-center">';
-            codHtml += '<div class="col-lg-12 mx-auto">';
-            codHtml += '<div id="msgAddEsame" class="msg"></div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="row">'
-            codHtml += '<div id="listaDomandeEsame" class="col-sm-12 col-md-12 col-lg-12 col-xs-12 mx-auto table-responsive">';
-            codHtml += '<table class="table table-hover table-striped table-bordered">';
-            codHtml += '<thead class="thead-inverse">';
-            codHtml += '<tr>';
-            codHtml += '<th>Domanda</th>';
-            codHtml += '<th>Risposta/e</th>';
-            codHtml += '<th>Tipo Domanda</th>';
-            codHtml += '<th>Azione</th>';
-            codHtml += '</tr>';
-            codHtml += '</thead>';
-            codHtml += '<tbody id="bdTabDomEsame">';
-            codHtml += '</tbody>';
-            codHtml += '</table>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="row">'
-            codHtml += '<div class="col-sm-6 col-md-12 col-lg-6 mx-auto">';
-            codHtml += '<div class="form-group">';
-            codHtml += '<a id="btnInsEsame" class="genric-btn primary circle btn-block" style="color: #fff!important;">Invia</a>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</form>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            $("#contEsami").append(codHtml);
-            $("#listaDomandeEsame").hide();
-
-            $("#btnAddDomanda").on("click", function () {
-                drawModaleDomande("ins");
+        if(data.ris != "noAutNoIsc"){
+            let codHtml = "";
+            esamiPerTabella.forEach(esame => {
+                codHtml += '<tr>';
+                codHtml += '<td scope="row">' + esame.descrizione + '</td>';
+                codHtml += '<td>' + new Date(esame.dataCreazione).toLocaleDateString() + '</td>';
+                codHtml += '<td>' + new Date(esame.dataScadenza).toLocaleDateString() + ' - ' + new Date(esame.dataScadenza).toLocaleTimeString().substring(0, 5) + '</td>';
+                codHtml += '<td>' + esame.numDomande + '</td>';
+                codHtml += '<td>' + calcolaDurata(parseInt(esame.durata)) + '</td>';
+                codHtml += '<td>' + (new Date(esame.dataScadenza) >= new Date() ? "In corso" : "Terminato") + '</td>';
+                codHtml += '<td>';
+                codHtml += (new Date(esame.dataScadenza) >= new Date() ? '<button class="genric-btn info circle" onclick="vaiAEsame(' + esame._id + ',' + esame.codModulo + ')"><i class="fas fa-arrow-right"></i></button>' : '');
+                if (data.ris == "autore") {
+                    codHtml += '<button class="genric-btn info circle" data-toggle="modal" data-target="#dettEsameMod" onclick="modificaEsame(' + esame._id + ')"><i class="fas fa-edit"></i></button>';
+                    codHtml += '<button class="genric-btn danger circle" data-toggle="modal" data-target="#dettEsameMod" onclick="rimuoviEsame(' + esame._id + ')"><i class="fas fa-trash-alt"></i></button>';
+                }
+                codHtml += '</td>';
+                codHtml += '</tr>';
             });
-            
-            $("#btnInsEsame").on("click", function () {
-                $("#descEsame").removeClass("alert-danger");
-                $("#durata").removeClass("alert-danger");
-                $("#dataScadenza").removeClass("alert-danger");
-                $("#oraFineEsame").removeClass("alert-danger");
-                $("#msgAddEsame").html("");
+            $("#bodyTabEsame").html(codHtml);
+            esamiPerTabella = [];
 
-                if ($("#descEsame").val().trim() != ""){
-                    if ($("#durata").val().trim() != ""){
-                        if ($("#dataScadenza").val().trim() != ""){
-                            if ($("#oraFineEsame").val().trim() != ""){
-                                // controllo su data e ora scadenza esame
-                                let dataLetta = $("#dataScadenza").val();
-                                let ora = $("#oraFineEsame").val();
-                                let scadEsame = new Date(dataLetta + "T" + ora);
+            if (data.ris == "autore") {
+                // devo mettere anche la parte per l'inserimento di un nuovo esame
+                codHtml = "";
+                codHtml += '<div class="col-md-12 col-lg-12 mx-auto text-center">';
+                codHtml += '<h4 class="title_top">Nuovo Esame</h4>';
+                codHtml += '<div class="row">';
+                codHtml += '<div class="col-sm-9 col-md-7 col-lg-5 mx-auto">';
+                codHtml += '<div class="card card-signin my-5">';
+                codHtml += '<div class="card-body">';
+                codHtml += '<form id="formInsEsame" class="form-contact">';
+                codHtml += '<div class="row">';
+                codHtml += '<div class="col-sm-8 col-md-8 col-lg-6 mx-auto">';
+                codHtml += '<div class="input-group form-group">';
+                codHtml += '<div class="input-group-prepend">';
+                codHtml += '<span class="input-group-text">';
+                codHtml += '<i class="fas fa-user-circle"> </i>';
+                codHtml += '</span>';
+                codHtml += '<input type="text" id="descEsame" name="descEsame" placeholder="Descrizione" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Descrizione\'" required class="single-input">';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="input-group form-group">';
+                codHtml += '<div class="input-group-prepend">';
+                codHtml += '<span class="input-group-text">';
+                codHtml += '<i class="far fa-clock"></i>';
+                codHtml += '</span>';
+                codHtml += '<input type="time" id="durata" name="durata" aria-describedby="helpDur" required class="single-input">'; // se trovo il modo faccio selezionare anche i secondi, se no va beh
+                codHtml += '<small id="helpDur" class="form-text text-muted">Durata (hh:mm)</small>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="input-group form-group">';
+                codHtml += '<div class="input-group-prepend">';
+                codHtml += '<span class="input-group-text">';
+                codHtml += '<i class="fas fa-hourglass-end"></i>';
+                codHtml += '</span>';
+                codHtml += '<input type="date" id="dataScadenza" name="dataScadenza" aria-describedby="helpScad" required class="single-input">';
+                codHtml += '<small id="helpScad" class="form-text text-muted">Data Scadenza Esame</small>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="input-group form-group">';
+                codHtml += '<div class="input-group-prepend">';
+                codHtml += '<span class="input-group-text">';
+                codHtml += '<i class="far fa-clock"></i>';
+                codHtml += '</span>';
+                codHtml += '<input type="time" id="oraFineEsame" name="oraFineEsame" aria-describedby="helpScadTime" required class="single-input">';
+                codHtml += '<small id="helpScadTime" class="form-text text-muted">Ora Scadenza Esame</small>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="input-group form-group">';
+                codHtml += '<div class="input-group-prepend">';
+                codHtml += '<a class="genric-btn info circle btn-block" data-toggle="modal" data-target="#insNuovaDomanda" style="margin:2px; color: #fff!important;" id="btnAddDomanda">Aggiungi Domanda</a>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="row text-center">';
+                codHtml += '<div class="col-lg-12 mx-auto">';
+                codHtml += '<div id="msgAddEsame" class="msg"></div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="row">'
+                codHtml += '<div id="listaDomandeEsame" class="col-sm-12 col-md-12 col-lg-12 col-xs-12 mx-auto table-responsive">';
+                codHtml += '<table class="table table-hover table-striped table-bordered">';
+                codHtml += '<thead class="thead-inverse">';
+                codHtml += '<tr>';
+                codHtml += '<th>Domanda</th>';
+                codHtml += '<th>Risposta/e</th>';
+                codHtml += '<th>Tipo Domanda</th>';
+                codHtml += '<th>Azione</th>';
+                codHtml += '</tr>';
+                codHtml += '</thead>';
+                codHtml += '<tbody id="bdTabDomEsame">';
+                codHtml += '</tbody>';
+                codHtml += '</table>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="row">'
+                codHtml += '<div class="col-sm-6 col-md-12 col-lg-6 mx-auto">';
+                codHtml += '<div class="form-group">';
+                codHtml += '<a id="btnInsEsame" class="genric-btn primary circle btn-block" style="color: #fff!important;">Invia</a>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</form>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                $("#contEsami").append(codHtml);
+                $("#listaDomandeEsame").hide();
 
-                                // controllo data > o = a quella odierna
-                                if (new Date(dataLetta) >= new Date(new Date().toISOString().split('T')[0])) {// controllo le singole date, confronto la data inserita con quella attuale con time 0 (altrimenti mi dava problemi)
-                                    // c'è un momento in cui non va, non ho ancora capito quando (ad esempio modifico esame verso le 10 di sera e metto data di scadenza il giorno dopo a mezzanotte (?) e non va)
-                                    // controllo ora successiva a quella attuale ( + durata esame oppure no ?)
-                                    if(scadEsame > new Date()){
-                                        if ($("#bdTabDomEsame").children().length != 0) {
+                $("#btnAddDomanda").on("click", function () {
+                    drawModaleDomande("ins");
+                });
 
-                                            let dati = new Object();
-                                            dati.idCorso = idCorso;
-                                            dati.descrizione = $("#descEsame").val().trim();
-                                            dati.durata = $("#durata").val().trim();
-                                            dati.dataScadenza = scadEsame.toJSON();
-                                            let domande = $("#bdTabDomEsame").children();
-                                            dati.domande = new Array();
+                $("#btnInsEsame").on("click", function () {
+                    $("#descEsame").removeClass("alert-danger");
+                    $("#durata").removeClass("alert-danger");
+                    $("#dataScadenza").removeClass("alert-danger");
+                    $("#oraFineEsame").removeClass("alert-danger");
+                    $("#msgAddEsame").html("");
 
-                                            for (let i = 0; i < domande.length; i++) {
-                                                let vet = new Array();
-                                                let campi = $(domande[i]).children();
-                                                vet.push($(domande[i]).attr('tipoDom'));
-                                                for (let j = 0; j < campi.length - 2; j++)
-                                                    vet.push($(campi[j]).html());
+                    if ($("#descEsame").val().trim() != "") {
+                        if ($("#durata").val().trim() != "") {
+                            if ($("#dataScadenza").val().trim() != "") {
+                                if ($("#oraFineEsame").val().trim() != "") {
+                                    // controllo su data e ora scadenza esame
+                                    let dataLetta = $("#dataScadenza").val();
+                                    let ora = $("#oraFineEsame").val();
+                                    let scadEsame = new Date(dataLetta + "T" + ora);
 
-                                                dati.domande.push(vet.join(';'));
-                                            }
+                                    // controllo data > o = a quella odierna
+                                    if (new Date(dataLetta) >= new Date(new Date().toISOString().split('T')[0])) {// controllo le singole date, confronto la data inserita con quella attuale con time 0 (altrimenti mi dava problemi)
+                                        // c'è un momento in cui non va, non ho ancora capito quando (ad esempio modifico esame verso le 10 di sera e metto data di scadenza il giorno dopo a mezzanotte (?) e non va)
+                                        // controllo ora successiva a quella attuale ( + durata esame oppure no ?)
+                                        if (scadEsame > new Date()) {
+                                            if ($("#bdTabDomEsame").children().length != 0) {
 
-                                            console.log(dati);
-                                            let chkToken = inviaRichiesta('/api/aggiungiEsame', 'POST', dati);
-                                            chkToken.fail(function (jqXHR, test_status, str_error) {
-                                                console.log(jqXHR);
-                                                printErrors(jqXHR, "#msgAddEsame");
-                                            });
-                                            chkToken.done(function (data) {
-                                                if (data == "aggEsameOk") {
-                                                    $("#dettEsameMod .modal-title").html("Risultato Operazione");
-                                                    $("#dettEsameMod .modal-body").children().remove();
-                                                    $("#btnSalvaModifiche").show().html("Chiudi");
-                                                    $("#btnAnnulla").hide();
+                                                let dati = new Object();
+                                                dati.idCorso = idCorso;
+                                                dati.descrizione = $("#descEsame").val().trim();
+                                                dati.durata = $("#durata").val().trim();
+                                                dati.dataScadenza = scadEsame.toJSON();
+                                                let domande = $("#bdTabDomEsame").children();
+                                                dati.domande = new Array();
 
-                                                    let cod = "";
-                                                    cod += '<div class="row">';
-                                                    cod += '<div class="col-lg-12 text-center">';
-                                                    cod += '<p>Esame inserito con successo</p>';
-                                                    cod += '</div>';
-                                                    cod += '</div>';
+                                                for (let i = 0; i < domande.length; i++) {
+                                                    let vet = new Array();
+                                                    let campi = $(domande[i]).children();
+                                                    vet.push($(domande[i]).attr('tipoDom'));
+                                                    for (let j = 0; j < campi.length - 2; j++)
+                                                        vet.push($(campi[j]).html());
 
-                                                    $("#dettEsameMod .modal-body").append(cod);
-                                                    $("#dettEsameMod").modal('show');
-                                                    clickSalvaModifiche();
+                                                    dati.domande.push(vet.join(';'));
                                                 }
-                                                else
-                                                    $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
-                                            });
+
+                                                console.log(dati);
+                                                let chkToken = inviaRichiesta('/api/aggiungiEsame', 'POST', dati);
+                                                chkToken.fail(function (jqXHR, test_status, str_error) {
+                                                    console.log(jqXHR);
+                                                    printErrors(jqXHR, "#msgAddEsame");
+                                                });
+                                                chkToken.done(function (data) {
+                                                    if (data == "aggEsameOk") {
+                                                        $("#dettEsameMod .modal-title").html("Risultato Operazione");
+                                                        $("#dettEsameMod .modal-body").children().remove();
+                                                        $("#btnSalvaModifiche").show().html("Chiudi");
+                                                        $("#btnAnnulla").hide();
+
+                                                        let cod = "";
+                                                        cod += '<div class="row">';
+                                                        cod += '<div class="col-lg-12 text-center">';
+                                                        cod += '<p>Esame inserito con successo</p>';
+                                                        cod += '</div>';
+                                                        cod += '</div>';
+
+                                                        $("#dettEsameMod .modal-body").append(cod);
+                                                        $("#dettEsameMod").modal('show');
+                                                        clickSalvaModifiche();
+                                                    }
+                                                    else
+                                                        $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
+                                                });
+                                            }
+                                            else {
+                                                gestErrori("Devi inserire almeno una domanda", null, "#msgAddEsame");
+                                            }
                                         }
                                         else {
-                                            gestErrori("Devi inserire almeno una domanda", null, "#msgAddEsame");
+                                            gestErrori("Devi inserire un'ora di scadenza esame successiva a quella attuale", $("#oraFineEsame"), "#msgAddEsame");
                                         }
                                     }
                                     else {
-                                        gestErrori("Devi inserire un'ora di scadenza esame successiva a quella attuale", $("#oraFineEsame"), "#msgAddEsame");
+                                        gestErrori("Devi inserire una data di scadenza successiva o uguale a quella odierna", $("#dataScadenza"), "#msgAddEsame");
                                     }
                                 }
                                 else {
-                                    gestErrori("Devi inserire una data di scadenza successiva o uguale a quella odierna", $("#dataScadenza"), "#msgAddEsame");
+                                    gestErrori("Devi inserire l'ora di scadenza dell'esame", $("#oraFineEsame"), "#msgAddEsame");
                                 }
                             }
                             else {
-                                gestErrori("Devi inserire l'ora di scadenza dell'esame", $("#oraFineEsame"), "#msgAddEsame");
+                                gestErrori("Devi inserire la data di scadenza dell'esame", $("#dataScadenza"), "#msgAddEsame");
                             }
                         }
                         else {
-                            gestErrori("Devi inserire la data di scadenza dell'esame", $("#dataScadenza"), "#msgAddEsame");
+                            gestErrori("Devi inserire la durata dell'esame", $("#durata"), "#msgAddEsame");
                         }
                     }
-                    else{
-                        gestErrori("Devi inserire la durata dell'esame", $("#durata"), "#msgAddEsame");
+                    else {
+                        gestErrori("Devi inserire la descrizione dell'esame", $("#descEsame"), "#msgAddEsame");
                     }
-                }
-                else{
-                    gestErrori("Devi inserire la descrizione dell'esame", $("#descEsame"), "#msgAddEsame");
-                }
-            });
+                });
+            }
+        }
+        else if (data.ris == "noAutNoIsc"){
+            window.location.href = "corsi.html"; // vedere se segnalare all'utente o no
         }
     });
 }
@@ -391,7 +396,7 @@ function drawModaleDomande(prov){
         switch ($("option:selected", this).val()) {
             case "trueFalse":
                 cod += '<div class="form-group">';
-                cod += '<label for="domanda">Risposta:</label>';
+                cod += '<label for="risposta">Risposta:</label>';
                 cod += '<br/>';
                 cod += '<div class="col-lg-4 mx-auto">'
                 cod += '<div class="row">'
@@ -909,7 +914,7 @@ function clickSalvaModifiche(){
             window.location.reload();
         }
         else if ($(this).html() == "Torna Indietro") {
-            window.history.go(-1);
+            window.location.href = "dettaglioCorso.html?corso=" + window.location.search.substring(1).split('=')[1];
         }
     });
 }

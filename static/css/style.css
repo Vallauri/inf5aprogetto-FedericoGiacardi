@@ -30,6 +30,43 @@ body {
 
 .alert-danger{color:#721c24!important;background-color:#f8d7da!important;border-color:#f5c6cb!important}
 
+.btnDomanda{
+  /*background-color: #95ebf0 !important;*/
+  width:30px;
+  height:30px;
+  border-radius: 5px;
+  font-family: "Roboto", sans-serif;
+  padding: 0;
+  margin: 0;
+  font-size: 17px;
+}
+
+.btnDomanda:hover{
+  background-color: #95ebf0 !important;
+  text-decoration: underline blue;
+}
+
+.btnDomandaSelected{
+  background-color: #95ebf0 !important;
+  text-decoration: underline blue;
+}
+
+.elDomande{
+  background-color:  #c0edf0;
+  border-radius: 10px;
+  text-align: center;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+.descDomanda{
+  background-color: rgb(245, 243, 182);
+  border-radius: 10px;
+  /*text-align: center;*/
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
+
 /* line 9, E:/172 Etrain Education/172_Etrain_Education_html/sass/_common.scss */
 .message_submit_form:focus {
   outline: none;
