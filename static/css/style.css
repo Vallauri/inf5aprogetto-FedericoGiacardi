@@ -5269,21 +5269,21 @@ h1, h2, h3, h4, h5, h6 {
 
 /* line 217, E:/172 Etrain Education/172_Etrain_Education_html/sass/_elements.scss */
 .genric-btn.primary {
-  color: #fff;
+  color: #fff!important;
   background: #ff663b;
   border: 1px solid transparent;
 }
 
 /* line 221, E:/172 Etrain Education/172_Etrain_Education_html/sass/_elements.scss */
 .genric-btn.primary:hover {
-  color: #ff663b;
+  color: #ff663b!important;
   border: 1px solid #ff663b;
   background: #fff;
 }
 
 /* line 227, E:/172 Etrain Education/172_Etrain_Education_html/sass/_elements.scss */
 .genric-btn.primary-border {
-  color: #ff663b;
+  color: #ff663b!important;
   border: 1px solid #ff663b;
   background: #fff;
 }

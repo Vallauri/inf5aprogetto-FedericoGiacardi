@@ -1,15 +1,21 @@
 "use strict";
+//Routine Principale
 $(document).ready(function () {
+    //Recupero parametri da query string
     let url = new URL(window.location.href);
     let token = url.searchParams.get("token");
     window.sessionStorage.setItem("token", token);
     $("#btnReimpPwd").click(gestPwd);
 });
 
+//Gestione Reimpostazione Password
 function gestPwd() {
+    //Pulizia campi di input
     $("#pwdReimpPwd").removeClass("alert-danger");
     $("#pwdReimpRipetiPwd").removeClass("alert-danger");
+    $("#mexEmailReimpPwd").html("");
 
+    //Controllo dati di input
     if (validaPwd($("#pwdReimpPwd").val())) {
         if (validaPwd($("#pwdReimpRipetiPwd").val())) {
             if ($("#pwdReimpPwd").val() == $("#pwdReimpRipetiPwd").val()) {
@@ -18,14 +24,14 @@ function gestPwd() {
                     "ripetiPassword": $("#pwdReimpRipetiPwd").val(),
                     "token":window.sessionStorage.getItem("token")
                 };
-
+                //Invio richiesta reimpotazione password
                 let reimpostaPwdRQ = inviaRichiesta('/api/reimpostaPwd', 'POST', par);
                 reimpostaPwdRQ.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 603) {
-                        $(".msg").text("Credenziali Errate o Mancanti");
+                        $("#mexEmailReimpPwd").text("Credenziali Errate o Mancanti").addClass("alert alert-danger");
                     }
                     else {
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#mexEmailReimpPwd");
                     }
                 });
                 reimpostaPwdRQ.done(function (data) {
@@ -37,24 +43,19 @@ function gestPwd() {
                     }
                 });
             }else{
-                gestErrori("Le due Password non corrispondono");
+                gestErrori("Le due Password non corrispondono", undefined, "#mexEmailReimpPwd");
             }
         } else {
-            gestErrori("Inserire una Password valida", $("#pwdReimpRipetiPwd"));
+            gestErrori("Inserire una Password valida", $("#pwdReimpRipetiPwd"), "#mexEmailReimpPwd");
         }
     } else {
-        gestErrori("Inserire una Password valida", $("#pwdReimpPwd"));
+        gestErrori("Inserire una Password valida", $("#pwdReimpPwd"), "#mexEmailReimpPwd");
     }
 }
 
+
+//Validazione Password tramite regex
 function validaPwd(pwdReg) {
     let re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
     return re.test(pwdReg);
-}
-
-function gestErrori(msg, controllo) {
-    $(".msg").html(msg);
-    if (controllo != undefined) {
-        controllo.addClass("alert-danger");
-    }
 }
