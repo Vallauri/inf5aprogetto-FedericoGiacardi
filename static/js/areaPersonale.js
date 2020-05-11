@@ -1,13 +1,16 @@
 "use strict";
 
 let lastClickSchedule;
-const nElementiVis = 2;
+const nElementiVis = 2; //Definisco il numero di elementi da visualizzare in ogni sezione
 
+//Routine Iniziale
 $(document).ready(function () {
     loadPagina();
 });
 
+//Gestione creazione pagine
 function loadPagina() {
+    //Controllo validità token
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         printErrors(jqXHR, ".msg");
@@ -15,7 +18,7 @@ function loadPagina() {
     chkToken.done(function (data) {
         chkToken = inviaRichiesta('/api/elGruppi', 'POST', {});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgErrInfoUtente");
         });
         chkToken.done(function (data) {
             creazioneElencoGruppi(data);
@@ -23,7 +26,7 @@ function loadPagina() {
 
         chkToken = inviaRichiesta('/api/elAppunti', 'POST', {});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgErrInfoUtente");
         });
         chkToken.done(function (data) {
             creazioneElencoAppunti(data);
@@ -31,7 +34,7 @@ function loadPagina() {
 
         chkToken = inviaRichiesta('/api/feedModuli', 'POST', {});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgErrInfoUtente");
         });
         chkToken.done(function (data) {
             creazioneElencoFeed(data);
@@ -40,6 +43,7 @@ function loadPagina() {
     });  
 }
 
+//Gestione Creazione Calendario
 function creazioneCalendario() {
     let Calendar = tui.Calendar;
     let calendar = new Calendar('#calendar',{
@@ -69,33 +73,10 @@ function creazioneCalendario() {
         }
     });
     
-    // calendar.createSchedules([
-    //     {
-    //         id: '1',
-    //         calendarId: '1',
-    //         title: '',
-    //         isAllDay:true,
-    //         category: 'day',
-    //         dueDateClass: '',
-    //         start: '2020-03-24T22:30:00+09:00',
-    //         end: ''
-    //     },
-    //     {
-    //         id: '2',
-    //         calendarId: '2',
-    //         title: '',
-    //         isAllDay: true,
-    //         category: 'allday',
-    //         bgColor:"red",
-    //         dueDateClass: '',
-    //         start: '2020-03-25T22:30:00+09:00',
-    //         end: ''
-    //     }
-    // ]);
-    
+    //Recupero l'elenco degli eventi dell'utente
     let eventiCalendario = inviaRichiesta('/api/elEventiCalendario', 'POST', {});
     eventiCalendario.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, "#msgErrCalendario");
     });
     eventiCalendario.done(function (data) {
         let contEventi = 0;
@@ -105,7 +86,7 @@ function creazioneCalendario() {
             let I;
             let colore;
             let stato;
-            console.log(data);
+            //Salvo sul calendario i moduli affrontati singolarmente
             for (I = 0; I < utente.moduli.length; I++) {
                 evento = {};
                 evento["id"] = String(utente.moduli[I].codModulo);
@@ -121,7 +102,7 @@ function creazioneCalendario() {
                 evento["start"] = utente.moduli[I].dataInizio;
                 evento["end"] = '';
                 stato = "inCorso";
-                if (utente.moduli[I].dataFine != undefined) {
+                if (utente.moduli[I].dataFine != null) {
                     evento["end"] = utente.moduli[I].dataFine;
                     stato = "completato";
                     if (utente.moduli[I].scadenza != undefined) {
@@ -143,7 +124,7 @@ function creazioneCalendario() {
                 contEventi++;
                 vetEventi.push(evento);
             }
-
+            //Salvo sul calendario i moduli affrontati in gruppo
             for ( I = 0; I < utente.moduliGruppi.length; I++) {
                 evento = {};
                 evento["id"] = String(utente.moduliGruppi[I].codModulo) + "_" + String(utente.moduliGruppi[I].codModulo);
@@ -175,13 +156,14 @@ function creazioneCalendario() {
                         evento["borderColor"] = 'red';
                         stato = "scaduto";
                     }
-                    evento["end"] = utente.moduli[I].scadenza; // è giusto?? o dovrebbe essere moduliGruppi??
+                    evento["end"] = utente.moduliGruppi[I].scadenza;
                 }
                 evento["raw"] = 'moduliGr;'+stato;
                 contEventi++;
                 vetEventi.push(evento);
             }
 
+            //Salvo sul calendario gli esami affrontati singolarmente
             for (I = 0; I < utente.esami.length; I++) {
                 evento = {};
                 evento["id"] = String(utente.esami[I].codEsame);
@@ -205,6 +187,7 @@ function creazioneCalendario() {
                 vetEventi.push(evento);
             }
 
+            //Salvo sul calendario gli esami affrontati in gruppo
             for (I = 0; I < utente.esamiGruppi.length; I++) {
                 evento = {};
                 evento["id"] = String(utente.esamiGruppi[I].codEsame) + "_" + String(utente.esamiGruppi[I].codGruppo);
@@ -227,6 +210,7 @@ function creazioneCalendario() {
                 vetEventi.push(evento);
             }
 
+            //Salvo sul calendario le lezioni in programma
             for (I = 0; I < utente.lezioni.length; I++) {
                 evento = {};
                 evento["id"] = String(utente.lezioni[I].codLez);
@@ -269,6 +253,7 @@ function creazioneCalendario() {
         });
     });
 
+    //Gestione freccia per scorrimento calendario
     $("#btnPrevWeek").on("click", function () {
         calendar.prev();
     });
@@ -277,10 +262,10 @@ function creazioneCalendario() {
         calendar.next();
     });
 
+    //Imposto il focus sull'evento scelto dall'utente
     calendar.on('clickSchedule', function (event) {
         var schedule = event.schedule;
 
-        // focus the schedule
         if (lastClickSchedule) {
             calendar.updateSchedule(lastClickSchedule.id, lastClickSchedule.calendarId, {
                 isFocused: false
@@ -292,33 +277,36 @@ function creazioneCalendario() {
 
         lastClickSchedule = schedule;
 
+        //Recupero i dettagli dell'evento cliccato
+        //per la scheda laterale
         let detEvento;
         let tipoEvento = schedule.raw.split(";")[0];
         let idEvento = schedule.id.split("_")[0];
         if (tipoEvento == "moduliUt" || tipoEvento == "moduliGr") {
             detEvento = inviaRichiesta('/api/dettaglioEventoModuli', 'POST', { "idEvento": idEvento });
             detEvento.done(function (data) {
-                creazioneDetModulo(data, new Date(schedule.start).toLocaleDateString(), new Date(schedule.end).toLocaleDateString(), schedule.raw.split(";")[1]);
+                creazioneDetModulo(data, new Date(schedule.start), new Date(schedule.end), schedule.raw.split(";")[1]);
             });
         } else if (tipoEvento == "esamiUt" || tipoEvento == "esamiGr"){
             detEvento = inviaRichiesta('/api/dettaglioEventoEsame', 'POST', { "idEvento": idEvento });
             detEvento.done(function (data) {
-                creazioneDetEsame(data, new Date(schedule.start).toLocaleDateString(), schedule.raw.split(";")[1]);
+                creazioneDetEsame(data, new Date(schedule.start), schedule.raw.split(";")[1]);
             });
         } else if (tipoEvento == "lezioni") {
             detEvento = inviaRichiesta('/api/dettaglioEventoLezione', 'POST', { "idEvento": idEvento });
             detEvento.done(function (data) {
-                creazioneDetLezione(data, new Date(schedule.start).toLocaleString(), new Date(schedule.end).toLocaleString(), schedule.raw.split(";")[1]);
+                creazioneDetLezione(data, new Date(schedule.start), new Date(schedule.end), schedule.raw.split(";")[1]);
             });
         }
         
         detEvento.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgErrCalendario");
         });
         
     });
 }
 
+//Stampa Dettagli Modulo
 function creazioneDetModulo(moduli, dataInizio, dataFine, stato) {
     $("#contDettaglioEvento").html("");
     let codHtml = "";
@@ -329,10 +317,10 @@ function creazioneDetModulo(moduli, dataInizio, dataFine, stato) {
             codHtml += '<div class="d-flex w-100 justify-content-between">';
             codHtml += '<h5 class="mb-1">' + modulo.descrizione + '</h5>';
             codHtml += '</div>';
-            codHtml += '<p class="mb-1">Tipo: ' + modulo.tipoModulo[0].descrizione + '<br>Materia: ' + modulo.materia[0].descrizione + '<br>Autore: ' + modulo.autore[0].user + '<br>Data Inizio: ' + dataInizio + '<br>Data Fine: ' + dataFine;
-            if (stato == "inCorso") {
+            codHtml += '<p class="mb-1">Tipo: ' + modulo.tipoModulo[0].descrizione + '<br>Materia: ' + modulo.materia[0].descrizione + '<br>Autore: ' + modulo.autore[0].user + '<br>Data Inizio: ' + setFormatoDate(dataInizio) + '<br>Data Fine: ' + setFormatoDate(dataFine);
+            if (stato == "inCorso")
                 codHtml += '<br>Stato: In Corso</p>';
-            } else if (stato == "scaduto")
+            else if (stato == "scaduto")
                 codHtml += '<br><span style="color:red">Stato: Scaduto</span></p>';
             else if (stato == "completato")
                 codHtml += '<br>Stato: Completato</p>';
@@ -345,6 +333,7 @@ function creazioneDetModulo(moduli, dataInizio, dataFine, stato) {
     $("#contDettaglioEvento").html(codHtml);
 }
 
+//Stampa Dettagli Esame
 function creazioneDetEsame(esame, data, voto) {
     $("#contDettaglioEvento").html("");
     let codHtml = "";
@@ -354,7 +343,7 @@ function creazioneDetEsame(esame, data, voto) {
         codHtml += '<div class="d-flex w-100 justify-content-between">';
         codHtml += '<h5 class="mb-1">' + esame[0].descrizione + '</h5>';
         codHtml += '</div>';
-        codHtml += '<p class="mb-1">Data Svolgimento: ' + data+'<br>Moduli: ';
+        codHtml += '<p class="mb-1">Data Svolgimento: ' + setFormatoDate(data)+'<br>Moduli: ';
         for (let i = 0; i < esame[0].detModuli.length; i++) {
             codHtml += esame[0].detModuli[i].descrizione;
             if (i != esame[0].detModuli.length - 1) {
@@ -371,11 +360,11 @@ function creazioneDetEsame(esame, data, voto) {
     }else{
         codHtml += "<p style='text-align:center'>Dati non disponibili</p>";
     }
-    
 
     $("#contDettaglioEvento").html(codHtml);
 }
 
+//Stampa Dettagli Lezione
 function creazioneDetLezione(lezione, dataInizio, dataFine, stato) {
     let codHtml = "";
 
@@ -386,12 +375,12 @@ function creazioneDetLezione(lezione, dataInizio, dataFine, stato) {
         codHtml += '<div class="d-flex w-100 justify-content-between">';
         codHtml += '<h5 class="mb-1">' + lezione.titolo + '</h5>';
         codHtml += '</div>';
-        codHtml += '<p class="mb-1">Data Creazione: ' + new Date(lezione.dataCreazione).toLocaleDateString()+"<br>Data Inizio: "+dataInizio;
+        codHtml += '<p class="mb-1">Data Creazione: ' + setFormatoDate(new Date(lezione.dataCreazione))+"<br>Data Inizio: "+setFormatoDate(dataInizio);
         if (dataFine != "" ) {
-            codHtml += "<br>Data Fine: "+dataFine;
+            codHtml += "<br>Data Fine: " +setFormatoDate(dataFine);
         }
         if (lezione.dataScadenza != undefined) {
-            codHtml += "<br>Data Scadenza: " + new Date(lezione.dataScadenza).toLocaleString();
+            codHtml += "<br>Data Scadenza: " + setFormatoDate(new Date(lezione.dataScadenza));
         }
         if (stato == "inCorso") {
             codHtml += '<br>Stato: In Corso</p>';
@@ -407,6 +396,7 @@ function creazioneDetLezione(lezione, dataInizio, dataFine, stato) {
     $("#contDettaglioEvento").html(codHtml);
 }
 
+//Imposto il colore da dare all'evento sul calendario
 function setColoreEvento() {
     let colori = {
         aqua: "#00ffff",
@@ -455,6 +445,7 @@ function setColoreEvento() {
     return result;
 }
 
+//Stampa Elenco Gruppi
 function creazioneElencoGruppi(utenti) {
     $("#contGruppi").html("");
     let codHtml = "";
@@ -471,10 +462,10 @@ function creazioneElencoGruppi(utenti) {
             for (let i = 0; i < dim; i++) {
                 codHtml += '<a href="dettaglioGruppo.html?gruppo=' + utente["gruppi"][i]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
-                codHtml += '<h5 class="mb-1">' + utente["gruppi"][i].nome + '</h5>'; //mettere il nome del gruppo
+                codHtml += '<h5 class="mb-1">' + utente["gruppi"][i].nome + '</h5>';
                 codHtml += '</div>';
                 aus = new Date(utente["gruppo"][i].dataInizio);
-                codHtml += '<p class="mb-1">' + utente["gruppi"][i].descrizione + '<br>Data iscrizione: ' + aus.toLocaleDateString() +'<br>Tipo Gruppo: ' + utente["gruppi"][i].tipoGruppo[0].descrizione+'</p>'; //tipo gruppo descrizione e data iscrizione
+                codHtml += '<p class="mb-1">' + utente["gruppi"][i].descrizione + '<br>Data iscrizione: ' + setFormatoDate(aus) +'<br>Tipo Gruppo: ' + utente["gruppi"][i].tipoGruppo[0].descrizione+'</p>';
                 codHtml += '</a>';
                 if (i == dim - 1) {
                     codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriGruppi" aria-expanded="false"><i class="fa fa-plus"></i></button>';
@@ -485,7 +476,7 @@ function creazioneElencoGruppi(utenti) {
                         codHtml += '<h5 class="mb-1">' + utente["gruppi"][i + (k + 1)].nome + '</h5>';
                         codHtml += '</div>';
                         aus = new Date(utente["gruppo"][i + (k + 1)].dataInizio);
-                        codHtml += '<p class="mb-1">' + utente["gruppi"][i + (k + 1)].descrizione + '<br>Data iscrizione: ' + aus.toLocaleDateString() + '</p>';
+                        codHtml += '<p class="mb-1">' + utente["gruppi"][i + (k + 1)].descrizione + '<br>Data iscrizione: ' + setFormatoDate(aus) + '</p>';
                         codHtml += '</a>';
                     }
                     codHtml += '</div>';
@@ -498,37 +489,7 @@ function creazioneElencoGruppi(utenti) {
     $("#contGruppi").html(codHtml);
 }
 
-// function creazioneElencoMaterie(utenti) {
-//     $("#contMaterie").html("");
-//     let codHtml = "", vetArg = "";
-//     let aus;
-//     utenti.forEach(utente => {
-//         if (utente["materieModerate"] != undefined && utente["materieModerate"].length > 0) {
-//             for (let i = 0; i < utente["materieModerate"].length; i++) {
-//                 codHtml += '<a class="list-group-item list-group-item-action flex-column align-items-start">';
-//                 codHtml += '<div class="d-flex w-100 justify-content-between">';
-//                 codHtml += '<h5 class="mb-1">' + utente["materieModerate"][i].descrizione + '</h5>';
-//                 codHtml += '</div>';
-//                 aus = new Date(utente["materieModerate"][i].dataCreazione);
-//                 if (utente["materieModerate"][i].argomenti != undefined) {
-//                     vetArg = "Argomenti: ";
-//                     for (let j = 0; j < utente["materieModerate"][i].argomenti.length; j++) {
-//                         vetArg += utente["materieModerate"][i].argomenti[j].descrizione;
-//                         if (j != utente["materieModerate"][i].argomenti.length - 1) {
-//                             vetArg += ", ";
-//                         }
-//                     }
-//                 }
-//                 codHtml += '<p class="mb-1">Data iscrizione: ' + aus.toLocaleDateString() + '<br>' + vetArg + '</p>';
-//                 codHtml += '</a>';
-//             }
-//         } else {
-//             codHtml += "<p style='text-align:center'>Non hai creato alcuna materia</p>";
-//         }
-//     });
-//     $("#contMaterie").html(codHtml);
-// }
-
+//Stampa Elenco Appunti
 function creazioneElencoAppunti(utenti) {
     $("#contAppunti").html("");
     let codHtml = "", vetArg = "";
@@ -542,7 +503,7 @@ function creazioneElencoAppunti(utenti) {
             }else{
                 dim = nElementiVis;
             }
-            //Controllare il collapse
+
             for (let i = 0; i < dim; i++) {
                 codHtml += '<a href="dettaglioAppunto.html?appunto=' + utente["appuntiCaricati"][i]._id+'" class="list-group-item list-group-item-action flex-column align-items-start">';
                 codHtml += '<div class="d-flex w-100 justify-content-between">';
@@ -558,7 +519,7 @@ function creazioneElencoAppunti(utenti) {
                         }
                     }
                 }
-                codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() +'</p>';
+                codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + setFormatoDate(aus) +'</p>';
                 codHtml += '</a>';
                 if (i == dim - 1) {
                     codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltriAppunti" aria-expanded="false"><i class="fa fa-plus"></i></button>';
@@ -578,7 +539,7 @@ function creazioneElencoAppunti(utenti) {
                                 }
                             }
                         }
-                        codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() + '</p>';
+                        codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + setFormatoDate(aus) + '</p>';
                         codHtml += '</a>';
                     }
                     codHtml += '</div>';
@@ -591,6 +552,7 @@ function creazioneElencoAppunti(utenti) {
     $("#contAppunti").html(codHtml);
 }
 
+//Stampa Elenco Gruppi Possibili
 function creazioneElencoFeed(utenti) {
     let vetModuli = new Array();
     let vetPar = new Array();
@@ -599,6 +561,7 @@ function creazioneElencoFeed(utenti) {
     let aus;
     let dim = 0;
 
+    //Recupero i dati degli appunti che potrebbero interessare all'utente
     utenti.forEach(utente =>{
         for (let i = 0; i < utente["appuntiInteressati"].length; i++) {
             vetPar.push(utente["appuntiInteressati"][i].descrizione);
@@ -609,7 +572,6 @@ function creazioneElencoFeed(utenti) {
                 for (let k = 0; k < utente["appuntiInteressati"][i].argomenti[j].appuntiOk.length; k++) {
 
                     if (chkElemVetModuli(utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, vetModuli) ) {
-                        //Attenzione!!! Gli argomenti non funzionano
                         vetModuli.push({ "_id": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k]._id, "desc": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].descrizione, "data": utente["appuntiInteressati"][i].argomenti[j].appuntiOk[k].dataCreazione, "argomenti": vetAus});
                     }
                 }
@@ -618,6 +580,7 @@ function creazioneElencoFeed(utenti) {
         }
     });
 
+    //Elimino i possibili duplicati
     for (let I = 0; I < vetPar.length; I++) {
         for (let J = 0; J < vetModuli.length; J++) {
             if (vetPar[I] == vetModuli[J]["desc"]) {
@@ -628,7 +591,7 @@ function creazioneElencoFeed(utenti) {
    
     $("#contFeed").html("");
 
-    
+    //Stampo i dati a video
     if (vetModuli.length > 0) {
         if (vetModuli.length < nElementiVis) {
             dim = vetModuli.length;
@@ -650,7 +613,7 @@ function creazioneElencoFeed(utenti) {
                     }
                 }
             }
-            codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + aus.toLocaleDateString() + '</p>';
+            codHtml += '<p class="mb-1">' + vetArg + '<br>Data caricamento: ' + setFormatoDate(aus) + '</p>';
             codHtml += '</a>';
             if (K == dim - 1) {
                 codHtml += '<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#contAltreFeed" aria-expanded="false"><i class="fa fa-plus"></i></button>';
@@ -670,7 +633,7 @@ function creazioneElencoFeed(utenti) {
                             }
                         }
                     }
-                    codHtml += '<p class="mb-1">' + vetArg + '<br>Data iscrizione: ' + aus.toLocaleDateString() + '</p>';
+                    codHtml += '<p class="mb-1">' + vetArg + '<br>Data iscrizione: ' + setFormatoDate(aus) + '</p>';
                     codHtml += '</a>';
                 }
                 codHtml += '</div>';
@@ -680,10 +643,10 @@ function creazioneElencoFeed(utenti) {
         codHtml += "<p style='text-align:center'>Non è stato individuato alcun appunto</p>";
     }
     
-    
     $("#contFeed").html(codHtml);
 }
 
+//Funzione di eliminazione duplicati
 function chkElemVetModuli(descModulo, vetModuli) {
     for (let i = 0; i < vetModuli.length; i++) {
         if (descModulo == vetModuli[i].desc) {
@@ -691,4 +654,13 @@ function chkElemVetModuli(descModulo, vetModuli) {
         }    
     }
     return true;
+}
+
+//Funzione di impostazione formato date
+function setFormatoDate(data) {
+
+    let dd = ("0" + (data.getDate())).slice(-2);
+    let mm = ("0" + (data.getMonth() + 1)).slice(-2);
+    let yyyy = data.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
 }

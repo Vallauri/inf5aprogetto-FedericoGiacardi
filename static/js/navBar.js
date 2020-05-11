@@ -2,7 +2,9 @@ $(document).ready(function () {
     setNavBar();
 });
 
+//Impostazione NavBar
 function setNavBar() {
+    //Recupero i dati dell'utente e creo dinamicamente la navbar
     let reqSetNavBar = inviaRichiesta('/api/setNavBar', 'POST', {});
     reqSetNavBar.fail(function (jqXHR, test_status, str_error) {
         printErrors(jqXHR, ".msg");
@@ -13,10 +15,14 @@ function setNavBar() {
         if (data != undefined) {
 
             if (data.amministratore) {
-                codHtml += '<a id="voceNavMaterie" class="nav-link" href="materie.html">Materie</a>';
-            } else if (document.getElementById("voceNavMaterie"))
-                $("#voceNavMaterie").remove();
-            $("#linkMaterie").html(codHtml);
+                $("#navMateria").html('<a id="voceNavMaterie" class="nav-link" href="materie.html">Materie</a>');
+                $("#navArgomenti").html('<a class="nav-link" href="argomenti.html">Argomenti</a>');
+                $("#navRegAdmin").html('<a class="nav-link" href="registraAdmin.html">Registra Admin</a>');
+            }else{
+                $("#navMateria").remove();
+                $("#navArgomenti").remove();
+                $("#navRegAdmin").remove();
+            }
             codHtml = "";
             codHtml += '<a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-55" data-toggle="dropdown" aria-haspopup="true" aria - expanded="false" >';
             codHtml += '<img src="' + data.foto.replace(/\\/g, "/") + '" class="rounded-circle z-depth-0" alt = "avatar image" height = "50" ></img>';
@@ -31,6 +37,7 @@ function setNavBar() {
     });
 }
 
+//Gestione LogOut
 function doLogOut() {
     let rq = inviaRichiesta('/api/logout', 'POST');
     rq.done(function (data) {
@@ -40,6 +47,6 @@ function doLogOut() {
         if (jqXHR.status == 403) { // forbidden
             window.location.href = "index.html"
         } else
-            error(jqXHR, test_status, str_error)
+            error(jqXHR, test_status, str_error);
     });
 }
