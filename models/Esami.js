@@ -7,6 +7,7 @@ const risposte = mongoose.Schema({
 
 const domande = mongoose.Schema({
     testo: { type: String, required: true },
+    tipoDomanda: { type: String, required: true },
     risposte: [risposte]
 });
 
@@ -19,7 +20,7 @@ const esami = mongoose.Schema({
     codUtente: { type: Number, ref: "Utenti", required: true },
     codModulo: { type: Number, ref: "Moduli", required: true },
     descrizione: { type: String, required: true },
-    validita: { type: Boolean, required: true },
+    validita: { type: Boolean, default: true, required: true },
     domande:[domande]
 });
 
