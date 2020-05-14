@@ -9,7 +9,8 @@ const parteDi = mongoose.Schema({
 const eseguonoEsami = mongoose.Schema({
     codEsame: { type: Number, ref: "Esami", required: true },
     data: { type: Date, required: true },
-    voto: { type: Number, required: true }
+    voto: { type: Number, required: true },
+    risposteDate: {type: Array, required: true}
 });
 
 const svolgonoModuliUtenti = mongoose.Schema({
@@ -44,7 +45,8 @@ const eseguonoEsamiGruppi = mongoose.Schema({
     codGruppo: { type: Number, ref: "Gruppi", required: true },
     codEsame: { type: Number, ref: "Esami", required: true },
     data: { type: Date, required: true }, //la data in cui si svolge l'esame  
-    voto: { type: Number } //, required: true 
+    voto: { type: Number }, //, required: true 
+    risposteDate: { type: Array }
 });
 
 const svolgonoModuliGruppi = mongoose.Schema({

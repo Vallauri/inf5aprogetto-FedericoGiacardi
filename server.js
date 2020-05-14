@@ -3022,17 +3022,32 @@ app.post("/api/esamiCorso", function (req, res) {
 });
 
 app.post("/api/chkSvolgimentoEsame", function (req, res) {
-    utenti.count({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id), $or: [{ "eseguonoEsami.codEsame": parseInt(req.body.idEsame) }, { "eseguonoEsamiGruppi.codEsame": parseInt(req.body.idEsame) }] }).exec().then(nEsami => {
-        let risp;
-        if(nEsami > 0)
-            risp = { ris : "giàDato" };
-        else
-            risp = { ris: "nonDato" };
+    utenti.find({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id), $or: [{ "esami.codEsame": parseInt(req.body.idEsame) }, { "esamiGruppi.codEsame": parseInt(req.body.idEsame) }] }).select("esami esamiGruppi").exec().then(result => {
+        let risEsami = new Array();
+        if (result.length > 0){
+            for (let i = 0; i < result[0].esami.length; i++){
+                if(result[0].esami[i].codEsame == parseInt(req.body.idEsame)){
+                    risEsami.push(result[0].esami[i]);
+                }
+            }
 
-        let token = createToken(req.payload);
-        writeCookie(res, token);
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(risp));
+            for (let i = 0; i < result[0].esamiGruppi.length; i++) {
+                if (result[0].esamiGruppi[i].codEsame == parseInt(req.body.idEsame)) {
+                    risEsami.push(result[0].esamiGruppi[i]);
+                }
+            }
+
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(risEsami));
+        }
+        else{
+            let token = createToken(req.payload);
+            writeCookie(res, token);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify("nonDato"));
+        }
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
@@ -3043,117 +3058,131 @@ app.post("/api/aggiungiEsame", function (req, res) {
         if (req.body.descrizione != "") {
             if (req.body.durata != "") {
                 if (req.body.dataScadenza != "") {
-                    if (req.body.domande.length > 0) {
-                        esami.count({ $and: [{ "descrizione": req.body.descrizione }, { "dataScadenza": new Date(req.body.dataScadenza) }, { "codModulo": parseInt(req.body.idCorso) }] }).exec().then(nEsami => {
-                            if (nEsami == 0) {
-                                let dur = (parseInt(req.body.durata.split(':')[0]) * 3600) + (parseInt(req.body.durata.split(':')[1]) * 60);
-                                let elDomande = new Array();
-                                for(let i = 0; i < req.body.domande.length; i++){
-                                    let dati = req.body.domande[i].split(';');
-                                    let dom, risp, r;
-                                    switch(dati[0]){
-                                        case "trueFalse":
-                                            dom = new Object();
-                                            dom.testo = dati[1];
-                                            dom.tipoDomanda = dati[0];
-
-                                            risp = new Array();
-                                            r = new Object();
-                                            r.testo = "Vero";
-                                            r.corretta = (dati[2] == "Vero" ? true : false);
-                                            risp.push(r);
-
-                                            r = new Object();
-                                            r.testo = "Falso";
-                                            r.corretta = (dati[2] == "Falso" ? true : false);
-                                            risp.push(r);
-
-                                            dom.risposte = risp;
-                                            elDomande.push(dom);
-                                            break;
-
-                                        case "multi":
-                                            dom = new Object();
-                                            dom.testo = dati[1];
-                                            dom.tipoDomanda = dati[0];
-
-                                            risp = new Array();
-                                            let risposte = dati[2].split('-')[0].trim(' ').split(',');
-                                            let rispGiuste = dati[2].split('-')[1].trim(' ').split(':')[1].trim(' ').split(',');
-
-                                            for(let k = 0; k < risposte.length; k++){
-                                                r = new Object();
-                                                r.testo = risposte[k];
-                                                for(let j = 0; j < rispGiuste.length; j++){
-                                                    if(k+1 == parseInt(rispGiuste[j])){
-                                                        r.corretta = true;
-                                                        break;
+                    if(req.body.maxVoto != ""){
+                        if (req.body.minVoto != "") {
+                            if (req.body.domande.length > 0) {
+                                esami.count({ $and: [{ "descrizione": req.body.descrizione }, { "dataScadenza": new Date(req.body.dataScadenza) }, { "codModulo": parseInt(req.body.idCorso) }] }).exec().then(nEsami => {
+                                    if (nEsami == 0) {
+                                        let dur = (parseInt(req.body.durata.split(':')[0]) * 3600) + (parseInt(req.body.durata.split(':')[1]) * 60);
+                                        let elDomande = new Array();
+                                        for(let i = 0; i < req.body.domande.length; i++){
+                                            let dati = req.body.domande[i].split(';');
+                                            let dom, risp, r;
+                                            switch(dati[0]){
+                                                case "trueFalse":
+                                                    dom = new Object();
+                                                    dom.testo = dati[1];
+                                                    dom.tipoDomanda = dati[0];
+                                                    dom.punteggio = dati[2];
+        
+                                                    risp = new Array();
+                                                    r = new Object();
+                                                    r.testo = "Vero";
+                                                    r.corretta = (dati[3] == "Vero" ? true : false);
+                                                    risp.push(r);
+        
+                                                    r = new Object();
+                                                    r.testo = "Falso";
+                                                    r.corretta = (dati[3] == "Falso" ? true : false);
+                                                    risp.push(r);
+        
+                                                    dom.risposte = risp;
+                                                    elDomande.push(dom);
+                                                    break;
+        
+                                                case "multi":
+                                                    dom = new Object();
+                                                    dom.testo = dati[1];
+                                                    dom.tipoDomanda = dati[0];
+                                                    dom.punteggio = dati[2];
+        
+                                                    risp = new Array();
+                                                    let risposte = dati[3].split('-')[0].trim(' ').split(',');
+                                                    let rispGiuste = dati[3].split('-')[1].trim(' ').split(':')[1].trim(' ').split(',');
+        
+                                                    for(let k = 0; k < risposte.length; k++){
+                                                        r = new Object();
+                                                        r.testo = risposte[k];
+                                                        for(let j = 0; j < rispGiuste.length; j++){
+                                                            if(k+1 == parseInt(rispGiuste[j])){
+                                                                r.corretta = true;
+                                                                break;
+                                                            }
+                                                            else
+                                                                r.corretta = false;
+                                                        }
+                                                        risp.push(r);
                                                     }
-                                                    else
-                                                        r.corretta = false;
-                                                }
-                                                risp.push(r);
+        
+                                                    dom.risposte = risp;
+                                                    elDomande.push(dom);
+                                                    break;
+        
+                                                case "open": // da controllare ??!?!?!
+                                                    dom = new Object();
+                                                    dom.testo = dati[1];
+                                                    dom.tipoDomanda = dati[0];
+                                                    dom.punteggio = dati[2];
+        
+                                                    risp = new Array();
+                                                    r = new Object();
+                                                    r.testo = dati[3];
+                                                    r.corretta = true;
+                                                    risp.push(r);
+        
+                                                    dom.risposte = risp;
+                                                    elDomande.push(dom);
+                                                    break;
+        
+                                                case "close":
+                                                    dom = new Object();
+                                                    dom.testo = dati[1];
+                                                    dom.tipoDomanda = dati[0];
+                                                    dom.punteggio = dati[2];
+        
+                                                    risp = new Array();
+                                                    r = new Object();
+                                                    r.testo = dati[3];
+                                                    r.corretta = true;
+                                                    risp.push(r);
+        
+                                                    dom.risposte = risp;
+                                                    elDomande.push(dom);
+                                                    break;
                                             }
-
-                                            dom.risposte = risp;
-                                            elDomande.push(dom);
-                                            break;
-
-                                        case "open": // da controllare ??!?!?!
-                                            dom = new Object();
-                                            dom.testo = dati[1];
-                                            dom.tipoDomanda = dati[0];
-
-                                            risp = new Array();
-                                            r = new Object();
-                                            r.testo = dati[2];
-                                            r.corretta = true;
-                                            risp.push(r);
-
-                                            dom.risposte = risp;
-                                            elDomande.push(dom);
-                                            break;
-
-                                        case "close":
-                                            dom = new Object();
-                                            dom.testo = dati[1];
-                                            dom.tipoDomanda = dati[0];
-
-                                            risp = new Array();
-                                            r = new Object();
-                                            r.testo = dati[2];
-                                            r.corretta = true;
-                                            risp.push(r);
-
-                                            dom.risposte = risp;
-                                            elDomande.push(dom);
-                                            break;
+                                        }
+                                        
+                                        esami.find({}).sort({ _id: 1 }).exec().then(results => {
+                                            let vet = JSON.parse(JSON.stringify(results));
+                                            const aggEsame = new esami({
+                                                _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                descrizione: req.body.descrizione,
+                                                dataCreazione: new Date(),
+                                                dataScadenza: new Date(req.body.dataScadenza),
+                                                durata: dur,
+                                                numDomande: parseInt(req.body.domande.length),
+                                                codModulo: parseInt(req.body.idCorso),
+                                                codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                                                maxVoto: parseFloat(req.body.maxVoto),
+                                                minVoto: parseFloat(req.body.minVoto),
+                                                domande : elDomande
+                                            });
+                                            aggEsame.save().then(results => { res.send(JSON.stringify("aggEsameOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                        }).catch(err => {
+                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                        });
+                                    } else {
+                                        error(req, res, null, JSON.stringify(new ERRORS.EXISTING_EXAM({})));
                                     }
-                                }
-                                
-                                esami.find({}).sort({ _id: 1 }).exec().then(results => {
-                                    let vet = JSON.parse(JSON.stringify(results));
-                                    const aggEsame = new esami({
-                                        _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                        descrizione: req.body.descrizione,
-                                        dataCreazione: new Date(),
-                                        dataScadenza: new Date(req.body.dataScadenza),
-                                        durata: dur,
-                                        numDomande: parseInt(req.body.domande.length),
-                                        codModulo: parseInt(req.body.idCorso),
-                                        codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
-                                        domande : elDomande
-                                    });
-                                    aggEsame.save().then(results => { res.send(JSON.stringify("aggEsameOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
                                 }).catch(err => {
                                     error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                 });
                             } else {
-                                error(req, res, null, JSON.stringify(new ERRORS.EXISTING_EXAM({})));
+                                gestErrorePar(req, res);
                             }
-                        }).catch(err => {
-                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                        });
+                        } else {
+                            gestErrorePar(req, res);
+                        }
                     } else {
                         gestErrorePar(req, res);
                     }
@@ -3206,116 +3235,130 @@ app.post("/api/modificaEsame", function (req, res) {
             if (req.body.descrizione != "") {
                 if (req.body.durata != "") {
                     if (req.body.dataScadenza != "") {
-                        if (req.body.domande.length > 0) {
-                            esami.count({ $and: [{ "descrizione": req.body.descrizione }, { "dataScadenza": new Date(req.body.dataScadenza) }, { "codModulo": parseInt(req.body.idCorso) }] }).exec().then(nEsami => {
-                                if (nEsami == 0) {
-                                    let dur = (parseInt(req.body.durata.split(':')[0]) * 3600) + (parseInt(req.body.durata.split(':')[1]) * 60);
-                                    let elDomande = new Array();
-                                    for (let i = 0; i < req.body.domande.length; i++) {
-                                        let dati = req.body.domande[i].split(';');
-                                        let dom, risp, r;
-                                        switch (dati[0]) {
-                                            case "trueFalse":
-                                                dom = new Object();
-                                                dom.testo = dati[1];
-                                                dom.tipoDomanda = dati[0];
-
-                                                risp = new Array();
-                                                r = new Object();
-                                                r.testo = "Vero";
-                                                r.corretta = (dati[2] == "Vero" ? true : false);
-                                                risp.push(r);
-
-                                                r = new Object();
-                                                r.testo = "Falso";
-                                                r.corretta = (dati[2] == "Falso" ? true : false);
-                                                risp.push(r);
-
-                                                dom.risposte = risp;
-                                                elDomande.push(dom);
-                                                break;
-
-                                            case "multi":
-                                                dom = new Object();
-                                                dom.testo = dati[1];
-                                                dom.tipoDomanda = dati[0];
-
-                                                risp = new Array();
-                                                let risposte = dati[2].split('-')[0].trim(' ').split(',');
-                                                let rispGiuste = dati[2].split('-')[1].trim(' ').split(':')[1].trim(' ').split(',');
-
-                                                for (let k = 0; k < risposte.length; k++) {
-                                                    r = new Object();
-                                                    r.testo = risposte[k];
-                                                    for (let j = 0; j < rispGiuste.length; j++) {
-                                                        if (k + 1 == parseInt(rispGiuste[j])) {
-                                                            r.corretta = true;
-                                                            break;
+                        if(req.body.maxVoto != ""){
+                            if(req.body.minVoto != ""){
+                                if (req.body.domande.length > 0) {
+                                    esami.find({$and: [{ "descrizione": req.body.descrizione }, { "dataScadenza": new Date(req.body.dataScadenza) }, { "codModulo": parseInt(req.body.idCorso) }] }).exec().then(result => {
+                                        if (result[0]._id == parseInt(req.body.idEsame)) {
+                                            let dur = (parseInt(req.body.durata.split(':')[0]) * 3600) + (parseInt(req.body.durata.split(':')[1]) * 60);
+                                            let elDomande = new Array();
+                                            for (let i = 0; i < req.body.domande.length; i++) {
+                                                let dati = req.body.domande[i].split(';');
+                                                let dom, risp, r;
+                                                switch (dati[0]) {
+                                                    case "trueFalse":
+                                                        dom = new Object();
+                                                        dom.testo = dati[1];
+                                                        dom.tipoDomanda = dati[0];
+                                                        dom.punteggio = dati[2];
+        
+                                                        risp = new Array();
+                                                        r = new Object();
+                                                        r.testo = "Vero";
+                                                        r.corretta = (dati[3] == "Vero" ? true : false);
+                                                        risp.push(r);
+        
+                                                        r = new Object();
+                                                        r.testo = "Falso";
+                                                        r.corretta = (dati[3] == "Falso" ? true : false);
+                                                        risp.push(r);
+        
+                                                        dom.risposte = risp;
+                                                        elDomande.push(dom);
+                                                        break;
+        
+                                                    case "multi":
+                                                        dom = new Object();
+                                                        dom.testo = dati[1];
+                                                        dom.tipoDomanda = dati[0];
+                                                        dom.punteggio = dati[2];
+        
+                                                        risp = new Array();
+                                                        let risposte = dati[3].split('-')[0].trim(' ').split(',');
+                                                        let rispGiuste = dati[3].split('-')[1].trim(' ').split(':')[1].trim(' ').split(',');
+        
+                                                        for (let k = 0; k < risposte.length; k++) {
+                                                            r = new Object();
+                                                            r.testo = risposte[k];
+                                                            for (let j = 0; j < rispGiuste.length; j++) {
+                                                                if (k + 1 == parseInt(rispGiuste[j])) {
+                                                                    r.corretta = true;
+                                                                    break;
+                                                                }
+                                                                else
+                                                                    r.corretta = false;
+                                                            }
+                                                            risp.push(r);
                                                         }
-                                                        else
-                                                            r.corretta = false;
-                                                    }
-                                                    risp.push(r);
+        
+                                                        dom.risposte = risp;
+                                                        elDomande.push(dom);
+                                                        break;
+        
+                                                    case "open": // da controllare ??!?!?!
+                                                        dom = new Object();
+                                                        dom.testo = dati[1];
+                                                        dom.tipoDomanda = dati[0];
+                                                        dom.punteggio = dati[2];
+        
+                                                        risp = new Array();
+                                                        r = new Object();
+                                                        r.testo = dati[3];
+                                                        r.corretta = true;
+                                                        risp.push(r);
+        
+                                                        dom.risposte = risp;
+                                                        elDomande.push(dom);
+                                                        break;
+        
+                                                    case "close":
+                                                        dom = new Object();
+                                                        dom.testo = dati[1];
+                                                        dom.tipoDomanda = dati[0];
+                                                        dom.punteggio = dati[2];
+        
+                                                        risp = new Array();
+                                                        r = new Object();
+                                                        r.testo = dati[3];
+                                                        r.corretta = true;
+                                                        risp.push(r);
+        
+                                                        dom.risposte = risp;
+                                                        elDomande.push(dom);
+                                                        break;
                                                 }
-
-                                                dom.risposte = risp;
-                                                elDomande.push(dom);
-                                                break;
-
-                                            case "open": // da controllare ??!?!?!
-                                                dom = new Object();
-                                                dom.testo = dati[1];
-                                                dom.tipoDomanda = dati[0];
-
-                                                risp = new Array();
-                                                r = new Object();
-                                                r.testo = dati[2];
-                                                r.corretta = true;
-                                                risp.push(r);
-
-                                                dom.risposte = risp;
-                                                elDomande.push(dom);
-                                                break;
-
-                                            case "close":
-                                                dom = new Object();
-                                                dom.testo = dati[1];
-                                                dom.tipoDomanda = dati[0];
-
-                                                risp = new Array();
-                                                r = new Object();
-                                                r.testo = dati[2];
-                                                r.corretta = true;
-                                                risp.push(r);
-
-                                                dom.risposte = risp;
-                                                elDomande.push(dom);
-                                                break;
+                                            }
+        
+                                            esami.updateOne({_id : parseInt(req.body.idEsame)}, {
+                                                $set: {
+                                                    descrizione: req.body.descrizione,
+                                                    dataScadenza: new Date(req.body.dataScadenza),
+                                                    durata: dur,
+                                                    numDomande: parseInt(req.body.domande.length),
+                                                    maxVoto: parseFloat(req.body.maxVoto),
+                                                    minVoto: parseFloat(req.body.minVoto),
+                                                    domande: elDomande
+                                                }
+                                            }).exec().then(results=> {
+                                                let token = createToken(req.payload);
+                                                writeCookie(res, token);
+                                                res.writeHead(200, { "Content-Type": "application/json" });
+                                                res.end(JSON.stringify("modEsameOk")); 
+                                            }).catch(err => {
+                                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                            });
+                                        } else {
+                                            error(req, res, null, JSON.stringify(new ERRORS.EXISTING_EXAM({})));
                                         }
-                                    }
-
-                                    esami.updateOne({_id : parseInt(req.body.idEsame)}, {
-                                        $set: {
-                                            descrizione: req.body.descrizione,
-                                            dataScadenza: new Date(req.body.dataScadenza),
-                                            durata: dur,
-                                            numDomande: parseInt(req.body.domande.length),
-                                            domande: elDomande
-                                        }
-                                    }).exec().then(results=> {
-                                        let token = createToken(req.payload);
-                                        writeCookie(res, token);
-                                        res.writeHead(200, { "Content-Type": "application/json" });
-                                        res.end(JSON.stringify("modEsameOk")); 
                                     }).catch(err => {
                                         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                                     });
                                 } else {
-                                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_EXAM({})));
+                                    gestErrorePar(req, res);
                                 }
-                            }).catch(err => {
-                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                            });
+                            } else {
+                                gestErrorePar(req, res);
+                            }
                         } else {
                             gestErrorePar(req, res);
                         }
@@ -3364,6 +3407,111 @@ app.post("/api/getDomandaEsame", function (req, res) {
     }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
+});
+
+app.post("/api/getDomandeCorrezioneEsame", function (req, res) {
+    esami.findById(parseInt(req.body.idEsame)).exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result.domande));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/getMaxMinVotoEsame", function(req, res){
+    esami.findById(parseInt(req.body.idEsame)).select("maxVoto minVoto").exec().then(result => {
+        let token = createToken(req.payload);
+        writeCookie(res, token);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result.maxVoto + "-" + result.minVoto));
+    }).catch(err => {
+        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+    });
+});
+
+app.post("/api/salvaRisultatoEsame", function (req, res) {
+    if(req.body.idEsame != ""){
+        if (req.body.idCorso != "") {
+            if (req.body.voto != "") {
+                if (req.body.dataEsame != "") {
+                    if (req.body.risposte.length > 0) {
+                        if (req.body.dataEsame != "") {
+                            utenti.find({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id)}).select("moduli moduliGruppi").exec().then(result => {
+                                let mod = "";
+                                for(let i = 0; i < result[0].moduli.length; i++){
+                                    console.log(result[0].moduli[i]);
+                                    if (result[0].moduli[i].dataFine == undefined || result[0].moduli[i].dataFine == null || result[0].moduli[i].dataFine >= new Date()) {
+                                        if (result[0].moduli[i].scadenza == undefined || result[0].moduli[i].scadenza == null || result[0].moduli[i].scadenza >= new Date()) {
+                                            if(result[0].moduli[i].codModulo == parseInt(req.body.idCorso)){
+                                                mod = "personale"; // modulo è individuale
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+    
+                                for (let i = 0; i < result[0].moduliGruppi.length; i++) {
+                                    console.log(result[0].moduliGruppi[i]);
+                                    if (result[0].moduliGruppi[i].dataFine == undefined || result[0].moduliGruppi[i].dataFine == null || result[0].moduliGruppi[i].dataFine >= new Date()){
+                                        if (result[0].moduliGruppi[i].scadenza == undefined || result[0].moduliGruppi[i].scadenza == null || result[0].moduliGruppi[i].scadenza >= new Date()){
+                                            if (result[0].moduliGruppi[i].codModulo == parseInt(req.body.idCorso)){
+                                                mod = "gruppo"; // modulo è con gruppo
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                console.log("Iscritto: " + mod);
+                                
+                                if(mod == "personale"){
+                                    utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id)}, {$push : { esami : {codEsame : parseInt(req.body.idEsame), data : new Date(req.body.dataEsame), voto : parseFloat(req.body.voto), risposteDate: req.body.risposte}}})
+                                        .exec()
+                                        .then(result => {
+                                            let token = createToken(req.payload);
+                                            writeCookie(res, token);
+                                            res.writeHead(200, { "Content-Type": "application/json" });
+                                            res.end(JSON.stringify("salRisOk"));
+                                        })
+                                        .catch(err => {
+                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                        });
+                                }
+                                else if(mod == "gruppo"){
+                                    utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { $push: { esamiGruppi: { codModulo: parseInt(req.body.idCorso), codEsame: parseInt(req.body.idEsame), data: new Date(req.body.dataEsame), voto: parseFloat(req.body.voto), risposteDate: req.body.risposte } } })
+                                        .exec()
+                                        .then(result => {
+                                            let token = createToken(req.payload);
+                                            writeCookie(res, token);
+                                            res.writeHead(200, { "Content-Type": "application/json" });
+                                            res.end(JSON.stringify("salRisOk"));
+                                        })
+                                        .catch(err => {
+                                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                        });
+                                }
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                            });
+                        } else {
+                            gestErrorePar(req, res);
+                        }
+                    } else {
+                        gestErrorePar(req, res);
+                    }
+                } else {
+                    gestErrorePar(req, res);
+                }
+            } else {
+                gestErrorePar(req, res);
+            }
+        } else {
+            gestErrorePar(req, res);
+        }
+    } else {
+        gestErrorePar(req, res);
+    }
 });
 //#endregion
 

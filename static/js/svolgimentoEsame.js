@@ -99,22 +99,78 @@ function caricamentoDatiEsame(esame) {
         codHtml += '<div class="content">';
         codHtml += esame.numDomande;
         codHtml += '</div>';
+        codHtml += '<h4 class="title">Voto Massimo</h4>';
+        codHtml += '<div class="content">';
+        codHtml += esame.maxVoto;
+        codHtml += '</div>';
+        codHtml += '<h4 class="title">Voto Minimo</h4>';
+        codHtml += '<div class="content">';
+        codHtml += esame.minVoto;
+        codHtml += '</div>';
         codHtml += '<h4 class="title">Durata (hh:mm:ss)</h4>';
         codHtml += '<div class="content">';
         codHtml += calcolaDurata(parseInt(esame.durata));
         codHtml += '</div>';
-        codHtml += '<h4 class="title">Svolgi Esame</h4>';
-        codHtml += '<div class="content">';
+        
         if (new Date(esame.dataScadenza) >= new Date()){
-            codHtml += '<button class="genric-btn info circle" onclick="eseguiEsame(' + esame._id + ')">Svolgi Esame</button>';
+            let chkToken = inviaRichiesta('/api/chkSvolgimentoEsame', 'POST', { "idEsame": esame._id });
+            chkToken.fail(function (jqXHR, test_status, str_error) {
+                console.log(jqXHR);
+                printErrors(jqXHR, "#msgGenEsame");
+            });
+            chkToken.done(function (data) {
+                if (data == "nonDato") {
+                    codHtml += '<h4 class="title">Svolgi Esame</h4>';
+                    codHtml += '<div class="content">';
+                    codHtml += '<button class="genric-btn info circle" onclick="eseguiEsame(' + esame._id + ')">Svolgi Esame</button>';
+                }
+                else{
+                    codHtml += '<h4 class="title">Risultato Esame</h4>';
+                    codHtml += '<div class="content">';
+
+                    if(data.length > 0){
+                        codHtml += '<div class="col-sm-8 col-md-12 col-lg-12 col-xs-8 mx-auto table-responsive">';
+                        codHtml += '<table class="table table-hover table-striped table-bordered">';
+                        codHtml += '<thead class="thead-inverse">';
+                        codHtml += '<tr>';
+                        codHtml += '<th>Data Esame</th>';
+                        codHtml += '<th>Voto</th>';
+                        codHtml += '</tr>';
+                        codHtml += '</thead>';
+                        codHtml += '<tbody>';
+
+                        for(let i = 0; i < data.length; i++){
+                            codHtml += '<tr>';
+                            codHtml += '<td scope="row">' + new Date(data[i].data).toLocaleDateString() + ' - ' + new Date(data[i].data).toLocaleTimeString().substring(0, 5) + '</td>';
+                            codHtml += '<td>' + data[i].voto + '</td>'; // vedere se mettere anche bottone per visualizzazione correzione...
+                            codHtml += '</tr>';
+                        }
+
+                        codHtml += '</tbody>';
+                        codHtml += '</table>';
+                        codHtml += '</div>';
+                    }
+                    else
+                        codHtml += '<p>Errore di visualizzazione dei risultati</p>';
+                }
+                    
+                codHtml += '<div class="row">';
+                codHtml += '<div class="col-sm-6 col-md-6 col-lg-6 mx-auto">';
+                codHtml += '<a href="esami.html?corso=' + esame.codModulo + '">Torna all\'elenco degli esami</a>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+    
+                $("#contEsami").html(codHtml);
+            });
         }
         else{
             codHtml += '<h4>L\'esame è terminato, non puoi più sostenerlo</h4>';
             codHtml += '<a href="esami.html?corso=' + esame.codModulo + '">Torna all\'elenco degli esami</a>';
+            codHtml += '</div>';
+            
+            $("#contEsami").html(codHtml);
         }
-        codHtml += '</div>';
-        
-        $("#contEsami").html(codHtml);
     }
 }
 
