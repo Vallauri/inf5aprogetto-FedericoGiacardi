@@ -2586,8 +2586,12 @@ app.get("/api/downloadAudioTTS", function (req, res) {
     if (req.query.allegato != undefined) {
         let token = createToken(req.payload);
         writeCookie(res, token);
-        res.download(req.query.allegato);
-        fs.unlinkSync(req.query.allegato);
+        res.download(req.query.allegato, function (err) {
+            if(err)
+                error(req, res, err, JSON.stringify(new ERRORS.DOWNLOAD_FAILED({})));
+            else
+                fs.unlinkSync(req.query.allegato);
+        });
     } else {
         gestErrorePar(req, res);
     }
