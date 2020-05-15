@@ -67,6 +67,29 @@ body {
   padding-bottom: 25px;
 }
 
+.timer{
+  margin-top: 20px;
+  color: #0c2e60;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+}
+
+.modal-dialog{
+  overflow-y: initial !important;
+  width: 100% !important;
+
+}
+
+.modal-body{
+  height: 520px;
+  overflow-y: auto;
+}
+
+#insNuovaDomanda .modal-body{
+  height: 250px;
+  overflow-y: auto;
+}
+
 /* line 9, E:/172 Etrain Education/172_Etrain_Education_html/sass/_common.scss */
 .message_submit_form:focus {
   outline: none;

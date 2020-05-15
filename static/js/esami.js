@@ -28,7 +28,7 @@ function loadPagina() {
 
         let cod = "";
         cod += '<div class="row">';
-        cod += '<div class="col-lg-12 text-center">';
+        cod += '<div class="col-sm-12 col-md-12 col-lg-12 text-center">';
         cod += '<p>Errore nel passaggio dei parametri</p>';
         cod += '</div>';
         cod += '</div>';
@@ -46,7 +46,7 @@ function caricamentoDatiEsami(esami) {
     
     if (esami == undefined || esami.length == 0){
         codHtml += '<div class="row justify-content-center">';
-        codHtml += '<div class="col-xl-12">';
+        codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">';
         codHtml += '<div class="section_tittle text-center">';
         codHtml += '<h2>Non ci sono esami per questo corso</h2>';
         codHtml += '</div>';
@@ -56,9 +56,14 @@ function caricamentoDatiEsami(esami) {
         // $("#contEsami").hide();
     }
     else{
-        codHtml += '<div class="row col-md-12 col-lg-12 mx-auto justify-content-center">';
+        codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto justify-content-center">';
+        codHtml += '<div class="row">';
+        codHtml += '<div class="col-sm-6 col-md-6 col-lg-6 text-center mx-auto">';
         codHtml += '<h4 class="title_top">Elenco Esami</h4>';
-        codHtml += '<div class="col-sm-8 col-md-12 col-lg-12 col-xs-8 mx-auto table-responsive">';
+        codHtml += '</div>';
+        codHtml += '</div>';
+        codHtml += '<div class="row">';
+        codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 mx-auto table-responsive">';
         codHtml += '<table class="table table-hover table-striped table-bordered">';
         codHtml += '<thead class="thead-inverse">';
         codHtml += '<tr>';
@@ -89,18 +94,7 @@ function calcolaDurata(s){
 }
 
 function vaiAEsame(idEsame, idCorso){
-    let chkToken = inviaRichiesta('/api/chkSvolgimentoEsame', 'POST', { "idEsame": idEsame }); // gli esami non vanno eliminati completamente dal DB, vanno solo resi nulli altrimenti gli id si sfanculano (pensa a storia esami svolti utenti) ?
-    chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
-        printErrors(jqXHR, "#msgGenEsame");
-    });
-    chkToken.done(function (data) {
-        if (data.ris == "nonDato"){
-            window.location.href = "svolgimentoEsame.html?esame=" + idEsame + "&corso=" + idCorso;
-        }
-        else
-            alert("Hai già sostenuto l'esame");
-    });
+    window.location.href = "svolgimentoEsame.html?esame=" + idEsame + "&corso=" + idCorso;
 }
 
 function chkModeratore(idCorso) {
@@ -135,10 +129,10 @@ function chkModeratore(idCorso) {
             if (data.ris == "autore") {
                 // devo mettere anche la parte per l'inserimento di un nuovo esame
                 codHtml = "";
-                codHtml += '<div class="col-md-12 col-lg-12 mx-auto text-center">';
+                codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto text-center">';
                 codHtml += '<h4 class="title_top">Nuovo Esame</h4>';
                 codHtml += '<div class="row">';
-                codHtml += '<div class="col-sm-9 col-md-7 col-lg-5 mx-auto">';
+                codHtml += '<div class="col-sm-10 col-md-7 col-lg-7 mx-auto">';
                 codHtml += '<div class="card card-signin my-5">';
                 codHtml += '<div class="card-body">';
                 codHtml += '<form id="formInsEsame" class="form-contact">';
@@ -181,13 +175,33 @@ function chkModeratore(idCorso) {
                 codHtml += '</div>';
                 codHtml += '<div class="input-group form-group">';
                 codHtml += '<div class="input-group-prepend">';
+                codHtml += '<span class="input-group-text">';
+                codHtml += '<i class="fas fa-sort-numeric-up-alt"> </i>';
+                codHtml += '</span>';
+                codHtml += '<input type="number" step="0.01" value="0.01" min="0.01" max="10.00" aria-describedby="helpMaxVoto" id="maxVoto" name="maxVoto" required class="single-input">';
+                codHtml += '<small id="helpMaxVoto" class="form-text text-muted">Voto massimo esame</small>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="input-group form-group">';
+                codHtml += '<div class="input-group-prepend">';
+                codHtml += '<span class="input-group-text">';
+                codHtml += '<i class="fas fa-sort-numeric-up-alt"> </i>';
+                codHtml += '</span>';
+                codHtml += '<input type="number" step="0.01" value="0.01" min="0.01" max="10.00" aria-describedby="helpMinVoto" id="minVoto" name="minVoto" required class="single-input">';
+                codHtml += '<small id="helpMinVoto" class="form-text text-muted">Voto minimo esame</small>';
+                codHtml += '</div>';
+                codHtml += '</div>';
+                codHtml += '<div class="row">'
+                codHtml += '<div class="col-sm-10 col-md-10 col-lg-10 mx-auto">';
+                codHtml += '<div class="form-group">';
                 codHtml += '<a class="genric-btn info circle btn-block" data-toggle="modal" data-target="#insNuovaDomanda" style="margin:2px; color: #fff!important;" id="btnAddDomanda">Aggiungi Domanda</a>';
                 codHtml += '</div>';
                 codHtml += '</div>';
                 codHtml += '</div>';
                 codHtml += '</div>';
+                codHtml += '</div>';
                 codHtml += '<div class="row text-center">';
-                codHtml += '<div class="col-lg-12 mx-auto">';
+                codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto">';
                 codHtml += '<div id="msgAddEsame" class="msg"></div>';
                 codHtml += '</div>';
                 codHtml += '</div>';
@@ -197,6 +211,7 @@ function chkModeratore(idCorso) {
                 codHtml += '<thead class="thead-inverse">';
                 codHtml += '<tr>';
                 codHtml += '<th>Domanda</th>';
+                codHtml += '<th>Punteggio</th>';
                 codHtml += '<th>Risposta/e</th>';
                 codHtml += '<th>Tipo Domanda</th>';
                 codHtml += '<th>Azione</th>';
@@ -208,7 +223,7 @@ function chkModeratore(idCorso) {
                 codHtml += '</div>';
                 codHtml += '</div>';
                 codHtml += '<div class="row">'
-                codHtml += '<div class="col-sm-6 col-md-12 col-lg-6 mx-auto">';
+                codHtml += '<div class="col-sm-6 col-md-6 col-lg-6 mx-auto">';
                 codHtml += '<div class="form-group">';
                 codHtml += '<a id="btnInsEsame" class="genric-btn primary circle btn-block" style="color: #fff!important;">Invia</a>';
                 codHtml += '</div>';
@@ -232,80 +247,109 @@ function chkModeratore(idCorso) {
                     $("#durata").removeClass("alert-danger");
                     $("#dataScadenza").removeClass("alert-danger");
                     $("#oraFineEsame").removeClass("alert-danger");
+                    $("#maxVoto").removeClass("alert-danger");
+                    $("#minVoto").removeClass("alert-danger");
                     $("#msgAddEsame").html("");
 
                     if ($("#descEsame").val().trim() != "") {
                         if ($("#durata").val().trim() != "") {
                             if ($("#dataScadenza").val().trim() != "") {
                                 if ($("#oraFineEsame").val().trim() != "") {
-                                    // controllo su data e ora scadenza esame
-                                    let dataLetta = $("#dataScadenza").val();
-                                    let ora = $("#oraFineEsame").val();
-                                    let scadEsame = new Date(dataLetta + "T" + ora);
-
-                                    // controllo data > o = a quella odierna
-                                    if (new Date(dataLetta) >= new Date(new Date().toISOString().split('T')[0])) {// controllo le singole date, confronto la data inserita con quella attuale con time 0 (altrimenti mi dava problemi)
-                                        // c'è un momento in cui non va, non ho ancora capito quando (ad esempio modifico esame verso le 10 di sera e metto data di scadenza il giorno dopo a mezzanotte (?) e non va)
-                                        // controllo ora successiva a quella attuale ( + durata esame oppure no ?)
-                                        if (scadEsame > new Date()) {
-                                            if ($("#bdTabDomEsame").children().length != 0) {
-
-                                                let dati = new Object();
-                                                dati.idCorso = idCorso;
-                                                dati.descrizione = $("#descEsame").val().trim();
-                                                dati.durata = $("#durata").val().trim();
-                                                dati.dataScadenza = scadEsame.toJSON();
-                                                let domande = $("#bdTabDomEsame").children();
-                                                dati.domande = new Array();
-
-                                                for (let i = 0; i < domande.length; i++) {
-                                                    let vet = new Array();
-                                                    let campi = $(domande[i]).children();
-                                                    vet.push($(domande[i]).attr('tipoDom'));
-                                                    for (let j = 0; j < campi.length - 2; j++)
-                                                        vet.push($(campi[j]).html());
-
-                                                    dati.domande.push(vet.join(';'));
-                                                }
-
-                                                console.log(dati);
-                                                let chkToken = inviaRichiesta('/api/aggiungiEsame', 'POST', dati);
-                                                chkToken.fail(function (jqXHR, test_status, str_error) {
-                                                    console.log(jqXHR);
-                                                    printErrors(jqXHR, "#msgAddEsame");
-                                                });
-                                                chkToken.done(function (data) {
-                                                    if (data == "aggEsameOk") {
-                                                        $("#dettEsameMod .modal-title").html("Risultato Operazione");
-                                                        $("#dettEsameMod .modal-body").children().remove();
-                                                        $("#btnSalvaModifiche").show().html("Chiudi");
-                                                        $("#btnAnnulla").hide();
-
-                                                        let cod = "";
-                                                        cod += '<div class="row">';
-                                                        cod += '<div class="col-lg-12 text-center">';
-                                                        cod += '<p>Esame inserito con successo</p>';
-                                                        cod += '</div>';
-                                                        cod += '</div>';
-
-                                                        $("#dettEsameMod .modal-body").append(cod);
-                                                        $("#dettEsameMod").modal('show');
-                                                        clickSalvaModifiche();
+                                    if (!isNaN($("#maxVoto").val().trim())){
+                                        if (parseFloat($("#maxVoto").val().trim()) >= 0.01 && parseFloat($("#maxVoto").val().trim()) <= 10.00) {
+                                            if (!isNaN($("#minVoto").val().trim())){
+                                                if (parseFloat($("#minVoto").val().trim()) >= 0.01 && parseFloat($("#minVoto").val().trim()) <= 10.00) {
+                                                    if (parseFloat($("#maxVoto").val().trim()) > parseFloat($("#minVoto").val().trim())){
+                                                        // controllo su data e ora scadenza esame
+                                                        let dataLetta = $("#dataScadenza").val();
+                                                        let ora = $("#oraFineEsame").val();
+                                                        let scadEsame = new Date(dataLetta + "T" + ora);
+            
+                                                        // controllo data > o = a quella odierna
+                                                        if (new Date(dataLetta) >= new Date(new Date().toISOString().split('T')[0])) {// controllo le singole date, confronto la data inserita con quella attuale con time 0 (altrimenti mi dava problemi)
+                                                            // c'è un momento in cui non va, non ho ancora capito quando (ad esempio modifico esame verso le 10 di sera e metto data di scadenza il giorno dopo a mezzanotte (?) e non va)
+                                                            // controllo ora successiva a quella attuale ( + durata esame oppure no ?)
+                                                            if (scadEsame > new Date()) {
+                                                                if ($("#bdTabDomEsame").children().length != 0) {
+            
+                                                                    let dati = new Object();
+                                                                    dati.idCorso = idCorso;
+                                                                    dati.descrizione = $("#descEsame").val().trim();
+                                                                    dati.durata = $("#durata").val().trim();
+                                                                    dati.dataScadenza = scadEsame.toJSON();
+                                                                    dati.maxVoto = parseFloat($("#maxVoto").val().trim());
+                                                                    dati.minVoto = parseFloat($("#minVoto").val().trim());
+                                                                    let domande = $("#bdTabDomEsame").children();
+                                                                    dati.domande = new Array();
+            
+                                                                    for (let i = 0; i < domande.length; i++) {
+                                                                        let vet = new Array();
+                                                                        let campi = $(domande[i]).children();
+                                                                        vet.push($(domande[i]).attr('tipoDom'));
+                                                                        for (let j = 0; j < campi.length - 2; j++)
+                                                                            vet.push($(campi[j]).html());
+            
+                                                                        dati.domande.push(vet.join(';'));
+                                                                    }
+            
+                                                                    console.log(dati);
+                                                                    let chkToken = inviaRichiesta('/api/aggiungiEsame', 'POST', dati);
+                                                                    chkToken.fail(function (jqXHR, test_status, str_error) {
+                                                                        console.log(jqXHR);
+                                                                        printErrors(jqXHR, "#msgAddEsame");
+                                                                    });
+                                                                    chkToken.done(function (data) {
+                                                                        if (data == "aggEsameOk") {
+                                                                            $("#dettEsameMod .modal-title").html("Risultato Operazione");
+                                                                            $("#dettEsameMod .modal-body").children().remove();
+                                                                            $("#btnSalvaModifiche").show().html("Chiudi");
+                                                                            $("#btnAnnulla").hide();
+            
+                                                                            let cod = "";
+                                                                            cod += '<div class="row">';
+                                                                            cod += '<div class="col-sm-12 col-md-12 col-lg-12 text-center">';
+                                                                            cod += '<p>Esame inserito con successo</p>';
+                                                                            cod += '</div>';
+                                                                            cod += '</div>';
+            
+                                                                            $("#dettEsameMod .modal-body").append(cod);
+                                                                            $("#dettEsameMod").modal('show');
+                                                                            clickSalvaModifiche();
+                                                                        }
+                                                                        else
+                                                                            $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    gestErrori("Devi inserire almeno una domanda", null, "#msgAddEsame");
+                                                                }
+                                                            }
+                                                            else {
+                                                                gestErrori("Devi inserire un'ora di scadenza esame successiva a quella attuale", $("#oraFineEsame"), "#msgAddEsame");
+                                                            }
+                                                        }
+                                                        else {
+                                                            gestErrori("Devi inserire una data di scadenza successiva o uguale a quella odierna", $("#dataScadenza"), "#msgAddEsame");
+                                                        }
                                                     }
-                                                    else
-                                                        $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
-                                                });
+                                                    else {
+                                                        gestErrori("Il voto massimo dell'esame deve essere maggiore del voto minimo", $("#maxVoto"), "#msgAddEsame");
+                                                    }
+                                                }
+                                                else {
+                                                    gestErrori("Devi inserire un voto compreso tra 0.01 e 10.00 come voto minimo dell'esame", $("#minVoto"), "#msgAddEsame");
+                                                }
                                             }
                                             else {
-                                                gestErrori("Devi inserire almeno una domanda", null, "#msgAddEsame");
+                                                gestErrori("Devi inserire un numero come voto minimo dell'esame", $("#minVoto"), "#msgAddEsame");
                                             }
                                         }
                                         else {
-                                            gestErrori("Devi inserire un'ora di scadenza esame successiva a quella attuale", $("#oraFineEsame"), "#msgAddEsame");
+                                            gestErrori("Devi inserire un voto compreso tra 0.01 e 10.00 come voto massimo dell'esame", $("#maxVoto"), "#msgAddEsame");
                                         }
                                     }
                                     else {
-                                        gestErrori("Devi inserire una data di scadenza successiva o uguale a quella odierna", $("#dataScadenza"), "#msgAddEsame");
+                                        gestErrori("Devi inserire un numero come voto massimo dell'esame", $("#maxVoto"), "#msgAddEsame");
                                     }
                                 }
                                 else {
@@ -340,8 +384,8 @@ function gestErrori(msg, controllo, target) {
 
 function drawModaleDomande(prov){
     let codHtml = '';
-    codHtml += '<div class="modal fade" style="margin-top: 80px;" id="insNuovaDomanda" tabindex="1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">';
-    codHtml += '<div class="modal-dialog" role="document">';
+    codHtml += '<div class="modal fade" id="insNuovaDomanda" tabindex="1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">';
+    codHtml += '<div class="modal-dialog" style="overflow-y: scroll; max-height:85%; margin-top: 100px; margin-bottom:50px;">';
     codHtml += '<div class="modal-content">';
     codHtml += '<div class="modal-header">';
     codHtml += '<h5 class="modal-title">Inserisci Nuova domanda</h5>';
@@ -382,7 +426,7 @@ function drawModaleDomande(prov){
     $("#tipoDomanda").on("change", function () {
         $("#msgInsDomanda").html("");
         let cod = '';
-        cod += '<div class="col-lg-10 mx-auto">';
+        cod += '<div class="col-sm-10 col-md-10 col-lg-10 mx-auto">';
         cod += '<form>';
         cod += '<div class="input-group form-group">';
         cod += '<div class="input-group-prepend">';
@@ -392,26 +436,34 @@ function drawModaleDomande(prov){
         cod += '<input type="text" id="domanda" name="domanda" placeholder="Domanda" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Domanda\'" required class="single-input">';
         cod += '</div>';
         cod += '</div>';
+        cod += '<div class="input-group form-group">';
+        cod += '<div class="input-group-prepend">';
+        cod += '<span class="input-group-text">';
+        cod += '<i class="fas fa-sort-numeric-up-alt"> </i>';
+        cod += '</span>';
+        cod += '<input type="number" step="0.01" value="0.01" min="0.01" max="10.00" id="punteggioDom" name="punteggioDom" required class="single-input">';
+        cod += '</div>';
+        cod += '</div>';
 
         switch ($("option:selected", this).val()) {
             case "trueFalse":
                 cod += '<div class="form-group">';
                 cod += '<label for="risposta">Risposta:</label>';
                 cod += '<br/>';
-                cod += '<div class="col-lg-4 mx-auto">'
+                cod += '<div class="col-sm-4 col-md-4 col-lg-4 mx-auto">'
                 cod += '<div class="row">'
-                cod += '<div class="col-lg-2">'
+                cod += '<div class="col-sm-2 col-md-2 col-lg-2">'
                 cod += '<input type="radio" value="true" name="risposta">';
                 cod += '</div>';
-                cod += '<div class="col-lg-2">'
+                cod += '<div class="col-sm-2 col-md-2 col-lg-2">'
                 cod += '<span>Vero</span>'
                 cod += '</div>';
                 cod += '</div>';
                 cod += '<div class="row">'
-                cod += '<div class="col-lg-2">'
+                cod += '<div class="col-sm-2 col-md-2 col-lg-2">'
                 cod += '<input type="radio" value="false" name="risposta">';
                 cod += '</div>';
-                cod += '<div class="col-lg-2">'
+                cod += '<div class="col-sm-2 col-md-2 col-lg-2">'
                 cod += '<span>Falso</span>'
                 cod += '</div>';
                 cod += '</div>';
@@ -423,27 +475,27 @@ function drawModaleDomande(prov){
                 cod += '<div class="form-group">';
                 cod += '<label for="numRisp">Scegli il numero di risposte:</label>';
                 cod += '<br/>';
-                cod += '<div class="col-lg-8 mx-auto">';
+                cod += '<div class="col-sm-8 col-md-8 col-lg-8 mx-auto">';
                 cod += '<input type="number" min="2" max="10" id="numRisp" name="numRisp" onkeypress="allowNumbersOnly(event)" maxlength="2" value="2" class="single-input">';
                 cod += '</div>';
                 cod += '</div>';
-                cod += '<div id="contRisposte" class="col-lg-12 mx-auto">';
+                cod += '<div id="contRisposte" class="col-sm-12 col-md-12 col-lg-12 mx-auto">';
                 for (let i = 0; i < 2; i++) {
                     cod += '<div class="row" style="margin-bottom:10px">';
-                    cod += '<div class="col-lg-5" style="margin-top:10px">';
+                    cod += '<div class="col-sm-5 col-md-5 col-lg-5" style="margin-top:10px">';
                     cod += '<span>Risposta ' + (i + 1) + ':</span>';
                     cod += '</div>';
-                    cod += '<div class="col-lg-7">';
+                    cod += '<div class="col-sm-7 col-md-7 col-lg-7">';
                     cod += '<input type="text" id="risp' + (i + 1) + '" name="risposte" required class="single-input">';
                     cod += '</div>';
                     cod += '</div>';
                 }
                 cod += '<div class="row" style="margin-bottom:10px">';
-                cod += '<div class="col-lg-8 mx-auto"><h5>Risposta Corretta</h5></div>';
+                cod += '<div class="col-sm-8 col-md-8 col-lg-8 mx-auto"><h5>Risposta Corretta</h5></div>';
                 cod += '</div>';
                 cod += '<div class="row" style="margin-bottom:10px">';
                 for(let i = 0; i < 2; i++){
-                    cod += '<div class="col-lg-6">';
+                    cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
                     cod += (i+1) + ' <input type="checkbox" id="giusta_' + (i + 1) + '" name="giusta_' + (i + 1) + '" class="single-input">';
                     cod += '</div>';
                 }
@@ -488,20 +540,20 @@ function drawModaleDomande(prov){
                         let nRisp = parseInt($(this).val());
                         for (let i = 0; i < nRisp; i++) {
                             cod += '<div class="row" style="margin-bottom:10px">';
-                            cod += '<div class="col-lg-5" style="margin-top:10px">';
+                            cod += '<div class="col-sm-5 col-md-5 col-lg-5" style="margin-top:10px">';
                             cod += '<span>Risposta ' + (i + 1) + ':</span>';
                             cod += '</div>';
-                            cod += '<div class="col-lg-7">';
+                            cod += '<div class="col-sm-7 col-md-7 col-lg-7">';
                             cod += '<input type="text" id="risp' + (i + 1) + '" name="risposte" required class="single-input">';
                             cod += '</div>';
                             cod += '</div>';
                         }
                         cod += '<div class="row" style="margin-bottom:10px">';
-                        cod += '<div class="col-lg-8 mx-auto"><h5>Risposta Corretta</h5></div>';
+                        cod += '<div class="col-sm-8 col-md-8 col-lg-8 mx-auto"><h5>Risposta Corretta</h5></div>';
                         cod += '</div>';
                         cod += '<div class="row" style="margin-bottom:10px">';
                         for (let i = 0; i < nRisp; i++) {
-                            cod += '<div class="col-lg-' + Math.floor(12/nRisp) + '">';
+                            cod += '<div class="col-sm-' + Math.floor(12 / nRisp) + ' col-md-' + Math.floor(12 / nRisp) + ' col-lg-' + Math.floor(12/nRisp) + '">';
                             cod += (i + 1) + ' <input type="checkbox" id="giusta_' + (i + 1) + '" name="giusta_' + (i + 1) + '" class="single-input">';
                             cod += '</div>';
                         }
@@ -520,18 +572,24 @@ function drawModaleDomande(prov){
         if ($("#tipoDomanda option:selected").val() != undefined) {
             let invia = false;
             let cod = '';
+            let idNewRow = getNewId(prov);
             switch ($("#tipoDomanda option:selected").val()) {
                 case "trueFalse":
                     if ($("#domanda").val().trim() == "")
                         $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                    else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                    else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
                     else if ($("input[name='risposta']:checked").val() == undefined)
                         $("#msgInsDomanda").html("Devi scegliere la risposta alla domanda");
                     else{
-                        cod += '<tr tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
+                        cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                         cod += '<td>' + $("#domanda").val().trim() + '</td>';
+                        cod += '<td>' + parseFloat($("#punteggioDom").val().trim()) + '</td>';
                         cod += '<td>' + ($("input[name='risposta']:checked").val() ? "Vero" : "Falso") + '</td>';
                         cod += '<td>Vero o Falso</td>';
-                        cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + $((prov == "ins" ? "#bdTabDomEsame" : "#bdTabDomEsameMod")).children().length + ', \'ins\')"><i class="fas fa-trash-alt"></i></a></td>';
+                        cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + idNewRow + '\', \'' + prov + '\')"><i class="fas fa-trash-alt"></i></a></td>';
                         cod += '</tr>';
                         invia = true
                     }
@@ -540,6 +598,10 @@ function drawModaleDomande(prov){
                 case "multi":
                     if ($("#domanda").val().trim() == "")
                         $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                    else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                    else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
                     else if ($("#contRisposte input[type='checkbox']:checked").length == 0)
                         $("#msgInsDomanda").html("Devi specificare quali risposte sono quelle giuste");
                     else{
@@ -565,11 +627,12 @@ function drawModaleDomande(prov){
                             
                             invia = true
 
-                            cod += '<tr tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
+                            cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                             cod += '<td>' + $("#domanda").val().trim() + '</td>';
+                            cod += '<td>' + parseFloat($("#punteggioDom").val().trim()) + '</td>';
                             cod += '<td>' + (ris.join(',')) + ' - Giuste: ' + (id.join(',')) + '</td>';
                             cod += '<td>Domanda a Risposta Multipla</td>';
-                            cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + $((prov == "ins" ? "#bdTabDomEsame" : "#bdTabDomEsameMod")).children().length + ', \'ins\')"><i class="fas fa-trash-alt"></i></a></td>';
+                            cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + idNewRow + '\', \'' + prov + '\')"><i class="fas fa-trash-alt"></i></a></td>';
                             cod += '</tr>';
                         }
                     }
@@ -578,14 +641,19 @@ function drawModaleDomande(prov){
                 case "open": // da controllare ?!?!!??!?!
                     if ($("#domanda").val().trim() == "")
                         $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                    else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                    else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
                     else if ($("#risposta").val().trim() == "")
                         $("#msgInsDomanda").html("Devi inserire la risposta alla domanda"); // non so se ha senso fargli mettere la risposta alla domanda aperta ?!?!?!?!
                     else {
-                        cod += '<tr tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
+                        cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                         cod += '<td>' + $("#domanda").val().trim() + '</td>';
+                        cod += '<td>' + parseFloat($("#punteggioDom").val().trim()) + '</td>';
                         cod += '<td>' + $("#risposta").val().trim() + '</td>';
                         cod += '<td>Domanda Aperta</td>';
-                        cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + $((prov == "ins" ? "#bdTabDomEsame" : "#bdTabDomEsameMod")).children().length + ', \'ins\')"><i class="fas fa-trash-alt"></i></a></td>';
+                        cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + idNewRow + '\', \'' + prov + '\')"><i class="fas fa-trash-alt"></i></a></td>';
                         cod += '</tr>';
                         invia = true
                     }
@@ -594,14 +662,19 @@ function drawModaleDomande(prov){
                 case "close":
                     if ($("#domanda").val().trim() == "")
                         $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                    else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                    else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
                     else if ($("#risposta").val().trim() == "")
                         $("#msgInsDomanda").html("Devi inserire la risposta alla domanda");
                     else {
-                        cod += '<tr tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
+                        cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                         cod += '<td>' + $("#domanda").val().trim() + '</td>';
+                        cod += '<td>' + parseFloat($("#punteggioDom").val().trim()) + '</td>';
                         cod += '<td>' + $("#risposta").val().trim() + '</td>';
                         cod += '<td>Domanda Chiusa</td>';
-                        cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + $((prov == "ins" ? "#bdTabDomEsame" : "#bdTabDomEsameMod")).children().length + ', \'ins\')"><i class="fas fa-trash-alt"></i></a></td>';
+                        cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + idNewRow + '\', \'' + prov + '\')"><i class="fas fa-trash-alt"></i></a></td>';
                         cod += '</tr>';
                         invia = true
                     }
@@ -630,26 +703,46 @@ function drawModaleDomande(prov){
     });
 }
 
+function getNewId(prov){ // da testare
+    let domande;
+    let num;
+    if(prov == "ins")
+        domande = $("#bdTabDomEsame").children();
+    else
+        domande = $("#bdTabDomEsameMod").children();
+
+    if(domande.length > 0){
+        let idDati = new Array();
+        for(let i = 0; i < domande.length; i++){
+            idDati.push(parseInt($(domande[i]).attr("id").split('_')[1])); // recupero valori già inseriti
+        }
+        
+        num = Math.floor(Math.random() * 1001);
+        while(!jQuery.inArray(num, idDati))
+           num = Math.floor(Math.random() * 1001);
+    }
+    else
+        num = Math.floor(Math.random() * 1001);
+
+    return num;
+}
+
 function closeModalOnModify(){
     $("#insNuovaDomanda").modal('hide');
     $("#dettEsameMod").modal('show');
 }
 
-function rimuoviDomandaEsame(numDomanda, prov){
-    let bdTab, tabIns;
+function rimuoviDomandaEsame(dom, prov){
+    $("#" + dom).remove();
+    
     if(prov == "ins"){
-        bdTab = "#bdTabDomEsame";
-        tabIns = "#listaDomandeEsame";
+        if ($("#bdTabDomEsame").children().length == 0)
+            $("#listaDomandeEsame").hide();
     }
     else{
-        bdTab = "#bdTabDomEsameMod";
-        tabIns = "#listaDomandeEsameMod";
+        if ($("#bdTabDomEsameMod").children().length == 0)
+            $("#listaDomandeEsameMod").hide();
     }
-
-    let domande = $(bdTab).children();
-    $(domande[numDomanda]).remove();
-    if ($(bdTab).children().length == 0)
-        $(tabIns).hide();
 }
 
 function allowNumbersOnly(e) {
@@ -672,17 +765,17 @@ function modificaEsame(idEsame){
         console.log(dettEsame);
         let cod = "";
         cod += '<div class="row">';
-        cod += '<div class="col-lg-12 text-center container">';
+        cod += '<div class="col-sm-8 col-md-8 col-lg-8 text-center container">';
         cod += '<form>';
         cod += '<div class="form-group row">';
-        cod += '<label for="descrizione" class="col-sm-3 col-form-label">Descrizione Esame</label>';
-        cod += '<div class="col-sm-9">';
+        cod += '<label for="descrizione" class="col-sm-3 col-md-3 col-lg-3 col-form-label">Descrizione Esame</label>';
+        cod += '<div class="col-sm-9 col-md-9 col-lg-9">';
         cod += '<input type="text" class="form-control" name="descrizione" id="descrizione" value="' + dettEsame.descrizione + '" placeholder="Inserisci qui la descrizione dell\'esame...">';
         cod += '</div>';
         cod += '</div>';
         cod += '<div class="form-group row">';
-        cod += '<label for="durataMod" class="col-sm-6 col-form-label">Durata dell\'Esame (hh:mm)</label>';
-        cod += '<div class="col-sm-6">';
+        cod += '<label for="durataMod" class="col-sm-6 col-md-6 col-lg-6 col-form-label">Durata dell\'Esame (hh:mm)</label>';
+        cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
         cod += '<input type="time" id="durataMod" name="durataMod" class="form-control" value="' + calcolaDurata(parseInt(dettEsame.durata)).substring(0,5) + '">'; // non so se va...
         cod += '</div>';
         cod += '</div>';
@@ -696,19 +789,31 @@ function modificaEsame(idEsame){
             d[2] = "0" + d[2];
         let data = d.join('-');
         cod += '<div class="form-group row">';
-        cod += '<label for="dataScadenzaMod" class="col-sm-6 col-form-label">Data di Scadenza di Iscrizione all\'Esame</label>';
-        cod += '<div class="col-sm-6">';
+        cod += '<label for="dataScadenzaMod" class="col-sm-6 col-md-6 col-lg-6 col-form-label">Data di Scadenza di Iscrizione all\'Esame</label>';
+        cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
         cod += '<input type="date" class="form-control" name="dataScadenzaMod" id="dataScadenzaMod" value="' + data + '">';
         cod += '</div>';
         cod += '</div>';
         cod += '<div class="form-group row">';
-        cod += '<label for="oraFineEsameMod" class="col-sm-6 col-form-label">Ora di Scadenza di Iscrizione all\'Esame</label>';
-        cod += '<div class="col-sm-6">';
+        cod += '<label for="oraFineEsameMod" class="col-sm-6 col-md-6 col-lg-6 col-form-label">Ora di Scadenza di Iscrizione all\'Esame</label>';
+        cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
         cod += '<input type="time" id="oraFineEsameMod" name="oraFineEsameMod" class="form-control" value="' + new Date(dettEsame.dataScadenza).toLocaleTimeString().substring(0,5) + '">'; // da controllare
         cod += '</div>';
         cod += '</div>';
+        cod += '<div class="form-group row">';
+        cod += '<label for="maxVoto" class="col-sm-6 col-md-6 col-lg-6 col-form-label">Voto massimo dell\'Esame</label>';
+        cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
+        cod += '<input type="number" step="0.01" min="0.01" max="10.00" id="votoMaxEsame" name="votoMaxEsame" class="form-control" value="' + parseFloat(dettEsame.maxVoto) + '">'
+        cod += '</div>';
+        cod += '</div>';
+        cod += '<div class="form-group row">';
+        cod += '<label for="maxVoto" class="col-sm-6 col-md-6 col-lg-6 col-form-label">Voto minimo dell\'Esame</label>';
+        cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
+        cod += '<input type="number" step="0.01" min="0.01" max="10.00" id="votoMinEsame" name="votoMinEsame" class="form-control" value="' + parseFloat(dettEsame.minVoto) + '">'
+        cod += '</div>';
+        cod += '</div>';
         cod += '<div class="row text-center">';
-        cod += '<div class="col-lg-12 mx-auto">';
+        cod += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto">';
         cod += '<div id="msgModEsame" class="msg"></div>';
         cod += '</div>';
         cod += '</div>';
@@ -718,6 +823,7 @@ function modificaEsame(idEsame){
         cod += '<thead class="thead-inverse">';
         cod += '<tr>';
         cod += '<th>Domanda</th>';
+        cod += '<th>Punteggio</th>';
         cod += '<th>Risposta/e</th>';
         cod += '<th>Tipo Domanda</th>';
         cod += '<th>Azione</th>';
@@ -749,11 +855,12 @@ function modificaEsame(idEsame){
         for(let i = 0; i < dettEsame.domande.length; i++){
             switch(dettEsame.domande[i].tipoDomanda){
                 case "trueFalse":
-                    cod += '<tr tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
+                    cod += '<tr id="dom_' + i + '" tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
                     cod += '<td>' + dettEsame.domande[i].testo + '</td>';
+                    cod += '<td>' + dettEsame.domande[i].punteggio + '</td>';
                     cod += '<td>' + (dettEsame.domande[i].risposte[0].corretta ? dettEsame.domande[i].risposte[0].testo : dettEsame.domande[i].risposte[1].testo) + '</td>';
                     cod += '<td>Vero o Falso</td>';
-                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + i + ', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
+                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + i + '\', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
                     cod += '</tr>';
                     break;
 
@@ -769,29 +876,32 @@ function modificaEsame(idEsame){
                     console.log(risposte);
                     console.log(rispGiuste);
 
-                    cod += '<tr tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
+                    cod += '<tr id="dom_' + i + '" tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
                     cod += '<td>' + dettEsame.domande[i].testo + '</td>';
+                    cod += '<td>' + dettEsame.domande[i].punteggio + '</td>';
                     cod += '<td>' + (risposte.join(',')) + ' - Giuste: ' + (rispGiuste.join(',')) + '</td>';
                     cod += '<td>Domanda a Risposta Multipla</td>';
-                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + i + ', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
+                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + i + '\', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
                     cod += '</tr>';
                     break;
 
                 case "open":
-                    cod += '<tr tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
+                    cod += '<tr id="dom_' + i + '" tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
                     cod += '<td>' + dettEsame.domande[i].testo + '</td>';
+                    cod += '<td>' + dettEsame.domande[i].punteggio + '</td>';
                     cod += '<td>' + dettEsame.domande[i].risposte[0].testo + '</td>';
                     cod += '<td>Domanda Aperta</td>';
-                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + i + ', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
+                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + i + '\', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
                     cod += '</tr>';
                     break;
 
                 case "close":
-                    cod += '<tr tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
+                    cod += '<tr id="dom_' + i + '" tipoDom="' + dettEsame.domande[i].tipoDomanda + '">';
                     cod += '<td>' + dettEsame.domande[i].testo + '</td>';
+                    cod += '<td>' + dettEsame.domande[i].punteggio + '</td>';
                     cod += '<td>' + dettEsame.domande[i].risposte[0].testo + '</td>';
                     cod += '<td>Domanda Chiusa</td>';
-                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(' + i + ', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
+                    cod += '<td><a class="genric-btn danger circle" onclick="rimuoviDomandaEsame(\'dom_' + i + '\', \'mod\')"><i class="fas fa-trash-alt"></i></a></td>';
                     cod += '</tr>';
                     break;
             }
@@ -807,66 +917,95 @@ function clickSalvaModifiche(){
             $("#durataMod").removeClass("alert-danger");
             $("#dataScadenzaMod").removeClass("alert-danger");
             $("#oraFineEsameMod").removeClass("alert-danger");
+            $("#votoMaxEsame").removeClass("alert-danger");
+            $("#votoMinEsame").removeClass("alert-danger");
             $("#msgModEsame").html("");
 
             if ($("#descrizione").val().trim() != "") {
                 if ($("#durataMod").val().trim() != "") {
                     if ($("#dataScadenzaMod").val().trim() != "") {
                         if ($("#oraFineEsameMod").val().trim() != "") {
-                            // controllo su data e ora scadenza esame
-                            let dataLetta = $("#dataScadenzaMod").val();
-                            let ora = $("#oraFineEsameMod").val();
-                            let scadEsame = new Date(dataLetta + "T" + ora);
+                            if (!isNaN($("#votoMaxEsame").val().trim())) {
+                                if (parseFloat($("#votoMaxEsame").val().trim()) >= 0.01 && parseFloat($("#votoMaxEsame").val().trim()) <= 10.00) {
+                                    if (!isNaN($("#votoMinEsame").val().trim())) {
+                                        if (parseFloat($("#votoMinEsame").val().trim()) >= 0.01 && parseFloat($("#votoMinEsame").val().trim()) <= 10.00) {
+                                            if (parseFloat($("#votoMaxEsame").val().trim()) > parseFloat($("#votoMinEsame").val().trim())) {
+                                                // controllo su data e ora scadenza esame
+                                                let dataLetta = $("#dataScadenzaMod").val();
+                                                let ora = $("#oraFineEsameMod").val();
+                                                let scadEsame = new Date(dataLetta + "T" + ora);
 
-                            if ($("#bdTabDomEsameMod").children().length != 0) {
+                                                if ($("#bdTabDomEsameMod").children().length != 0) {
 
-                                let dati = new Object();
-                                dati.idEsame = $("#listaDomandeEsameMod").attr("idEsame");
-                                dati.idCorso = window.location.search.substring(1).split('=')[1];
-                                dati.descrizione = $("#descrizione").val().trim();
-                                dati.durata = $("#durataMod").val().trim();
-                                dati.dataScadenza = scadEsame.toJSON();
-                                let domande = $("#bdTabDomEsameMod").children();
-                                dati.domande = new Array();
+                                                    let dati = new Object();
+                                                    dati.idEsame = $("#listaDomandeEsameMod").attr("idEsame");
+                                                    dati.idCorso = window.location.search.substring(1).split('=')[1];
+                                                    dati.descrizione = $("#descrizione").val().trim();
+                                                    dati.durata = $("#durataMod").val().trim();
+                                                    dati.dataScadenza = scadEsame.toJSON();
+                                                    dati.maxVoto = parseFloat($("#votoMaxEsame").val().trim());
+                                                    dati.minVoto = parseFloat($("#votoMinEsame").val().trim());
+                                                    let domande = $("#bdTabDomEsameMod").children();
+                                                    dati.domande = new Array();
 
-                                for (let i = 0; i < domande.length; i++) {
-                                    let vet = new Array();
-                                    let campi = $(domande[i]).children();
-                                    vet.push($(domande[i]).attr('tipoDom'));
-                                    for (let j = 0; j < campi.length - 2; j++)
-                                        vet.push($(campi[j]).html());
+                                                    for (let i = 0; i < domande.length; i++) {
+                                                        let vet = new Array();
+                                                        let campi = $(domande[i]).children();
+                                                        vet.push($(domande[i]).attr('tipoDom'));
+                                                        for (let j = 0; j < campi.length - 2; j++)
+                                                            vet.push($(campi[j]).html());
 
-                                    dati.domande.push(vet.join(';'));
-                                }
+                                                        dati.domande.push(vet.join(';'));
+                                                    }
 
-                                console.log(dati);
-                                let chkToken = inviaRichiesta('/api/modificaEsame', 'POST', dati);
-                                chkToken.fail(function (jqXHR, test_status, str_error) {
-                                    console.log(jqXHR);
-                                    printErrors(jqXHR, "#msgModEsame");
-                                });
-                                chkToken.done(function (data) {
-                                    if (data == "modEsameOk") {
-                                        $("#dettEsameMod .modal-title").html("Risultato Operazione");
-                                        $("#dettEsameMod .modal-body").children().remove();
-                                        $("#btnSalvaModifiche").show().html("Chiudi");
-                                        $("#btnAnnulla").hide();
+                                                    console.log(dati);
+                                                    let chkToken = inviaRichiesta('/api/modificaEsame', 'POST', dati);
+                                                    chkToken.fail(function (jqXHR, test_status, str_error) {
+                                                        console.log(jqXHR);
+                                                        printErrors(jqXHR, "#msgModEsame");
+                                                    });
+                                                    chkToken.done(function (data) {
+                                                        if (data == "modEsameOk") {
+                                                            $("#dettEsameMod .modal-title").html("Risultato Operazione");
+                                                            $("#dettEsameMod .modal-body").children().remove();
+                                                            $("#btnSalvaModifiche").show().html("Chiudi");
+                                                            $("#btnAnnulla").hide();
 
-                                        let cod = "";
-                                        cod += '<div class="row">';
-                                        cod += '<div class="col-lg-12 text-center">';
-                                        cod += '<p>Esame modificato correttamente</p>';
-                                        cod += '</div>';
-                                        cod += '</div>';
+                                                            let cod = "";
+                                                            cod += '<div class="row">';
+                                                            cod += '<div class="col-sm-12 col-md-12 col-lg-12 text-center">';
+                                                            cod += '<p>Esame modificato correttamente</p>';
+                                                            cod += '</div>';
+                                                            cod += '</div>';
 
-                                        $("#dettEsameMod .modal-body").append(cod);
+                                                            $("#dettEsameMod .modal-body").append(cod);
+                                                        }
+                                                        else
+                                                            $("#msgModEsame").text("Si è verificato un errore durante la modifica dell\'esame. Riprovare");
+                                                    });
+                                                }
+                                                else {
+                                                    gestErrori("Devi inserire almeno una domanda", null, "#msgModEsame");
+                                                }
+                                            }
+                                            else {
+                                                gestErrori("Il voto massimo dell'esame deve essere maggiore del voto minimo", $("#votoMaxEsame"), "#msgModEsame");
+                                            }
+                                        }
+                                        else {
+                                            gestErrori("Devi inserire un voto compreso tra 0.01 e 10.00 come voto minimo dell'esame", $("#votoMinEsame"), "#msgModEsame");
+                                        }
                                     }
-                                    else
-                                        $("#msgModEsame").text("Si è verificato un errore durante la modifica dell\'esame. Riprovare");
-                                });
+                                    else {
+                                        gestErrori("Devi inserire un numero come voto minimo dell'esame", $("#votoMinEsame"), "#msgModEsame");
+                                    }
+                                }
+                                else {
+                                    gestErrori("Devi inserire un voto compreso tra 0.01 e 10.00 come voto massimo dell'esame", $("#votoMaxEsame"), "#msgModEsame");
+                                }
                             }
                             else {
-                                gestErrori("Devi inserire almeno una domanda", null, "#msgModEsame");
+                                gestErrori("Devi inserire un numero come voto massimo dell'esame", $("#votoMaxEsame"), "#msgModEsame");
                             }
                         }
                         else {
@@ -899,7 +1038,7 @@ function clickSalvaModifiche(){
 
                     let cod = "";
                     cod += '<div class="row">';
-                    cod += '<div class="col-lg-12 text-center">';
+                    cod += '<div class="col-sm-12 col-md-12 col-lg-12 text-center">';
                     cod += '<p>Esame rimosso correttamente</p>';
                     cod += '</div>';
                     cod += '</div>';
@@ -928,7 +1067,7 @@ function rimuoviEsame(idEsame){
 
     let cod = "";
     cod += '<div class="row">';
-    cod += '<div class="col-lg-12 text-center">';
+    cod += '<div class="col-sm-12 col-md-12 col-lg-12 text-center">';
     cod += '<p>Sei sicuro di voler rimuovere l\'esame? Tutti i dati ad esso collegati verranno rimossi</p>';
     cod += '<div id="msgRimEsame" idEsame="' + idEsame + '" class="msg"></div>';
     cod += '</div>';

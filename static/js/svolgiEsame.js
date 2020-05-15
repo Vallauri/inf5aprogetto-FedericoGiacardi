@@ -1,7 +1,11 @@
 "use strict";
 let codUt = -1;
 let idEsame = -1;
+let idCorso = -1;
 let numDomande = -1;
+let tipoDom = "";
+let timer;
+let start = 0;
 
 $(document).ready(function () {
     if (window.opener != null && window.opener.location.href.substring(23, 45) == "svolgimentoEsame.html?"){
@@ -36,6 +40,7 @@ function loadPagina() {
             let cod = '';
             numDomande = data.numDomande;
             idEsame = par[1];
+            idCorso = data.codModulo;
 
             cod += '<div class="col-sm-3 col-md-3 col-lg-3 elDomande">';
             cod += '<div class="row">';
@@ -52,9 +57,9 @@ function loadPagina() {
                 
                 cod += '<div class="col-sm-3 col-md-3 col-lg-3">';
                 if(i == 0)
-                    cod += '<div><button class="btnDomanda btnDomandaSelected" onclick="getDomanda(' + i + ')">' + (i + 1) + '</button></div>';
+                    cod += '<div><button class="btnDomanda btnDomandaSelected" onclick="getDomanda(' + i + ', \'exec\')">' + (i + 1) + '</button></div>';
                 else
-                    cod += '<div><button class="btnDomanda" onclick="getDomanda(' + i + ')">' + (i + 1) + '</button></div>';
+                    cod += '<div><button class="btnDomanda" onclick="getDomanda(' + i + ', \'exec\')">' + (i + 1) + '</button></div>';
                 cod += '</div>';
                 
                 if((i+1) % 4 == 0){
@@ -72,16 +77,26 @@ function loadPagina() {
 
             cod += '</div>';
             cod += '</div>';
+            cod += '<div class="row">';
+            cod += '<div class="col-sm-6 col-md-6 col-lg-6 mx-auto">';
+            cod += '<div class="timer" id="timer"></div>'
+            cod += '</div>';
+            cod += '</div>';
+            cod += '<div class="row">';
+            cod += '<div style="margin-top:10px" class="col-sm-10 col-md-10 col-lg-10 mx-auto">';
+            cod += '<button class="genric-btn success radius" id="btnTerminaEsame" onclick="confFineEsame()">Termina Esame</button>';
+            cod += '</div>';
+            cod += '</div>';
             cod += '</div>';
             
             cod += '<div class="col-sm-9 col-md-9 col-lg-9 descDomanda">';
             cod += '<div class="row">';
             cod += '<div class="col-sm-6 col-md-6 col-lg-6">';
-            cod += '<h5 id="testoDomanda"></h5>';
+            cod += '<h5 style="margin-left:10px" id="testoDomanda"></h5>';
             cod += '</div>';
             cod += '</div>';
             cod += '<div class="row">';
-            cod += '<div id="risposteDomanda" class="col-sm-12 col-md-12 col-lg-12">';
+            cod += '<div id="risposteDomanda" style="padding:5px" class="col-sm-8 col-md-8 col-lg-8">';
             cod += '</div>';
             cod += '</div>';
             cod += '<div class="row">';
@@ -98,23 +113,53 @@ function loadPagina() {
 
             $("#contDomande").html(cod);
 
-            // questo va fatto al cambio domanda
-            let domande = inviaRichiesta('/api/getDomandaEsame', 'POST', {"idEsame" : idEsame, "pos" : 0});
-            domande.fail(function (jqXHR, test_status, str_error) {
-                console.log(jqXHR);
-                printErrors(jqXHR, "#msgGenEsame");
-            });
-            domande.done(function (data) {
-                console.log(data);
-                caricamentoDomandaEsame(data);
-                //chkModeratore(parseInt(par[1]));
-            });
+            if (sessionStorage.getItem("pos") != null)
+                getDomanda(parseInt(sessionStorage.getItem("pos")), "load");
+            else
+                getDomanda(0, "load");
+
+            start = data.durata;
+            if (sessionStorage.getItem("timer") != null)
+                start = parseInt(sessionStorage.getItem("timer"));
+
+            timer = setInterval(function(){
+                $("#timer").html(calcolaDurata(start));
+                
+                start--;
+                sessionStorage.setItem("timer", start);
+
+                if (start < 0) {
+                    clearInterval(timer);
+                    $("#timer").html("Tempo scaduto");
+                    $("#dettEsame .modal-title").html("Tempo Scaduto");
+                    $("#dettEsame .modal-body").children().remove();
+                    $("#btnSalvaModifiche").show().html("Consegna");
+                    $("#btnAnnulla").hide();
+
+                    let cod = "";
+                    cod += '<div class="row">';
+                    cod += '<div class="col-lg-12 text-center">';
+                    cod += '<p>Il tempo è scaduto. È l\'ora di consegnare</p>';
+                    cod += '</div>';
+                    cod += '</div>';
+
+                    $("#dettEsame .modal-body").append(cod);
+                    $("#dettEsame").modal('show');
+                    clickSalvaModifiche();
+                    $("#dettEsame").on("hidden.bs.modal", function () {
+                        if ($("#btnSalvaModifiche").html() == "Consegna")
+                            fineEsame();
+                    });
+                    // fineEsame(); funzione per concludere esame (prima mettere alert con modal del tipo "è ora di consegnare")
+                }
+            }, 1000);
+
         });
     }
     else{
         $("#dettEsame .modal-title").html("Errore");
         $("#dettEsame .modal-body").children().remove();
-        $("#btnSalvaModifiche").show().html("Torna Indietro");
+        $("#btnSalvaModifiche").show().html("Chiudi");
         $("#btnAnnulla").hide();
 
         let cod = "";
@@ -130,7 +175,11 @@ function loadPagina() {
     }
 }
 
-function getDomanda(posDomanda){
+function getDomanda(posDomanda, when){
+    if(when != "load")
+        salvaRisposta();
+
+    sessionStorage.setItem("pos", posDomanda);
     $("#numDomanda").html("Domanda n. " + (posDomanda + 1));
     $(".btnDomandaSelected").removeClass("btnDomandaSelected");
     $($("#elencoDomande button")[posDomanda]).addClass("btnDomandaSelected");
@@ -145,6 +194,7 @@ function getDomanda(posDomanda){
     else if (posDomanda == numDomande - 1)
         $("#btnSuccDom").removeClass("success").addClass("disable");
 
+
     let domande = inviaRichiesta('/api/getDomandaEsame', 'POST', { "idEsame": idEsame, "pos": posDomanda });
     domande.fail(function (jqXHR, test_status, str_error) {
         console.log(jqXHR);
@@ -153,107 +203,133 @@ function getDomanda(posDomanda){
     domande.done(function (data) {
         console.log(data);
         caricamentoDomandaEsame(data);
-        //chkModeratore(parseInt(par[1])); 
-        // manca che al reload della pagina non mi deve ritornare alla prima domanda ma a quella a cui sono rimasto (o non permetto reload pagina)
-        // poi devo fare il salvataggio di una domanda appena l'utente la inserisce (potrei fare con sessionStorage) e manca il calcolo del risultato (più salvataggio esito su DB)
+
+        let risp = sessionStorage.getItem("rispDomanda_" + (posDomanda + 1));
+        if(risp != null){
+            switch(tipoDom){
+                case "trueFalse":
+                    if(risp == "true")
+                        $($("#risposteDomanda input[type='radio']")[0]).prop("checked", "checked");
+                    else if(risp == "false")
+                        $($("#risposteDomanda input[type='radio']")[1]).prop("checked", "checked");
+                    break;
+
+                case "multi":
+                    if(risp != ""){
+                        let inputField = "";
+                        if ($("#risposteDomanda input[type='checkbox']").length != 0)
+                            inputField = "checkbox";
+                        else
+                            inputField = "radio";
+
+                        let rispCheck = risp.split(';');
+                        for(let i = 0; i < rispCheck.length; i++)
+                            $($("#risposteDomanda input[type='" + inputField + "']")[rispCheck[i]]).prop("checked", "checked");
+                    }
+                    break;
+
+                case "open":
+                    $("#risposta").val(risp);
+                    break;
+
+                case "close":
+                    $("#risposta").val(risp);
+                    break;
+            }
+        }
     });
 }
 
 function precDomanda(){
     let posDom = parseInt($("#numDomanda").html().split(' ')[2])-1;
     if (posDom > 0)
-        getDomanda(--posDom);
+        getDomanda(--posDom, "exec");
 }
 
 function succDomanda(){
     let posDom = parseInt($("#numDomanda").html().split(' ')[2])-1;
     if (posDom < numDomande-1)
-        getDomanda(++posDom);
+        getDomanda(++posDom, "exec");
 }
 
-function caricamentoDomandaEsame(esame) {
-    if (esame != "domandaNonEsiste"){
+function caricamentoDomandaEsame(domanda) {
+    if (domanda != "domandaNonEsiste"){
         $("#risposteDomanda").html("");
-        $("#testoDomanda").html(esame.testo);
+        $("#testoDomanda").html(domanda.testo);
         let cod = '';
         cod += '<form>';
+        tipoDom = domanda.tipoDomanda;
 
-        switch (esame.tipoDomanda) {
+        switch (tipoDom) {
             case "trueFalse":
-                cod += '<div class="form-group">';
-                cod += '<label for="risposta">Risposta:</label>';
-                cod += '<br/>';
-                cod += '<div class="col-lg-4 mx-auto">'
-                cod += '<div class="row">'
+                cod += '<div class="row" style="margin-bottom:10px">';
                 cod += '<div class="col-lg-2">'
+                cod += '</div>';
+                cod += '<div class="col-lg-8">'
                 cod += '<input type="radio" value="true" name="risposta">';
+                cod += '<span style="margin-left:10px">Vero</span>'
                 cod += '</div>';
                 cod += '<div class="col-lg-2">'
-                cod += '<span>Vero</span>'
                 cod += '</div>';
                 cod += '</div>';
-                cod += '<div class="row">'
+                cod += '<div class="row" style="margin-bottom:10px">';
                 cod += '<div class="col-lg-2">'
+                cod += '</div>';
+                cod += '<div class="col-lg-8">'
                 cod += '<input type="radio" value="false" name="risposta">';
+                cod += '<span style="margin-left:10px">Falso</span>'
                 cod += '</div>';
                 cod += '<div class="col-lg-2">'
-                cod += '<span>Falso</span>'
-                cod += '</div>';
-                cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
                 break;
 
-            case "multi": // da finire
-                /*cod += '<div class="form-group">';
-                cod += '<label for="numRisp">Scegli il numero di risposte:</label>';
-                cod += '<br/>';
-                cod += '<div class="col-lg-8 mx-auto">';
-                cod += '<input type="number" min="2" max="10" id="numRisp" name="numRisp" onkeypress="allowNumbersOnly(event)" maxlength="2" value="2" class="single-input">';
-                cod += '</div>';
-                cod += '</div>';
-                cod += '<div id="contRisposte" class="col-lg-12 mx-auto">';
-                for (let i = 0; i < 2; i++) {
+            case "multi":
+                let nRispGiuste = 0;
+                for(let i = 0; i < domanda.risposte.length; i++)
+                    if(domanda.risposte[i].corretta)
+                        nRispGiuste++;
+                
+                let tipoInput = "";
+                if(nRispGiuste == 1)
+                    tipoInput = "radio";
+                else
+                    tipoInput = "checkbox";
+
+                for (let i = 0; i < domanda.risposte.length; i++) {
                     cod += '<div class="row" style="margin-bottom:10px">';
-                    cod += '<div class="col-lg-5" style="margin-top:10px">';
-                    cod += '<span>Risposta ' + (i + 1) + ':</span>';
+                    cod += '<div class="col-lg-2">';
                     cod += '</div>';
-                    cod += '<div class="col-lg-7">';
-                    cod += '<input type="text" id="risp' + (i + 1) + '" name="risposte" required class="single-input">';
+                    cod += '<div class="col-lg-8">';
+                    cod += '<input type="' + tipoInput + '" name="risposte" value="' + i + '">';
+                    cod += '<span style="margin-left:10px">' + domanda.risposte[i].testo + '</span>';
                     cod += '</div>';
+                    cod += '<div class="col-lg-2">';
                     cod += '</div>';
-                }
-                cod += '<div class="row" style="margin-bottom:10px">';
-                cod += '<div class="col-lg-8 mx-auto"><h5>Risposta Corretta</h5></div>';
-                cod += '</div>';
-                cod += '<div class="row" style="margin-bottom:10px">';
-                for (let i = 0; i < 2; i++) {
-                    cod += '<div class="col-lg-6">';
-                    cod += (i + 1) + ' <input type="checkbox" id="giusta_' + (i + 1) + '" name="giusta_' + (i + 1) + '" class="single-input">';
                     cod += '</div>';
                 }
-                cod += '</div>';
-                cod += '</div>';*/
                 break;
 
-            case "open": // da controllare ?!?!!??!?!
-                cod += '<div class="input-group form-group">';
-                cod += '<div class="input-group-prepend">';
-                cod += '<span class="input-group-text">';
-                cod += '<i class="fas fa-user-circle"> </i>';
-                cod += '</span>';
-                cod += '<input type="textarea" id="risposta" name="risposta" placeholder="Inserisci qui la risposta" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Inserisci qui la risposta\'" required class="single-input">';
+            case "open":
+                cod += '<div class="row" style="margin-bottom:10px">';
+                cod += '<div class="col-lg-2">';
+                cod += '</div>';
+                cod += '<div class="col-lg-8">';
+                cod += '<input type="textarea" id="risposta" name="risposta" placeholder="Inserisci qui la risposta" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Inserisci qui la risposta\'" class="single-input">';
+                cod += '</div>';
+                cod += '<div class="col-lg-2">';
                 cod += '</div>';
                 cod += '</div>';
                 break;
 
             case "close":
-                cod += '<div class="input-group form-group">';
-                cod += '<div class="input-group-prepend">';
-                cod += '<span class="input-group-text">';
-                cod += '<i class="fas fa-user-circle"> </i>';
-                cod += '</span>';
-                cod += '<input type="textarea" id="risposta" name="risposta" placeholder="Inserisci qui la risposta" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Inserisci qui la risposta\'" required class="single-input">';
+                cod += '<div class="row" style="margin-bottom:10px">';
+                cod += '<div class="col-lg-2">';
+                cod += '</div>';
+                cod += '<div class="col-lg-8">';
+                cod += '<input type="textarea" id="risposta" name="risposta" placeholder="Inserisci qui la risposta" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Inserisci qui la risposta\'" class="single-input">';
+                cod += '</div>';
+                cod += '<div class="col-lg-2">';
                 cod += '</div>';
                 cod += '</div>';
                 break;
@@ -267,368 +343,197 @@ function caricamentoDomandaEsame(esame) {
     }
 }
 
+function salvaRisposta() {
+    let posDom = parseInt($("#numDomanda").html().split(' ')[2]);
+    let risp = "";
+
+    switch(tipoDom){
+        case "trueFalse":
+            if ($("#risposteDomanda input[type='radio']:checked").length != 0)    
+                risp = $("#risposteDomanda input[type='radio']:checked").val();
+            break;
+        case "multi":
+            if ($("#risposteDomanda input[type='checkbox']:checked").length != 0){
+                let rispo = new Array();
+                for (let i = 0; i < $("#risposteDomanda input[type='checkbox']:checked").length; i++)
+                    rispo.push($($("#risposteDomanda input[type='checkbox']:checked")[i]).val());
+                risp = rispo.join(';');
+            }
+            else if ($("#risposteDomanda input[type='radio']:checked").length != 0) {
+                risp = $("#risposteDomanda input[type='radio']:checked").val();
+            }
+            break;
+
+        case "open":
+            risp = $("#risposta").val();
+            break;
+
+        case "close":
+            risp = $("#risposta").val();
+            break;
+    }
+
+    sessionStorage.setItem("rispDomanda_" + posDom, risp);
+}
+
 function calcolaDurata(s){
     let measuredTime = new Date(null);
     measuredTime.setSeconds(s); 
     return measuredTime.toISOString().substr(11, 8);
 }
 
-function eseguiEsame(idEsame){
-    // parte per finestra esame
-    let myWin = window.open("https://localhost:8888/svolgiEsame.html?esame=" + idEsame, "windowTakeExam", "width=" + screen.width + ",height=" + screen.height + ",menubar=no,scrollbars=yes,status=no,toolbar=no,titlebar=no");
-    myWin.document.write(myWin.opener.location.href);
+function confFineEsame(){
+    $("#dettEsame .modal-title").html("Fine Esame");
+    $("#dettEsame .modal-body").children().remove();
+    $("#btnSalvaModifiche").show().html("Concludi Tentativo");
+
+    let cod = "";
+    cod += '<div class="row">';
+    cod += '<div class="col-lg-12 text-center">';
+    cod += '<p>Sei sicuro di voler terminare il tentativo?</p>';
+    cod += '</div>';
+    cod += '</div>';
+
+    $("#dettEsame .modal-body").append(cod);
+    $("#dettEsame").modal('show');
+    clickSalvaModifiche();
 }
 
-function chkModeratore(idCorso) {
-    let chkToken = inviaRichiesta('/api/chkModCorso', 'POST', { "idCorso": idCorso });
-    chkToken.fail(function (jqXHR, test_status, str_error) {
+function fineEsame(){
+    console.log("Fine Esame");
+    clearInterval(timer);
+    salvaRisposta();
+
+    let risposte = new Array();
+    for(let i = 1; i <=  numDomande; i++)
+        risposte.push(sessionStorage.getItem("rispDomanda_" + i));
+
+    console.log(risposte);
+
+    let domande = inviaRichiesta('/api/getDomandeCorrezioneEsame', 'POST', { "idEsame": idEsame });
+    domande.fail(function (jqXHR, test_status, str_error) {
         console.log(jqXHR);
         printErrors(jqXHR, "#msgGenEsame");
     });
-    chkToken.done(function (data) {
-        let codHtml = "";
-        esamiPerTabella.forEach(esame => {
-            codHtml += '<tr>';
-            codHtml += '<td scope="row">' + esame.descrizione + '</td>';
-            codHtml += '<td>' + new Date(esame.dataCreazione).toLocaleDateString() + '</td>';
-            codHtml += '<td>' + new Date(esame.dataScadenza).toLocaleDateString() + ' - ' + new Date(esame.dataScadenza).toLocaleTimeString().substring(0,5) + '</td>';
-            codHtml += '<td>' + esame.numDomande + '</td>';
-            codHtml += '<td>' + calcolaDurata(parseInt(esame.durata)) + '</td>';
-            codHtml += '<td>' + (new Date(esame.dataScadenza) >= new Date() ? "In corso" : "Terminato") + '</td>';
-            codHtml += '<td>';
-            codHtml += (new Date(esame.dataScadenza) >= new Date() ? '<button class="genric-btn info circle" onclick="vaiAEsame(' + esame._id + ')"><i class="fas fa-arrow-right"></i></button>' : '');
-            if (data.ris == "autore") {
-                codHtml += '<button class="genric-btn info circle" data-toggle="modal" data-target="#dettEsame" onclick="modificaEsame(' + esame._id + ')"><i class="fas fa-edit"></i></button>';
-                codHtml += '<button class="genric-btn danger circle" data-toggle="modal" data-target="#dettEsame" onclick="rimuoviEsame(' + esame._id + ')"><i class="fas fa-trash-alt"></i></button>';
+    domande.done(function (elDom) {
+        console.log(elDom);
+        let voto = 0;
+        for(let i = 0; i < elDom.length; i++){
+            let corretta = false;
+            let risp = risposte[i];
+            switch(elDom[i].tipoDomanda){
+                case "trueFalse":
+                    if(risp == "true"){
+                        if(elDom[i].risposte[0].corretta)
+                            corretta = true;
+                    }
+                    else if(risp == "false"){
+                        if (elDom[i].risposte[1].corretta)
+                            corretta = true;
+                    }
+                    break;
+
+                case "multi":
+                    if(risp != ""){
+                        let numRispGiusteDom = 0;
+                        let contRispDateGiuste = 0;
+                        for(let j = 0; j < elDom[i].risposte.length; j++){
+                            if (elDom[i].risposte[j].corretta)
+                                numRispGiusteDom++;
+                        }
+
+                        if(numRispGiusteDom == 1){
+                            // risposta singola giusta
+                            if (elDom[i].risposte[parseInt(risp)].corretta)
+                                corretta = true;
+                        }
+                        else if(numRispGiusteDom > 1){
+                            // risposta multipla giusta
+                            let rs = risp.split(';');
+                            
+                            // conto il numero di risposte inserite giuste
+                            rs.forEach(risposta => {
+                                if (elDom[i].risposte[parseInt(risposta)].corretta)
+                                    contRispDateGiuste++;
+                            });
+
+                            if(contRispDateGiuste == numRispGiusteDom){
+                                corretta = true; // tutte le risposte inserite sono giuste
+                            }
+                            else{
+                                // non tutte le risposte date sono giuste
+                                voto += (parseFloat(elDom[i].punteggio) / elDom[i].risposte.length * contRispDateGiuste); // aggiungo il corrispondente di quelle giuste
+                                voto -= (parseFloat(elDom[i].punteggio) / elDom[i].risposte.length * (rs.length-contRispDateGiuste)); // rimuovo il corrispondente di quelle sbagliate
+                                // Ad esempio se le domande totali sono 5 e solo 2 sono giuste, come risposte l'utente mette tutte e 5:
+                                // io aggiungo al voto le 2 giuste (perché non ha inserito il numero giusto di risposte (+ o -))
+                                // però poi tolgo il valore delle 3 sbagliate 
+                            }
+                        }
+                    }
+                    break;
+
+                case "open":
+                    if(risp.toUpperCase() == elDom[i].risposte[0].testo.toUpperCase())
+                        corretta = true;
+                    break;
+
+                case "close":
+                    if (risp.toUpperCase() == elDom[i].risposte[0].testo.toUpperCase())
+                        corretta = true;
+                    break;
             }
-            codHtml += '</td>';
-            codHtml += '</tr>';
-        });
-        $("#bodyTabEsame").html(codHtml);
-        esamiPerTabella = [];
 
-        if (data.ris == "autore") {
-            // devo mettere anche la parte per l'inserimento di un nuovo esame
-            codHtml = "";
-            codHtml += '<div class="col-md-12 col-lg-12 mx-auto text-center">';
-            codHtml += '<h4 class="title_top">Nuovo Esame</h4>';
-            codHtml += '<div class="row">';
-            codHtml += '<div class="col-sm-9 col-md-7 col-lg-5 mx-auto">';
-            codHtml += '<div class="card card-signin my-5">';
-            codHtml += '<div class="card-body">';
-            codHtml += '<form id="formInsEsame" class="form-contact">';
-            codHtml += '<div class="row">';
-            codHtml += '<div class="col-sm-8 col-md-8 col-lg-6 mx-auto">';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="fas fa-user-circle"> </i>';
-            codHtml += '</span>';
-            codHtml += '<input type="text" id="descEsame" name="descEsame" placeholder="Descrizione" onfocus="this.placeholder = \'\'; this.classList.remove(\'alert-danger\');" onblur="this.placeholder = \'Descrizione\'" required class="single-input">';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="far fa-clock"></i>';
-            codHtml += '</span>';
-            codHtml += '<input type="time" id="durata" name="durata" aria-describedby="helpDur" required class="single-input">'; // se trovo il modo faccio selezionare anche i secondi, se no va beh
-            codHtml += '<small id="helpDur" class="form-text text-muted">Durata (hh:mm)</small>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="fas fa-hourglass-end"></i>';
-            codHtml += '</span>';
-            codHtml += '<input type="date" id="dataScadenza" name="dataScadenza" aria-describedby="helpScad" required class="single-input">';
-            codHtml += '<small id="helpScad" class="form-text text-muted">Data Scadenza Esame</small>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<span class="input-group-text">';
-            codHtml += '<i class="far fa-clock"></i>';
-            codHtml += '</span>';
-            codHtml += '<input type="time" id="oraFineEsame" name="oraFineEsame" aria-describedby="helpScadTime" required class="single-input">';
-            codHtml += '<small id="helpScadTime" class="form-text text-muted">Ora Scadenza Esame</small>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="input-group form-group">';
-            codHtml += '<div class="input-group-prepend">';
-            codHtml += '<a class="genric-btn info circle btn-block" data-toggle="modal" data-target="#insNuovaDomanda" style="margin:2px; color: #fff!important;" id="btnAddDomanda">Aggiungi Domanda</a>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="row text-center">';
-            codHtml += '<div class="col-lg-12 mx-auto">';
-            codHtml += '<div id="msgAddEsame" class="msg"></div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="row">'
-            codHtml += '<div id="listaDomandeEsame" class="col-sm-12 col-md-12 col-lg-12 col-xs-12 mx-auto table-responsive">';
-            codHtml += '<table class="table table-hover table-striped table-bordered">';
-            codHtml += '<thead class="thead-inverse">';
-            codHtml += '<tr>';
-            codHtml += '<th>Domanda</th>';
-            codHtml += '<th>Risposta/e</th>';
-            codHtml += '<th>Tipo Domanda</th>';
-            codHtml += '<th>Azione</th>';
-            codHtml += '</tr>';
-            codHtml += '</thead>';
-            codHtml += '<tbody id="bdTabDomEsame">';
-            codHtml += '</tbody>';
-            codHtml += '</table>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '<div class="row">'
-            codHtml += '<div class="col-sm-6 col-md-12 col-lg-6 mx-auto">';
-            codHtml += '<div class="form-group">';
-            codHtml += '<a id="btnInsEsame" class="genric-btn primary circle btn-block" style="color: #fff!important;">Invia</a>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</form>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            codHtml += '</div>';
-            $("#contDomande").append(codHtml);
-            $("#listaDomandeEsame").hide();
-
-            $("#btnAddDomanda").on("click", function () {
-                drawModaleDomande("ins");
-            });
-            
-            $("#btnInsEsame").on("click", function () {
-                $("#descEsame").removeClass("alert-danger");
-                $("#durata").removeClass("alert-danger");
-                $("#dataScadenza").removeClass("alert-danger");
-                $("#oraFineEsame").removeClass("alert-danger");
-                $("#msgAddEsame").html("");
-
-                if ($("#descEsame").val().trim() != ""){
-                    if ($("#durata").val().trim() != ""){
-                        if ($("#dataScadenza").val().trim() != ""){
-                            if ($("#oraFineEsame").val().trim() != ""){
-                                // controllo su data e ora scadenza esame
-                                let dataLetta = $("#dataScadenza").val();
-                                let ora = $("#oraFineEsame").val();
-                                let scadEsame = new Date(dataLetta + "T" + ora);
-
-                                // controllo data > o = a quella odierna
-                                if (new Date(dataLetta) >= new Date(new Date().toISOString().split('T')[0])) {// controllo le singole date, confronto la data inserita con quella attuale con time 0 (altrimenti mi dava problemi)
-                                    // c'è un momento in cui non va, non ho ancora capito quando (ad esempio modifico esame verso le 10 di sera e metto data di scadenza il giorno dopo a mezzanotte (?) e non va)
-                                    // controllo ora successiva a quella attuale ( + durata esame oppure no ?)
-                                    if(scadEsame > new Date()){
-                                        if ($("#bdTabDomEsame").children().length != 0) {
-
-                                            let dati = new Object();
-                                            dati.idCorso = idCorso;
-                                            dati.descrizione = $("#descEsame").val().trim();
-                                            dati.durata = $("#durata").val().trim();
-                                            dati.dataScadenza = scadEsame.toJSON();
-                                            let domande = $("#bdTabDomEsame").children();
-                                            dati.domande = new Array();
-
-                                            for (let i = 0; i < domande.length; i++) {
-                                                let vet = new Array();
-                                                let campi = $(domande[i]).children();
-                                                vet.push($(domande[i]).attr('tipoDom'));
-                                                for (let j = 0; j < campi.length - 2; j++)
-                                                    vet.push($(campi[j]).html());
-
-                                                dati.domande.push(vet.join(';'));
-                                            }
-
-                                            console.log(dati);
-                                            let chkToken = inviaRichiesta('/api/aggiungiEsame', 'POST', dati);
-                                            chkToken.fail(function (jqXHR, test_status, str_error) {
-                                                console.log(jqXHR);
-                                                printErrors(jqXHR, "#msgAddEsame");
-                                            });
-                                            chkToken.done(function (data) {
-                                                if (data == "aggEsameOk") {
-                                                    $("#dettEsame .modal-title").html("Risultato Operazione");
-                                                    $("#dettEsame .modal-body").children().remove();
-                                                    $("#btnSalvaModifiche").show().html("Chiudi");
-                                                    $("#btnAnnulla").hide();
-
-                                                    let cod = "";
-                                                    cod += '<div class="row">';
-                                                    cod += '<div class="col-lg-12 text-center">';
-                                                    cod += '<p>Esame inserito con successo</p>';
-                                                    cod += '</div>';
-                                                    cod += '</div>';
-
-                                                    $("#dettEsame .modal-body").append(cod);
-                                                    $("#dettEsame").modal('show');
-                                                    clickSalvaModifiche();
-                                                }
-                                                else
-                                                    $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
-                                            });
-                                        }
-                                        else {
-                                            gestErrori("Devi inserire almeno una domanda", null, "#msgAddEsame");
-                                        }
-                                    }
-                                    else {
-                                        gestErrori("Devi inserire un'ora di scadenza esame successiva a quella attuale", $("#oraFineEsame"), "#msgAddEsame");
-                                    }
-                                }
-                                else {
-                                    gestErrori("Devi inserire una data di scadenza successiva o uguale a quella odierna", $("#dataScadenza"), "#msgAddEsame");
-                                }
-                            }
-                            else {
-                                gestErrori("Devi inserire l'ora di scadenza dell'esame", $("#oraFineEsame"), "#msgAddEsame");
-                            }
-                        }
-                        else {
-                            gestErrori("Devi inserire la data di scadenza dell'esame", $("#dataScadenza"), "#msgAddEsame");
-                        }
-                    }
-                    else{
-                        gestErrori("Devi inserire la durata dell'esame", $("#durata"), "#msgAddEsame");
-                    }
-                }
-                else{
-                    gestErrori("Devi inserire la descrizione dell'esame", $("#descEsame"), "#msgAddEsame");
-                }
-            });
+            if(corretta)
+                voto += parseFloat(elDom[i].punteggio);
         }
+        
+        let datiRisultatoEsame = new Object();
+        datiRisultatoEsame.idEsame = idEsame;
+        datiRisultatoEsame.idCorso = idCorso;
+        datiRisultatoEsame.voto = voto;
+        datiRisultatoEsame.dataEsame = new Date();
+        datiRisultatoEsame.risposte = risposte;
+
+        let getMaxMin = inviaRichiesta('/api/getMaxMinVotoEsame', 'POST', {"idEsame" : idEsame});
+        getMaxMin.fail(function (jqXHR, test_status, str_error) {
+            console.log(jqXHR);
+            printErrors(jqXHR, "#msgGenEsame");
+        });
+        getMaxMin.done(function (data) {
+            let maxVotoPoss = parseFloat(data.split('-')[0]);
+            let minVotoPoss = parseFloat(data.split('-')[1]);
+
+            if (datiRisultatoEsame.voto < minVotoPoss)
+                datiRisultatoEsame.voto = minVotoPoss;
+            else if(datiRisultatoEsame.voto > maxVotoPoss)
+                datiRisultatoEsame.voto = maxVotoPoss;
+            
+            let salvaRisultati = inviaRichiesta('/api/salvaRisultatoEsame', 'POST', datiRisultatoEsame);
+            salvaRisultati.fail(function (jqXHR, test_status, str_error) {
+                console.log(jqXHR);
+                printErrors(jqXHR, "#msgGenEsame");
+            });
+            salvaRisultati.done(function (data) {
+                if (data == "salRisOk") {
+                    window.opener.location.href = window.opener.location.href;
+                    close();
+                }
+            });
+        });
     });
-}
-
-function closeModalOnModify(){
-    $("#insNuovaDomanda").modal('hide');
-    $("#dettEsame").modal('show');
-}
-
-function allowNumbersOnly(e) {
-    var code = (e.which) ? e.which : e.keyCode;
-    if (code > 31 && (code < 48 || code > 57)) {
-        e.preventDefault();
-    }
+    // da qui devo fare calcolo risultato, salvataggio voto e salvataggio risposte date
 }
 
 function clickSalvaModifiche(){
     $("#btnSalvaModifiche").on("click", function () {
-        if ($(this).html() == "Salva Modifiche") {
-            $("#descrizione").removeClass("alert-danger");
-            $("#durataMod").removeClass("alert-danger");
-            $("#dataScadenzaMod").removeClass("alert-danger");
-            $("#oraFineEsameMod").removeClass("alert-danger");
-            $("#msgModEsame").html("");
-
-            if ($("#descrizione").val().trim() != "") {
-                if ($("#durataMod").val().trim() != "") {
-                    if ($("#dataScadenzaMod").val().trim() != "") {
-                        if ($("#oraFineEsameMod").val().trim() != "") {
-                            // controllo su data e ora scadenza esame
-                            let dataLetta = $("#dataScadenzaMod").val();
-                            let ora = $("#oraFineEsameMod").val();
-                            let scadEsame = new Date(dataLetta + "T" + ora);
-
-                            if ($("#bdTabDomEsameMod").children().length != 0) {
-
-                                let dati = new Object();
-                                dati.idEsame = $("#listaDomandeEsameMod").attr("idEsame");
-                                dati.idCorso = window.location.search.substring(1).split('=')[1];
-                                dati.descrizione = $("#descrizione").val().trim();
-                                dati.durata = $("#durataMod").val().trim();
-                                dati.dataScadenza = scadEsame.toJSON();
-                                let domande = $("#bdTabDomEsameMod").children();
-                                dati.domande = new Array();
-
-                                for (let i = 0; i < domande.length; i++) {
-                                    let vet = new Array();
-                                    let campi = $(domande[i]).children();
-                                    vet.push($(domande[i]).attr('tipoDom'));
-                                    for (let j = 0; j < campi.length - 2; j++)
-                                        vet.push($(campi[j]).html());
-
-                                    dati.domande.push(vet.join(';'));
-                                }
-
-                                console.log(dati);
-                                let chkToken = inviaRichiesta('/api/modificaEsame', 'POST', dati);
-                                chkToken.fail(function (jqXHR, test_status, str_error) {
-                                    console.log(jqXHR);
-                                    printErrors(jqXHR, "#msgModEsame");
-                                });
-                                chkToken.done(function (data) {
-                                    if (data == "modEsameOk") {
-                                        $("#dettEsame .modal-title").html("Risultato Operazione");
-                                        $("#dettEsame .modal-body").children().remove();
-                                        $("#btnSalvaModifiche").show().html("Chiudi");
-                                        $("#btnAnnulla").hide();
-
-                                        let cod = "";
-                                        cod += '<div class="row">';
-                                        cod += '<div class="col-lg-12 text-center">';
-                                        cod += '<p>Esame modificato correttamente</p>';
-                                        cod += '</div>';
-                                        cod += '</div>';
-
-                                        $("#dettEsame .modal-body").append(cod);
-                                    }
-                                    else
-                                        $("#msgModEsame").text("Si è verificato un errore durante la modifica dell\'esame. Riprovare");
-                                });
-                            }
-                            else {
-                                gestErrori("Devi inserire almeno una domanda", null, "#msgModEsame");
-                            }
-                        }
-                        else {
-                            gestErrori("Devi inserire l'ora di scadenza dell'esame", $("#oraFineEsameMod"), "#msgModEsame");
-                        }
-                    }
-                    else {
-                        gestErrori("Devi inserire la data di scadenza dell'esame", $("#dataScadenzaMod"), "#msgModEsame");
-                    }
-                }
-                else {
-                    gestErrori("Devi inserire la durata dell'esame", $("#durataMod"), "#msgModEsame");
-                }
-            }
-            else {
-                gestErrori("Devi inserire la descrizione dell'esame", $("#descrizione"), "#msgModEsame");
-            }
+        if ($(this).html() == "Consegna") {
+            $("#dettEsame").modal('hide');
         }
-        else if ($(this).html() == "Conferma Rimozione"){
-            let chkToken = inviaRichiesta('/api/rimuoviEsame', 'POST', { "idEsame": $("#msgRimEsame").attr("idEsame") });
-            chkToken.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, "#msgRimEsame");
-            });
-            chkToken.done(function (data) {
-                if (data == "rimEsameOk"){
-                    $("#dettEsame .modal-title").html("Risultato Operazione");
-                    $("#dettEsame .modal-body").children().remove();
-                    $("#btnSalvaModifiche").show().html("Chiudi");
-                    $("#btnAnnulla").hide();
-
-                    let cod = "";
-                    cod += '<div class="row">';
-                    cod += '<div class="col-lg-12 text-center">';
-                    cod += '<p>Esame rimosso correttamente</p>';
-                    cod += '</div>';
-                    cod += '</div>';
-                    
-                    $("#dettEsame .modal-body").append(cod);
-                }
-                else
-                    $("#msgRimEsame").text("Si è verificato un errore durante la rimozione dell\'esame. Riprovare");
-            });
+        else if ($(this).html() == "Concludi Tentativo"){
+            $("#dettEsame").modal('hide');
+            fineEsame();
         }
         else if($(this).html() == "Chiudi"){
-            window.location.reload();
-        }
-        else if($(this).html() == "Torna Indietro"){
             close();
         }
     });

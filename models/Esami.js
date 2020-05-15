@@ -8,6 +8,7 @@ const risposte = mongoose.Schema({
 const domande = mongoose.Schema({
     testo: { type: String, required: true },
     tipoDomanda: { type: String, required: true },
+    punteggio: { type: Number, required: true },
     risposte: [risposte]
 });
 
@@ -21,6 +22,8 @@ const esami = mongoose.Schema({
     codModulo: { type: Number, ref: "Moduli", required: true },
     descrizione: { type: String, required: true },
     validita: { type: Boolean, default: true, required: true },
+    maxVoto: { type: Number, required: true },
+    minVoto: { type: Number, required: true },
     domande:[domande]
 });
 
