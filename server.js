@@ -2134,12 +2134,15 @@ app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"), function (req
                                             let vet = JSON.parse(JSON.stringify(results));
                                             let vetArgomenti = new Array();
                                             let vetAus = req.body.argomenti.split(',');
+                                            let id = 0;
+                                            if (vet.length > 0)
+                                                id = parseInt(vet[vet.length - 1]["_id"]) + 1;
                                             for (let i = 0; i < vetAus.length; i++) {
                                                 vetArgomenti[i] = { "codArgomento": parseInt(vetAus[i]), "dataAggiunta": new Date() };
                                             }
                                             addAllegato("Allegato associato all' appunto: " + req.body.descrizione, req, res).then(vetAllegati => {
-                                                const aggAppunto = new appunti({
-                                                    _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                                const aggAppunto = new appuntiTemp({
+                                                    _id: id,
                                                     descrizione: req.body.descrizione,
                                                     dataCaricamento: new Date(),
                                                     nomeAutore: req.body.nome,
@@ -2206,7 +2209,7 @@ function addAllegato(desc, req,res) {
                 });
             }
 
-            if (req.body.allegatiPresenti != undefined) {
+            if (req.body.allegatiPresenti != "null") {
                 for (let k = 0; k < req.body.allegatiPresenti.split(',').length; k++) {
                     vetCodici.push({ "codAllegato": parseInt(req.body.allegatiPresenti.split(',')[k]) });
                 }

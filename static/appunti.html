@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Learn On The Net</title>
-    <link rel="icon" href="img/favicon.png">
+    <link rel="icon" href="img/LogoFinale/favicon.png">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- animate CSS -->
@@ -32,11 +32,11 @@
 <body>
     <!--::header part start::-->
     <header class="main_menu home_menu">
-        <div class="container">
+        <div class="container" style="max-width: 100%!important;">
             <div class="row align-items-center">
                 <div class="col-lg-12">
                     <nav class="navbar navbar-expand-lg navbar-light">
-                        <a class="navbar-brand logo_2" href="index.html"> <img src="img/logo.png" alt="logo"> </a>
+                        <a class="navbar-brand logo_2" href="index.html"> <img src="img/LogoFinale/Logo.png" alt="logo"> </a>
                         <button class="navbar-toggler" type="button" data-toggle="collapse"
                             data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
@@ -64,6 +64,15 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="allegati.html">Allegati</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="esami.html">Esami</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="gruppi.html">Gruppi</a>
+                                </li>
+                                <li id="navMateria" class="nav-item"></li>
+                                <li id="navArgomenti" class="nav-item"></li>
+                                <li id="navRegAdmin" class="nav-item"></li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
                             </ul>
@@ -81,33 +90,34 @@
         <div class="container-fluid">
             <h2 align="center" class="section_tittle">Ricerca Appunti</h2>
             <div class="row">
-                <div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>
                 <!-- Barra Di ricerca, combo per filtri e pulsante cerca-->
-                <div class="col-sm-12 col-md-4 col-lg-4 col-xs-4">
+                <div class="col-sm-12 col-md-6 col-lg-5 col-xs-4 mx-auto">
                     <div class="row">
-                        <div class="col-sm-6 col-md-6 col-lg-6 col-xs-6">
-                            <input type="text" class="form-control" name="txtRicerca" id="txtRicerca"
-                                placeholder="Digita qui la tua ricerca...">
-                        </div>
                         <div class="col-sm-5 col-md-5 col-lg-5 col-xs-5">
-                            <div class="form-select" id="default-select">
-                                <select name="tipoRicerca" id="tipoRicerca" title="Tipologia">
-                                    <option value="descrizione" selected>Descrizione</option>
-                                    <option value="argomento">Argomento</option>
-                                </select>
-                            </div>
+                            <input type="text" class="form-control" name="txtRicerca" id="txtRicerca"
+                                placeholder="Ricerca...">
+                        </div>
+                        <div class="col-sm-5 col-md-6 col-lg-6 col-xs-6">
+                            <select name="tipoRicerca" id="tipoRicerca" title="Tipologia">
+                                <option value="descrizione" selected>Descrizione</option>
+                                <option value="argomento">Argomento</option>
+                            </select>
                         </div>
                         <div class="col-sm-1 col-md-1 col-lg-1 col-xs-1">
                             <button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search"
                                     aria-hidden="true"></i></button>
                         </div>
                     </div>
-                    <p id="msgRic" class="msg" style="margin-top:5px"></p>
                 </div>
-                <!-- Dettaglio Modulo/Esame -->
-                <div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>
             </div>
             <br>
+            <div class="row">
+                <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                    <div id="msgRic" role="alert" style="text-align: center;"> </div>
+                </div>
+            </div>
+            <br>
+            <!-- Dettaglio Modulo/Esame -->
             <div class="row">
                 <div class="col-sm-12 col-md-1 col-lg-1 col-xs-1"></div>
                 <div id="contRis" class="col-sm-12 col-md-10 col-lg-10 col-xs-10"></div>
@@ -123,91 +133,97 @@
         <div class="container-fluid">
             <h2 align="center" class="section_tittle">Inserimento Appunto</h2>
             <div class="row">
-                <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                <div class="col-sm-9 col-md-5 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
                         <div div class="card-body">
                             <form id="formInsAppunto" class="form-contact">
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user-circle"> </i>
-                                            </span>
-                                            <input type="text" id="descAppunto" name="descAppunto" placeholder="Descrizione"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Descrizione'" required class="single-input">
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-7 col-lg-6 mx-auto">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-user-circle"> </i>
+                                                </span>
+                                                <input type="text" id="descAppunto" name="descAppunto" placeholder="Descrizione"
+                                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                    onblur="this.placeholder = 'Descrizione'" required class="single-input">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="nomeAutoreAppunto" name="nomeAutoreAppunto" placeholder="Nome Autore"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Nome Autore'" required class="single-input">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-tag"> </i>
+                                                </span>
+                                                <input type="text" id="nomeAutoreAppunto" name="nomeAutoreAppunto" placeholder="Nome Autore"
+                                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                    onblur="this.placeholder = 'Nome Autore'" required class="single-input">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="cognomeAutoreAppunto" name="cognomeAutoreAppunto" placeholder="Cognome Autore"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Cognome Autore'" required class="single-input">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-user"> </i>
+                                                </span>
+                                                <input type="text" id="cognomeAutoreAppunto" name="cognomeAutoreAppunto" placeholder="Cognome Autore"
+                                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                    onblur="this.placeholder = 'Cognome Autore'" required class="single-input">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-image"> </i>
-                                            </span>
-                                            <div>
-                                            	<select id="argomentiAppunto" multiple required title="Scegli gli argomenti" data-live-search="true"
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-list"> </i>
+                                                </span>
+                                                <div>
+                                                    <select id="argomentiAppunto" multiple required title="Scegli gli argomenti" data-live-search="true"
                                                         data-live-search-placeholder="Cerca argomenti" multiple="true" data-multiple-separator=", ">
-                                                </select>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-paperclip"> </i>
-                                            </span>
-                                            <div>
-                                                <select id="allPresentiAppunto" multiple required title="Scegli gli allegati" data-live-search="true"
-                                                    data-live-search-placeholder="Cerca allegati" multiple="true" data-multiple-separator=", ">
-                                                </select>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-paperclip"> </i>
+                                                </span>
+                                                <div>
+                                                    <select id="allPresentiAppunto" multiple required title="Scegli gli allegati" data-live-search="true"
+                                                        data-live-search-placeholder="Cerca allegati" multiple="true" data-multiple-separator=", ">
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                     
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-paperclip"> </i>
-                                            </span>
-                                            <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
-                                            <div class="custom-file">
-                                                <input type="file" id="allegatiAppunto" class="custom-file-input" name="allegatiAppunto" aria-describedby="descAllegati"
-                                                    class="single-input" multiple required>
-                                                <label class="custom-file-label" for="allegatiAppunto">Scegli Allegati</label>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-paperclip"> </i>
+                                                </span>
+                                                <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
+                                                <div class="custom-file">
+                                                    <input type="file" id="allegatiAppunto" class="custom-file-input" name="allegatiAppunto"
+                                                        aria-describedby="descAllegati" class="single-input" multiple required>
+                                                    <label class="custom-file-label" for="allegatiAppunto">Nuovi Allegati</label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="msgAddAppunto" class="msg"> </div>
                                 </div>
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="form-group">
-                                        <a id="btnInviaAppunto" class="genric-btn primary circle btn-block"
-                                            style="color: #fff!important;">Invia</a>
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                                        <div id="msgAddAppunto" role="alert" style="text-align: center;"> </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                                        <div class="form-group">
+                                            <a id="btnInviaAppunto" class="genric-btn primary circle btn-block"><i class="fas fa-plus"></i> Invia</a>
+                                        </div>
                                     </div>
                                 </div>
                             </form>
                         </div>
                     </div>
-    
                 </div>
             </div>
         </div>
@@ -220,49 +236,25 @@
             <div class="row justify-content-between">
                 <div class="col-sm-6 col-md-4 col-xl-3">
                     <div class="single-footer-widget footer_1">
-                        <a href="index.html"> <img src="img/logo.png" alt=""> </a>
-                        <p>But when shot real her. Chamber her one visite removal six
-                            sending himself boys scot exquisite existend an </p>
-                        <p>But when shot real her hamber her </p>
+                        <h4>Chi Siamo</h4>
+                        <p>Una Nuova Piattaforma per apprendere in modo rapido, innovativo ed efficente.</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-4 col-xl-4">
-                    <div class="single-footer-widget footer_2">
-                        <h4>Newsletter</h4>
-                        <p>Stay updated with our latest trends Seed heaven so said place winged over given forth fruit.
-                        </p>
-                        <form action="#">
-                            <div class="form-group">
-                                <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder='Enter email address'
-                                        onfocus="this.placeholder = ''"
-                                        onblur="this.placeholder = 'Enter email address'">
-                                    <div class="input-group-append">
-                                        <button class="btn btn_1" type="button"><i class="ti-angle-right"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                        <div class="social_icon">
-                            <a href="#"> <i class="ti-facebook"></i> </a>
-                            <a href="#"> <i class="ti-twitter-alt"></i> </a>
-                            <a href="#"> <i class="ti-instagram"></i> </a>
-                            <a href="#"> <i class="ti-skype"></i> </a>
-                        </div>
-                    </div>
                 </div>
                 <div class="col-xl-3 col-sm-6 col-md-4">
                     <div class="single-footer-widget footer_2">
-                        <h4>Contact us</h4>
+                        <h4>Contattaci</h4>
                         <div class="contact_info">
-                            <p><span> Address :</span> Hath of it fly signs bear be one blessed after </p>
-                            <p><span> Phone :</span> +2 36 265 (8060)</p>
-                            <p><span> Email : </span>info@colorlib.com </p>
+                            <p><span> Telefono Giacardi :</span> 3481194171 </p>
+                            <p><span> Telefono Fontana :</span> 3383789301 </p>
+                            <p><span> Email Giacardi :</span> fgiacardi01@gmail.com </p>
+                            <p><span> Email Fontana : </span> s.fontana.0447@vallauri.edu </p>
                         </div>
                     </div>
                 </div>
             </div>
-
+    
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -273,8 +265,8 @@
                                 <p class="footer-text m-0">
                                     <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                                     Copyright &copy;
-                                    <script>document.write(new Date().getFullYear());</script> All rights reserved |
-                                    This template is made with <i class="ti-heart" aria-hidden="true"></i> by <a
+                                    <script>document.write(new Date().getFullYear());</script> All rights reserved | This
+                                    template is made with <i class="ti-heart" aria-hidden="true"></i> by <a
                                         href="https://colorlib.com" target="_blank">Colorlib</a>
                                     <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                                 </p>

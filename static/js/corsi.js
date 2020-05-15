@@ -1,7 +1,9 @@
 "use strict";
+//Routine Principale
 $(document).ready(function () {
     loadPagina();
 
+    //Gestione Ricerca Corsi
     $("#btnRicerca").on("click", function () {
         $("#msgRicerca").text("");
 
@@ -11,16 +13,16 @@ $(document).ready(function () {
                 printErrors(jqXHR, "#msgRicerca");
             });
             ricerca.done(function (data) {
-                console.log(data);
                 creazioneElencoCorsi(data);
             });
         }
         else {
-            $("#msgRicerca").text("Inserire un valore per la ricerca");
+            $("#msgRicerca").html("Inserire un valore per la ricerca").addClass("alert alert-danger");
             $("#txtRicerca").focus();
         }
     });
 
+    //Gestione Autocomplete con Jquery UI
     $('#txtRicerca').autocomplete({
         source: function (req, res) {
             $.ajax({
@@ -35,12 +37,9 @@ $(document).ready(function () {
                     creazioneElencoCorsi(data);
                 },
                 error: function (xhr) {
-                    alert(xhr.status + ' : ' + xhr.statusText); // da vedere
+                    printErrors(xhr, "#msgRicerca");
                 }
             });
-        },
-        select: function (event, ui) {
-
         }
     });
 
@@ -50,25 +49,23 @@ $(document).ready(function () {
     $('#tipoRicerca').selectpicker('refresh');
 });
 
+//Controllo validità token
 function loadPagina() {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        //printErrors(jqXHR, "#msgRicerca"); // vedere se va bene o se da cambiare campo di segnalazione errore
-        console.log(jqXHR + " " + test_status + " " + str_error);
         window.location.href = "login.html";
     });
-    chkToken.done(function (data) {
-    });
+    chkToken.done(function (data) {});
 }
 
+//Caricamento Combo Tipi Moduli per ricerca e inserimento nuovo modulo
 function loadTipiModuli() {
     let elTipiModuli = inviaRichiesta('/api/elTipiCorsi', 'POST', {});
     elTipiModuli.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, "#msgAddCorso");
+        printErrors(jqXHR, "#msgErrRicAvanzata");
     });
     elTipiModuli.done(function (data) {
         let codHtml = '';
-        console.log(data);
         data.forEach(tipocorso => {
             codHtml += '<option value="' + tipocorso._id + '">' + tipocorso.descrizione + '</option>';
         });
@@ -80,6 +77,7 @@ function loadTipiModuli() {
     });
 }
 
+//Caricamento Combo Materie per inserimento nuovo corso
 function loadMaterie() {
     let elMaterie = inviaRichiesta('/api/elSimpleMaterie', 'POST', {});
     elMaterie.fail(function (jqXHR, test_status, str_error) {
@@ -87,7 +85,6 @@ function loadMaterie() {
     });
     elMaterie.done(function (data) {
         let codHtml = '';
-        console.log(data);
         data.forEach(materia => {
             codHtml += '<option value="' + materia._id + '">' + materia.descrizione + '</option>';
         });
@@ -97,6 +94,7 @@ function loadMaterie() {
     });
 }
 
+//Inserimento Nuovo Corso
 function aggiuntaCorso(){
     $("#descCorso").removeClass("alert-danger");
     $("#tipoModuloAdd").removeClass("alert-danger");
@@ -116,14 +114,14 @@ function aggiuntaCorso(){
                 let aggCorso = inviaRichiesta('/api/aggiungiCorso', 'POST', formData);
                 aggCorso.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 603) {
-                        $("#msgAddCorso").text("Parametri Errati o Mancanti");
+                        $("#msgAddCorso").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
                     }
                     else {
                         printErrors(jqXHR, "#msgAddCorso");
                     }
                 });
                 aggCorso.done(function (data) {
-                    $("#msgAddCorso").text("Corso aggiunto con successo");
+                    $("#msgAddCorso").text("Corso aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success");
                     clearInputFields();
                 });
             } else {
@@ -137,6 +135,7 @@ function aggiuntaCorso(){
     }
 }
 
+//Pulizia Campi di input
 function clearInputFields() {
     $("#descCorso").val("");
     $('#tipoModuloAdd').selectpicker('refresh');
@@ -145,15 +144,16 @@ function clearInputFields() {
     document.getElementById("materiaCorso").selectedIndex = -1;
 }
 
+//Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
+    $(target).html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }
 
+//Stampo i corsi trovati con la ricerca
 function creazioneElencoCorsi(tipimodulo) {
     $("#contCorsi").html("");
     let codHtml = "";
-    let aus;
     
     if (tipimodulo == undefined || tipimodulo.length == 0){
         codHtml += '<div class="row justify-content-center">';

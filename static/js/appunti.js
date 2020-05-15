@@ -1,4 +1,6 @@
+//Routine Principale
 $(document).ready(function () {
+    //Controllo validità token
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         printErrors(jqXHR, "#msgRic");
@@ -6,11 +8,11 @@ $(document).ready(function () {
     chkToken.done(function (data) {
         document.getElementById("tipoRicerca").selectedIndex = -1;
         $('#tipoRicerca').selectpicker('refresh');
-        
         $("#btnRicerca").on("click", ricercaAppunti);
         $("#btnInviaAppunto").on("click", aggiuntaAppunto);
         loadArgomenti(); 
         loadAllegati();
+        //Gestione autocomplete con jquery Ui
         $("#txtRicerca").autocomplete({
             source: function (req, res) {
                 if ($("#tipoRicerca").val() != ""){
@@ -38,6 +40,7 @@ $(document).ready(function () {
     });
 });
 
+//Carcamento Combobox Argomenti per Inserimento Appunto
 function loadArgomenti() {
     let elArgomenti = inviaRichiesta('/api/elencoArgomenti', 'POST', {});
     elArgomenti.fail(function (jqXHR, test_status, str_error) {
@@ -45,7 +48,6 @@ function loadArgomenti() {
     });
     elArgomenti.done(function (data) {
         let codHtml = '';
-        console.log(data);
         data.forEach(argomento =>{
             codHtml += '<option value="' + argomento._id + '">' + argomento.descrizione+'</option>';
         });     
@@ -55,6 +57,7 @@ function loadArgomenti() {
     });
 }
 
+//Carcamento Combobox Allegati per Inserimento Appunto
 function loadAllegati() {
     let elArgomenti = inviaRichiesta('/api/elencoAllegati', 'POST', {});
     elArgomenti.fail(function (jqXHR, test_status, str_error) {
@@ -65,6 +68,7 @@ function loadAllegati() {
         let ausVet = new Array();
         data.forEach(allegato => {
             ausVet = allegato.percorso.split('\\');
+            //Recupero il nome del file dal percorso assoluto
             ausVet = ausVet[ausVet.length - 1].split(/_(.+)/);
             codHtml += '<option value="' + allegato._id + '">' + ausVet[1] + '</option>';
         });
@@ -73,6 +77,7 @@ function loadAllegati() {
     });
 }
 
+//Gestione Ricerca Appunti
 function ricercaAppunti() {
     if ($("#tipoRicerca").val() != "") {
         let ricAppunti = inviaRichiesta('/api/ricercaAppunti', 'POST', { "tipo": $("#tipoRicerca").val(), "par": $("#txtRicerca").val() });
@@ -87,17 +92,18 @@ function ricercaAppunti() {
     }
 }
 
+//Stampo i risultati della ricerca appunti
 function stampaRisRicerca(appunti) {
-    //fare segnalazione nessun risultato
-    console.log(appunti);
     $("#contRis").html("");
-    $("#msgRic").text("");
+    $("#msgRic").text("").removeClass("alert alert-danger");
     if (appunti.length == 0) {
-        $("#msgRic").text("Non è stato individuato alcun appunto");
+        $("#msgRic").text("Non è stato individuato alcun appunto").addClass("alert alert-danger");
     }else{
+        //Filter restituisce un vettore con solo gli elementi del vettore di partenza che rispettano la condizione data
+        //In questo caso restituisce gli appunti con almeno un argomento
         let appuntiFiltered = appunti.filter(chkAppunti);
         if (appuntiFiltered.length == 0) {
-            $("#msgRic").text("Non è stato individuato alcun appunto");
+            $("#msgRic").text("Non è stato individuato alcun appunto").addClass("alert alert-danger");
         }
         else{
             let codHtml = '<div class="row">';
@@ -146,10 +152,12 @@ function stampaRisRicerca(appunti) {
     }
 }
 
+//Restituisce true se l'appunto contiene almeno un argomento
 function chkAppunti(appunto) {
     return appunto.detArgomenti.length > 0;
 }
 
+//Gestione Aggiunta Appunto
 function aggiuntaAppunto() {
     $("#descAppunto").removeClass("alert-danger");
     $("#nomeAutoreAppunto").removeClass("alert-danger");
@@ -158,7 +166,7 @@ function aggiuntaAppunto() {
     $("#allegatiAppunto").removeClass("alert-danger");
     $("#msgAddAppunto").text("");
 
-    
+    //Controlli di input
     if ($("#descAppunto").val() != "") {
         if ($("#nomeAutoreAppunto").val() != "") {
             if ($("#cognomeAutoreAppunto").val() != "") {
@@ -169,7 +177,6 @@ function aggiuntaAppunto() {
                         formData.append('nome', $("#nomeAutoreAppunto").val());
                         formData.append('cognome', $("#cognomeAutoreAppunto").val());
                         formData.append('allegatiPresenti', $("#allPresentiAppunto").val());
-                        console.log($("#allPresentiAppunto").val());
                         formData.append('argomenti', new Array($("#argomentiAppunto").val()));
                         for (let i = 0; i < $('#allegatiAppunto').prop('files').length; i++) {
                             formData.append('allegati', $('#allegatiAppunto').prop('files')[i]);
@@ -177,14 +184,14 @@ function aggiuntaAppunto() {
                         let aggAppuntoRQ = inviaRichiestaMultipart('/api/aggiungiAppunti', 'POST', formData);
                         aggAppuntoRQ.fail(function (jqXHR, test_status, str_error) {
                             if (jqXHR.status == 603) {
-                                $("#msgAddAppunto").text("Parametri Errati o Mancanti");
+                                $("#msgAddAppunto").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
                             }
                             else {
                                 printErrors(jqXHR, "#msgAddAppunto");
                             }
                         });
                         aggAppuntoRQ.done(function (data) {
-                            $("#msgAddAppunto").text("Appunto aggiunto con successo");
+                            $("#msgAddAppunto").text("Appunto aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success")
                             clearInputFields();
                         });
                     } else {
@@ -204,16 +211,20 @@ function aggiuntaAppunto() {
     }
 }
 
+//Pulizia campi di input
 function clearInputFields() {
     $("#descAppunto").val("");
     $("#nomeAutoreAppunto").val("");
     $("#cognomeAutoreAppunto").val("");
     document.getElementById("argomentiAppunto").selectedIndex = -1;
     document.getElementById("allPresentiAppunto").selectedIndex = -1;
+    $("#argomentiAppunto").selectpicker("refresh");
+    $("#allPresentiAppunto").selectpicker("refresh");
     $("#allegatiAppunto").val("");
 }
 
+//Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
+    $(target).html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }

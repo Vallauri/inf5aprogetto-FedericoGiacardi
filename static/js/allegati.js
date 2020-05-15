@@ -1,4 +1,6 @@
+//Routine Principale
 $(document).ready(function () {
+    //Controllo validità token
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         window.location.href = "login.html";
@@ -8,6 +10,7 @@ $(document).ready(function () {
     });
 });
 
+//Recupero elenco allegati al caricamento pagina
 function loadPagina() {
     let rqElAllegati = inviaRichiesta('/api/elencoAllegati', 'POST', {});
     rqElAllegati.fail(function (jqXHR, test_status, str_error) {
@@ -18,6 +21,7 @@ function loadPagina() {
     });
 }
 
+//Creazione tabella elenco allegati
 function stampaTabAllegati(allegati) {
     let riga, colonna;
     let ausVet;
@@ -31,7 +35,7 @@ function stampaTabAllegati(allegati) {
             colonna = $("<td></td>");
             if (campo != "_id") {
                 if (campo == "dataCaricamento") {
-                    colonna.html(new Date(allegato[campo]).toLocaleDateString()); 
+                    colonna.html(setFormatoDate(new Date(allegato[campo]))); 
                     riga.append(colonna);
                 } else if (campo == "percorso"){
                     ausVet = allegato[campo].split('\\');
@@ -54,9 +58,15 @@ function stampaTabAllegati(allegati) {
     });
 }
 
+//Gestione Download Allegato
 function gestDownloadFile(btn) {
     $("#msgElAllegati").html("").removeClass("alert-danger");
     let idAllegato = parseInt($(btn).attr("id").split('_')[1]);
+    //La res.download mi del server mi restituisce un blob
+    //io visualizzo questo blob collegandolo ad un link "invisibile"
+    //cliccando su tale link il file viene aperto nel browser se la preview è supportata (es. pdf)
+    //oppure direttamente scaricato (es. file .wav)
+    //il problema è che non si può intercettare l'eventuale errore del blob
     fetch('/api/downloadAllegato?codAllegato=' + idAllegato)
         .then(resp => resp.blob())
         .then(blob => {
@@ -73,11 +83,13 @@ function gestDownloadFile(btn) {
         });
 }
 
+//Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
+    $(target).html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }
 
+//Gestione Ricerca allegato nella tabella
 function ricercaTabella() {
     let input = document.getElementById("txtRicercaAllegato");
     let filter = input.value;
@@ -85,6 +97,7 @@ function ricercaTabella() {
     let tr = table.getElementsByTagName("tr");
     let td, i, txtValue;
 
+    //Nasconto gli elementi il cui testo non contiene quello passato dall'utente
     for (i = 0; i < tr.length; i++) {
         td = tr[i].getElementsByTagName("td")[2];
         if (td) {
@@ -96,4 +109,12 @@ function ricercaTabella() {
             }
         }
     }
+}
+
+//Funzione di impostazione formato date
+function setFormatoDate(data) {
+    let dd = ("0" + (data.getDate())).slice(-2);
+    let mm = ("0" + (data.getMonth() + 1)).slice(-2);
+    let yyyy = data.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
 }
