@@ -5,7 +5,7 @@ $(document).ready(function () {
 
     //Gestione Ricerca Corsi
     $("#btnRicerca").on("click", function () {
-        $("#msgRicerca").text("");
+        $("#msgRicerca").removeClass("alert alert-danger").text("");
 
         if ($("#txtRicerca").val() != "") {
             let ricerca = inviaRichiesta('/api/cercaCorso', 'POST', { "valore": $("#txtRicerca").val(), "filtri": { "corsiDaCercare": $("#tipoRicerca option:selected").val(), "tipoCorso": $("#tipoCorso option:selected").val() } });
@@ -99,9 +99,9 @@ function aggiuntaCorso(){
     $("#descCorso").removeClass("alert-danger");
     $("#tipoModuloAdd").removeClass("alert-danger");
     $("#materiaCorso").removeClass("alert-danger");
-    $("#msgAddCorso").text("");
+    $("#msgAddCorso").removeClass("alert alert-danger").text("");
 
-
+    //Controllo dati di input
     if ($("#descCorso").val() != "") {
         if (document.getElementById("tipoModuloAdd").selectedIndex != -1) {
             if (document.getElementById("materiaCorso").selectedIndex != -1) {
@@ -138,10 +138,10 @@ function aggiuntaCorso(){
 //Pulizia Campi di input
 function clearInputFields() {
     $("#descCorso").val("");
-    $('#tipoModuloAdd').selectpicker('refresh');
     document.getElementById("tipoModuloAdd").selectedIndex = -1;
-    $('#materiaCorso').selectpicker('refresh');
+    $('#tipoModuloAdd').selectpicker('refresh');
     document.getElementById("materiaCorso").selectedIndex = -1;
+    $('#materiaCorso').selectpicker('refresh');
 }
 
 //Funzione di stampa errori
@@ -153,6 +153,8 @@ function gestErrori(msg, controllo, target) {
 //Stampo i corsi trovati con la ricerca
 function creazioneElencoCorsi(tipimodulo) {
     $("#contCorsi").html("");
+    $("#msgErrRicAvanzata").removeClass("alert alert-danger").html("");
+    $("#msgRicerca").removeClass("alert alert-danger").html("");
     let codHtml = "";
     
     if (tipimodulo == undefined || tipimodulo.length == 0){
@@ -176,7 +178,7 @@ function creazioneElencoCorsi(tipimodulo) {
         tipimodulo.forEach(tipomodulo => {
             codHtml += '<div class="row justify-content-center">';
             codHtml += '<div class="col-xl-5">';
-            codHtml += '<div class="section_tittle text-center">';
+            codHtml += '<br><div class="section_tittle text-center">';
             codHtml += '<h3> Categoria: ' + tipomodulo["descrizione"] + '</h3>';
             codHtml += '</div>';
             codHtml += '</div>';
@@ -185,10 +187,10 @@ function creazioneElencoCorsi(tipimodulo) {
             if (tipomodulo["moduli"] != undefined && tipomodulo["moduli"].length > 0){
                 codHtml += '<div class="row">';
                 for (let i = 0; i < tipomodulo["moduli"].length; i++) {
-                    codHtml += '<div class="col-sm-6 col-lg-4">';
+                    codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4 mx-auto">';
                     codHtml += '<div class="single_special_cource">';
                     
-                    codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
+                    //codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
                     codHtml += '<div class="special_cource_text">';
                     codHtml += '<a href="dettaglioCorso.html?corso=' + tipomodulo["moduli"][i]._id + '">' + tipomodulo["moduli"][i].descrizione + '</a>';
                     codHtml += '<p>Materia: ' + tipomodulo["moduli"][i].materia[0].descrizione + '</p>';
@@ -213,6 +215,7 @@ function creazioneElencoCorsi(tipimodulo) {
         });
     }
     $("#contCorsi").html(codHtml);
+    $("#sezRisRicerca").css("display", "");
 
     $("html, body").animate({ scrollTop: $("#contCorsi").parent().offset().top }, "slow");
 }

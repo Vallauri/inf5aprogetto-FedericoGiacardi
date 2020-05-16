@@ -1,7 +1,8 @@
 "use strict";
+//Routine Principale
 $(document).ready(function () {
     loadPagina();
-
+    //Gestione Ricerca Gruppi
     $("#btnRicerca").on("click", function () {
         $("#msgRicerca").text("");
 
@@ -11,16 +12,16 @@ $(document).ready(function () {
                 printErrors(jqXHR, "#msgRicerca");
             });
             ricerca.done(function (data) {
-                console.log(data);
                 creazioneElencoGruppi(data);
             });
         }
         else {
-            $("#msgRicerca").text("Inserire un valore per la ricerca");
+            $("#msgRicerca").text("Inserire un valore per la ricerca").addClass("alert alert-danger");
             $("#txtRicerca").focus();
         }
     });
 
+    //Gestione Autocomplete con Jquery UI
     $('#txtRicerca').autocomplete({
         source: function (req, res) {
             $.ajax({
@@ -38,9 +39,6 @@ $(document).ready(function () {
                     alert(xhr.status + ' : ' + xhr.statusText);
                 }
             });
-        },
-        select: function (event, ui) {
-
         }
     });
 
@@ -49,25 +47,24 @@ $(document).ready(function () {
     $('#tipoRicerca').selectpicker('refresh');
 });
 
+//Controllo validità token
 function loadPagina() {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        //printErrors(jqXHR, "#msgRicerca"); // vedere se va bene o se da cambiare campo di segnalazione errore
         console.log(jqXHR + " " + test_status + " " + str_error);
         window.location.href = "login.html";
     });
-    chkToken.done(function (data) {
-    });
+    chkToken.done(function (data) {});
 }
 
+//Caricamento Combo Tipi Gruppi per ricerca e inserimento nuovo gruppo
 function loadTipiGruppi() {
     let elTipiGruppi = inviaRichiesta('/api/elTipiGruppi', 'POST', {});
     elTipiGruppi.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, "#msgAddGruppo");
+        printErrors(jqXHR, "#msgErrRicAvanzata");
     });
     elTipiGruppi.done(function (data) {
         let codHtml = '';
-        console.log(data);
         data.forEach(tipogruppo => {
             codHtml += '<option value="' + tipogruppo._id + '">' + tipogruppo.descrizione + '</option>';
         });
@@ -79,13 +76,14 @@ function loadTipiGruppi() {
     });
 }
 
+//Inserimento Nuovo Gruppo
 function aggiuntaGruppo() {
     $("#nomeGruppo").removeClass("alert-danger");
     $("#descGruppo").removeClass("alert-danger");
     $("#tipoGruppoAdd").removeClass("alert-danger");
-    $("#msgAddGruppo").text("");
+    $("#msgAddGruppo").removeClass("alert alert-danger").text("");
 
-
+    //Controllo dati di input
     if ($("#nomeGruppo").val() != "") {
         if ($("#descGruppo").val() != "") {
             if (document.getElementById("tipoGruppoAdd").selectedIndex != -1) {
@@ -98,14 +96,14 @@ function aggiuntaGruppo() {
                 let aggGruppo = inviaRichiesta('/api/aggiungiGruppo', 'POST', formData);
                 aggGruppo.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 603) {
-                        $("#msgAddGruppo").text("Parametri Errati o Mancanti");
+                        $("#msgAddGruppo").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
                     }
                     else {
                         printErrors(jqXHR, "#msgAddGruppo");
                     }
                 });
                 aggGruppo.done(function (data) {
-                    $("#msgAddGruppo").text("Gruppo aggiunto con successo");
+                    $("#msgAddGruppo").text("Gruppo aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success");
                     clearInputFields();
                 });
             } else {
@@ -119,22 +117,26 @@ function aggiuntaGruppo() {
     }
 }
 
+//Pulizia Campi di input
 function clearInputFields() {
     $("#nomeGruppo").val("");
     $("#descGruppo").val("");
-    $('#tipoGruppoAdd').selectpicker('refresh');
     document.getElementById("tipoGruppoAdd").selectedIndex = -1;
+    $('#tipoGruppoAdd').selectpicker('refresh');
 }
 
+//Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
+    $(target).html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }
 
+//Stampo i gruppi trovati con la ricerca
 function creazioneElencoGruppi(gruppi) {
     $("#contGruppi").html("");
+    $("#msgErrRicAvanzata").removeClass("alert alert-danger").html("");
+    $("#msgRicerca").removeClass("alert alert-danger").html("");
     let codHtml = "";
-    let aus;
     
     if (gruppi == undefined || gruppi.length == 0){
         codHtml += '<div class="row justify-content-center">';
@@ -155,19 +157,10 @@ function creazioneElencoGruppi(gruppi) {
         codHtml += '</div>';
         
         gruppi.forEach(gruppo => {
-            // codHtml += '<div class="row justify-content-center">';
-            // codHtml += '<div class="col-xl-5">';
-            // codHtml += '<div class="section_tittle text-center">';
-            // codHtml += '<h3> Categoria: ' + gruppo["descrizione"] + '</h3>';
-            // codHtml += '</div>';
-            // codHtml += '</div>';
-            // codHtml += '</div>';
-            
             codHtml += '<div class="row">';
-            codHtml += '<div class="col-sm-8 col-lg-8">';
+            codHtml += '<div class="col-sm-6 col-lg-6 mx-auto">';
             codHtml += '<div class="single_special_cource">';
             
-            // codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">';
             codHtml += '<div class="special_cource_text">';
             codHtml += '<a href="dettaglioGruppo.html?gruppo=' + gruppo._id + '">' + gruppo.nome + '</a>';
             codHtml += '<p>Descrizione: ' + gruppo.descrizione + '</p>';
@@ -180,6 +173,7 @@ function creazioneElencoGruppi(gruppi) {
         });
     }
     $("#contGruppi").html(codHtml);
+    $("#sezRisRicerca").css("display", "");
 
     $("html, body").animate({ scrollTop: $("#contGruppi").parent().offset().top }, "slow");
 }

@@ -15,7 +15,7 @@ $(document).ready(function () {
     $("#btnLogin").on("click", function () {
         $("#usernameLogin").removeClass("alert-danger");
         $("#pwdLogin").removeClass("alert-danger");
-        $("msgLogin").text("");
+        $("msgLogin").text("").removeClass("alert alert-danger");
 
         //Controllo campi di input
         if ($("#usernameLogin").val() != "") {

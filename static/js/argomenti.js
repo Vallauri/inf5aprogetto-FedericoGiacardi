@@ -1,34 +1,40 @@
+"use strict";
 let idAppunto = -1;
 let idModulo = -1;
 let idArgomento = -1;
 
+//Routine Principale
 $(document).ready(function () {
+    //Controllo validità token
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         window.location.href = "login.html";
     });
     chkToken.done(function (data) {
-        loadPagina();
+        //La gestione degli argomenti è disponibile solo per l'amministratore
+        //se l'utente loggato non lo è si viene reindirizzati all'area personale
+        if (!data.amministratore) {
+            window.location.href = "areaPersonale.html";
+        } else {
+            loadPagina();
+        }
     });
 });
-
+//Caricamento Pagina
 function loadPagina() {
-
     getElArgomenti();
     getElMaterie();
     getElAppuntiArgomenti();
     getElModuliArgomenti();
-
     $("#btnAddArgomento").on("click", gestAddArgomento);
     $("#btnConfEliminazioneArg").on("click", eliminaArgomento);
-
     $("#btnConfApprovAllegato").on("click", approvaAllegato);
     $("#btnConfRifiutoAllegato").on("click", rifiutaAppunto);
-
     $("#btnConfApprovModulo").on("click", approvaModulo);
     $("#btnConfRifiutoModulo").on("click", rifiutaModulo);
 }
 
+//Recupero elenco argomenti moderati dall'utente
 function getElArgomenti() {
     let rqElMatModerate = inviaRichiesta('/api/elArgomentiModerati', 'POST', {});
     rqElMatModerate.fail(function (jqXHR, test_status, str_error) {
@@ -39,6 +45,7 @@ function getElArgomenti() {
     });
 }
 
+//Recupero elenco materie per aggiunta argomento
 function getElMaterie() {
     let rqElMat = inviaRichiesta('/api/elSimpleMaterie', 'POST', {});
     rqElMat.fail(function (jqXHR, test_status, str_error) {
@@ -55,13 +62,16 @@ function getElMaterie() {
     });
 }
 
+//Creazione tabella argomenti moderate
 function stampaTabArgomenti(argomenti) {
     let riga, colonna;
     let codHtml = "";
 
     if (argomenti.length > 0) {
-        $("#sezNoArgomenti").css("display", "none");
+        $("#sezNoArgomenti").hide();
+        $("#sezElArgomenti").show();
         $("#corpoTabArgomenti").html("");
+        $("#voceNavArgomenti").addClass("active");
         argomenti.forEach(argomento => {
             riga = $("<tr></tr>");
             riga.attr("id", "argomento_" + argomento["_id"]);
@@ -84,12 +94,13 @@ function stampaTabArgomenti(argomenti) {
         codHtml += '</div>';
         codHtml += '</div>';
         $("#contNoArgomenti").html(codHtml);
-        $("#sezNoArgomenti").css("display", "");
-        $("#sezElArgomenti").css("display", "none");
-        // $("#sezArgMateria").css("display", "none");
+        $("#sezNoArgomenti").show();
+        $("#sezElArgomenti").hide();
     }
 }
 
+//Apertura modal eliminazione argomento
+//e recupero codice argomento selezionato
 function gestEliminaArgomento(btn) {
     idArgomento = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     $("#contModaleEliminazioneArg").text("Sei sicuro di voler eliminare questo argomento? Tale operazione cancellerà tutti gli appunti, gli esami, i corsi e le lezioni collegate.");
@@ -97,6 +108,7 @@ function gestEliminaArgomento(btn) {
     $("#modalEliminazioneArg").modal("show");
 }
 
+//Gestione Eliminazione Argomento
 function eliminaArgomento() {
     $("#contModaleEliminazioneArg").text("Operazione in corso");
     if (idArgomento) {
@@ -117,32 +129,33 @@ function eliminaArgomento() {
     }
 }
 
+//Gestione Aggiunta Argomento
 function gestAddArgomento() {
     $("#descArgomento").removeClass("alert-danger");
-    $("#argomentoAppunto").removeClass("alert-danger");
+    $("#materiaAppunto").removeClass("alert-danger");
     $("#msgAddArgomento").text("");
 
     if ($("#descArgomento").val() != "") {
-        if (document.getElementById("argomentoAppunto").selectedIndex != -1) {
-            let rqInsMateria = inviaRichiesta('/api/inserisciArgomento', 'POST', { "descArgomento": $("#descArgomento").val(), "codMateria": $("#argomentoAppunto").val()});
+        if (document.getElementById("materiaAppunto").selectedIndex != -1) {
+            let rqInsMateria = inviaRichiesta('/api/inserisciArgomento', 'POST', { "descArgomento": $("#descArgomento").val(), "codMateria": $("#materiaAppunto").val()});
             rqInsMateria.fail(function (jqXHR, test_status, str_error) {
-                $("#msgAddArgomento").removeClass("alert alert-success").addClass("alert alert-danger");
                 printErrors(jqXHR, "#msgAddArgomento");
-                $("#msgAddArgomento").show().fadeOut(5000);
             });
             rqInsMateria.done(function (data) {
-                $("#msgAddArgomento").html("Operazione completata.<br> Argomento in attesa di approvazione.").removeClass("alert alert-danger").addClass("alert alert-success").show().fadeOut(5000);
+                $("#msgAddArgomento").html("Operazione completata.<br> Argomento in attesa di approvazione.").removeClass("alert alert-danger").addClass("alert alert-success");
                 $("#descArgomento").val("");
-                document.getElementById("argomentoAppunto").selectedIndex = -1;
+                document.getElementById("materiaAppunto").selectedIndex = -1;
+                $('#materiaAppunto').selectpicker('refresh');
             });
         }else{
-            gestErrori("Inserire la Materia dell' argomento", $("#argomentoAppunto"), "#msgAddArgomento");
+            gestErrori("Inserire la Materia dell' argomento", $("#materiaAppunto"), "#msgAddArgomento");
         }
     } else {
         gestErrori("Inserire la Descrizione dell' argomento", $("#descArgomento"), "#msgAddArgomento");
     }
 }
 
+//Recupero elenco nuovi appunti da approvare
 function getElAppuntiArgomenti() {
     let rqElArgMatModerate = inviaRichiesta('/api/elAppuntiArgsModerati', 'POST', {});
     rqElArgMatModerate.fail(function (jqXHR, test_status, str_error) {
@@ -152,7 +165,7 @@ function getElAppuntiArgomenti() {
         stampaTabAppuntiArgomenti(data);
     });
 }
-
+//Creazione tabella appunti da approvare
 function stampaTabAppuntiArgomenti(argomenti) {
     let riga, colonna;
     let argOk = false;
@@ -196,6 +209,7 @@ function stampaTabAppuntiArgomenti(argomenti) {
     }
 }
 
+//Funzione di impostazione formato date
 function setFormatoDate(data) {
     let dd = ("0" + (data.getDate())).slice(-2);
     let mm = ("0" + (data.getMonth() + 1)).slice(-2);
@@ -203,6 +217,8 @@ function setFormatoDate(data) {
     return dd + '/' + mm + '/' + yyyy;
 }
 
+//Apertura modal approvazione appunto
+//e recupero codice argomento e appunto selezionati
 function openModalApprovaAppunto(btn) {
     idAppunto = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     idArgomento = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 2]);
@@ -211,6 +227,7 @@ function openModalApprovaAppunto(btn) {
     $("#modalApprovAllegato").modal("show");
 }
 
+//Gestione Approvazione Allegato
 function approvaAllegato() {
     $("#contModale").text("Operazione in corso");
     if (idAppunto) {
@@ -231,13 +248,16 @@ function approvaAllegato() {
     }
 }
 
+
+//Apertura modal rifiuto appunto
+//e recupero codice appunto selezionato
 function openModalRifiutoArgomento(btn) {
     idAppunto = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     $("#contModaleRifiuto").text("Sei sicuro di voler rifiutare questo appunto?");
     $("#btnConfRifiutoAllegato").removeAttr("disabled");
     $("#modalRifiutoAllegato").modal("show");
 }
-
+//Gestione Rifiuto Appunto
 function rifiutaAppunto() {
     $("#contModaleRifiuto").text("Operazione in corso");
     if (idAppunto) {
@@ -258,6 +278,7 @@ function rifiutaAppunto() {
     }
 }
 
+//Recupero elenco nuovi moduli da approvare
 function getElModuliArgomenti() {
     let rqElModuliArgomenti = inviaRichiesta('/api/elModuliArgomenti', 'POST', {});
     rqElModuliArgomenti.fail(function (jqXHR, test_status, str_error) {
@@ -268,6 +289,7 @@ function getElModuliArgomenti() {
     });
 }
 
+//Creazione tabella moduli da approvare
 function stampaTabModuliArgomenti(argomenti) {
     let riga, colonna;
     let argOk = false;
@@ -307,6 +329,8 @@ function stampaTabModuliArgomenti(argomenti) {
     }
 }
 
+//Apertura modal approvazione modulo
+//e recupero codice argomento e modulo selezionati
 function openModalApprovaModulo(btn) {
     idModulo = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     idArgomento = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 2]);
@@ -315,6 +339,7 @@ function openModalApprovaModulo(btn) {
     $("#modalApprovModulo").modal("show");
 }
 
+//Gestione Approvazione Modulo
 function approvaModulo() {
     $("#contModaleApprovModulo").text("Operazione in corso");
     if (idModulo) {
@@ -335,7 +360,8 @@ function approvaModulo() {
     }
 }
 
-
+//Apertura modal rifiuto modulo
+//e recupero codice modulo selezionato
 function openModalRifiutoModulo(btn) {
     idModulo = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     $("#contModaleRifiutoModulo").text("Sei sicuro di voler rifiutare questo corso?");
@@ -343,6 +369,7 @@ function openModalRifiutoModulo(btn) {
     $("#modalRifiutoModulo").modal("show");
 }
 
+//Gestione Rifiuto Modulo
 function rifiutaModulo() {
     $("#contModaleRifiutoModulo").text("Operazione in corso");
     if (idModulo) {
@@ -361,4 +388,10 @@ function rifiutaModulo() {
     } else {
         gestErrori("Codice corso mancante. Ricaricare la pagine", $("#btnConfRifiutoModulo"), "#modalRifiutoModulo");
     }
+}
+
+//Funzione di stampa errori
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg).addClass("alert alert-danger");
+    controllo.addClass("alert-danger");
 }

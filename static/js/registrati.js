@@ -33,7 +33,7 @@ function gestReg() {
     $("#telReg").removeClass("alert-danger");
     $("#usernameReg").removeClass("alert-danger");
     $("#pwdReg").removeClass("alert-danger");
-    $("#msgErrRegistrati").text("");
+    $("#msgErrRegistrati").text("").removeClass("alert alert-danger");
 
     //Controllo validità dati di input
     if ($("#nomeReg").val() != "") {
@@ -62,7 +62,7 @@ function gestReg() {
                                         if ($('#fotoReg').prop('files')[0].type.includes("image/")) {
                                             foto = $('#fotoReg').prop('files')[0];
                                         } else {
-                                            gestErrori("La foto inserita non è valida", $("#fotoReg"));
+                                            gestErrori("La foto inserita non è valida", $("#fotoReg"), "#msgErrRegistrati");
                                             return;
                                         }
                                     }
@@ -106,6 +106,12 @@ function gestReg() {
     else {
         gestErrori("Inserire il Nome", $("#nomeReg"), "#msgErrRegistrati");
     }
+}
+
+//Funzione di stampa errori
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg).addClass("alert alert-danger");
+    controllo.addClass("alert-danger");
 }
 
 //Validazione Email tramite regex

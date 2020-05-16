@@ -1,12 +1,17 @@
+"use strict";
 let idMateria = -1;
 let idArgomento = -1;
 
+//Routine Principale
 $(document).ready(function () {
+    //Controllo validità token
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         window.location.href = "login.html";
     });
     chkToken.done(function (data) {
+        //La gestione della materia è disponibile solo per l'amministratore
+        //se l'utente loggato non lo è si viene reindirizzati all'area personale
         if (!data.amministratore) {
             window.location.href = "areaPersonale.html";
         }else{
@@ -15,11 +20,10 @@ $(document).ready(function () {
     });
 });
 
+//Caricamento Pagina
 function loadPagina() {
-
     getElMaterie();
     getElArgMaterie();
-    
     $("#btnAddMateria").on("click", gestAddMateria);
     $("#btnConfEliminazioneMat").on("click", eliminaMateria);
     $("#btnConfModificaMateria").on("click", inviaModMateria);
@@ -27,6 +31,7 @@ function loadPagina() {
     $("#btnConfRifiutoArgomento").on("click", rifiutaAllegato);
 }
 
+//Recupero elenco materie moderate dall'utente
 function getElMaterie() {
     let rqElMatModerate = inviaRichiesta('/api/elMatModerate', 'POST', {});
     rqElMatModerate.fail(function (jqXHR, test_status, str_error) {
@@ -37,6 +42,7 @@ function getElMaterie() {
     });
 }
 
+//Recupero elenco nuovi argomenti da approvare
 function getElArgMaterie() {
     let rqElArgMatModerate = inviaRichiesta('/api/elArgomentiMatModerate', 'POST', {});
     rqElArgMatModerate.fail(function (jqXHR, test_status, str_error) {
@@ -47,12 +53,15 @@ function getElArgMaterie() {
     });
 }
 
+//Creazione tabella materie moderate
 function stampaTabMaterie(materie) {
     let riga, colonna;
     let codHtml = "";
-
+    $("#voceNavMaterie").addClass("active");
     if (materie.length > 0) {
-        $("#sezNoMaterie").css("display", "none");
+        $("#sezNoMaterie").hide();
+        $("#sezElMaterie").show();
+        $("#sezArgMateria").show();
         $("#corpoTabMaterie").html("");
         materie.forEach(materia => {
             riga = $("<tr></tr>");
@@ -76,12 +85,13 @@ function stampaTabMaterie(materie) {
         codHtml += '</div>';
         codHtml += '</div>';
         $("#contNoMaterie").html(codHtml);
-        $("#sezNoMaterie").css("display", "unset");
-        $("#sezElMaterie").css("display", "none");
-        $("#sezArgMateria").css("display", "none");
+        $("#sezNoMaterie").show();
+        $("#sezElMaterie").hide();
+        $("#sezArgMateria").hide();
     }
 }
 
+//Funzione di impostazione formato date
 function setFormatoDate(data) {
     let dd = ("0" + (data.getDate())).slice(-2);
     let mm = ("0" + (data.getMonth() + 1)).slice(-2);
@@ -89,6 +99,8 @@ function setFormatoDate(data) {
     return dd + '/' + mm + '/' + yyyy;
 }
 
+//Caricamento dati materia selezionata
+//in modal modifica
 function gestModMateria(btn) {
     idMateria = parseInt($(btn).attr("id").split('_')[1]);
     let celle = $("#materia_" + idMateria).find("td");
@@ -100,6 +112,7 @@ function gestModMateria(btn) {
     } 
 }
 
+//Gestione Modifica Materia
 function inviaModMateria() {
     if ($("#descModMateria").val() != "") {
         if (Date.parse($("#dataModMateria").val())) {
@@ -119,6 +132,8 @@ function inviaModMateria() {
     }
 }
 
+//Apertura modal eliminazione materia
+//e recupero codice materia selezionata
 function gestEliminaMateria(btn) {
     idMateria = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     $("#contModaleEliminazioneMat").text("Sei sicuro di voler eliminare questo materia? Tale operazione cancellerà tutti i dati ad essa collegati");
@@ -126,6 +141,7 @@ function gestEliminaMateria(btn) {
     $("#modalEliminazioneMat").modal("show");
 }
 
+//Gestione Eliminazione materia
 function eliminaMateria() {
     $("#contModaleEliminazioneMat").text("Operazione in corso");
     if (idMateria) {
@@ -146,16 +162,19 @@ function eliminaMateria() {
     }
 }
 
+//Gestione Aggiunta Materia
 function gestAddMateria() {
     $("#descMateria").removeClass("alert-danger");
-    $("#msgAddMateria").text("");
+    $("#msgAddMateria").removeClass("alert alert-danger").text("");
 
+    //Controllo campi di input
     if ($("#descMateria").val() != "") {
         let rqInsMateria = inviaRichiesta('/api/inserisciMateria', 'POST', { "descMat": $("#descMateria").val()});
         rqInsMateria.fail(function (jqXHR, test_status, str_error) {
             printErrors(jqXHR, "#msgAddMateria");
         });
         rqInsMateria.done(function (data) {
+            $("#msgAddMateria").removeClass("alert alert-danger").text("");
             getElMaterie();
         });
     }else{
@@ -163,11 +182,13 @@ function gestAddMateria() {
     }
 }
 
+//Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
+    $(target).html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }
 
+//Creazione Tabella Elenco Argomenti da approvare
 function stampaTabAllegatiMaterie(materie) {
     let riga, colonna;
     let argOk = false;
@@ -197,6 +218,8 @@ function stampaTabAllegatiMaterie(materie) {
     }
 }
 
+//Apertura modal approvazione argomento
+//e recupero codice argomento selezionata
 function openModalApprovaArgomento(btn) {
     idArgomento = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     $("#contModale").text("Sei sicuro di voler accettare questo argomento?");
@@ -204,6 +227,7 @@ function openModalApprovaArgomento(btn) {
     $("#modalApprovArgomento").modal("show");
 }
 
+//Gestione Approvazione Argomento
 function approvaArgomento(btn) {
     $("#contModale").text("Operazione in corso");
     if (idArgomento) {
@@ -224,6 +248,8 @@ function approvaArgomento(btn) {
     }
 }
 
+//Apertura modal rifiuto argomento
+//e recupero codice argomento selezionato
 function openModalRifiutoArgomento(btn) {
     idArgomento = parseInt($(btn).attr("id").split('_')[$(btn).attr("id").split('_').length - 1]);
     $("#contModaleRifiuto").text("Sei sicuro di voler rifiutare questo argomento?");
@@ -231,6 +257,7 @@ function openModalRifiutoArgomento(btn) {
     $("#modalRifiutoArgomento").modal("show");
 }
 
+//Gestione Rifiuto Argomento
 function rifiutaAllegato(btn) {
     $("#contModaleRifiuto").text("Operazione in corso");
     if (idArgomento) {

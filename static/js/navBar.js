@@ -16,8 +16,8 @@ function setNavBar() {
 
             if (data.amministratore) {
                 $("#navMateria").html('<a id="voceNavMaterie" class="nav-link" href="materie.html">Materie</a>');
-                $("#navArgomenti").html('<a class="nav-link" href="argomenti.html">Argomenti</a>');
-                $("#navRegAdmin").html('<a class="nav-link" href="registraAdmin.html">Registra Admin</a>');
+                $("#navArgomenti").html('<a id="voceNavArgomenti" class="nav-link" href="argomenti.html">Argomenti</a>');
+                $("#navRegAdmin").html('<a id="voceRegAdmin" class="nav-link" href="registraAdmin.html">Registra Admin</a>');
             }else{
                 $("#navMateria").remove();
                 $("#navArgomenti").remove();

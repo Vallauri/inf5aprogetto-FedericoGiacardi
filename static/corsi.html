@@ -67,9 +67,6 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="esami.html">Esami</a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="gruppi.html">Gruppi</a>
-                                </li>
                                 <li id="navMateria" class="nav-item"></li>
                                 <li id="navArgomenti" class="nav-item"></li>
                                 <li id="navRegAdmin" class="nav-item"></li>
@@ -84,27 +81,10 @@
     </header>
     <!-- Header part end-->
 
-    <!-- breadcrumb start-->
-    <!-- <section class="breadcrumb breadcrumb_bg">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="breadcrumb_iner text-center">
-                        <div class="breadcrumb_iner_item">
-                            <h2>I Nostri Corsi</h2>
-                            <p>Home<span>/</span>Corsi</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section> -->
-    <!-- breadcrumb start-->
-
     <!-- Barra di Ricerca Corsi -->
     <section class="section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Ricerca Corsi</h2>
+            <div class="section_tittle text-center"><h2>Ricerca Corsi</h2></div>
             <div class="row">
                 <div class="col-sm-12 col-md-7 col-lg-4 col-xs-4 mx-auto">
                     <div class="row">
@@ -156,17 +136,19 @@
         </div>
     </section>
 
-    <!--::review_part start::-->
-     <section class="special_cource padding_top">
+    <!--Sezione Risultati Ricerca-->
+    <section id="sezRisRicerca" class="special_cource padding_top" style="display: none;">
         <div class="container" id="contCorsi">
         </div>
     </section>
-    <!--::blog_part end::-->
+    <!--Fine Sezione Risultati Ricerca-->
 
     <!-- sezione aggiunta corso -->
     <section class="section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Inserimento Corso</h2>
+            <div class="section_tittle text-center">
+                <h2>Inserimento Corso</h2>
+            </div>
             <div class="row">
                 <div class="col-sm-9 col-md-5 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
@@ -190,7 +172,7 @@
                                                     <i class="fas fa-chalkboard-teacher"> </i>
                                                 </span>
                                                 <div>
-                                                    <select id="tipoModuloAdd" required title="Scegli il Tipo di Modulo" data-live-search="true"
+                                                    <select id="tipoModuloAdd" required title="Tipo Modulo" data-live-search="true"
                                                         data-live-search-placeholder="Cerca Tipo Modulo">
                                                     </select>
                                                 </div>
@@ -202,7 +184,7 @@
                                                     <i class="fas fa-book"> </i>
                                                 </span>
                                                 <div>
-                                                    <select id="materiaCorso" required title="Scegli la Materia" data-live-search="true"
+                                                    <select id="materiaCorso" required title="Materia" data-live-search="true"
                                                         data-live-search-placeholder="Cerca Materia">
                                                     </select>
                                                 </div>

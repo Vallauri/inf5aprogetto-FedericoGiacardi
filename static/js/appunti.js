@@ -109,15 +109,8 @@ function stampaRisRicerca(appunti) {
             let codHtml = '<div class="row">';
             let I = 0;
             appuntiFiltered.forEach(appunto => {
-                if (I == 0) {
-                    if (appuntiFiltered.length == 1) {
-                        codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>';
-                    } else if (appuntiFiltered.length == 2) {
-                        codHtml += '<div class="col-sm-12 col-md-2 col-lg-2 col-xs-2"></div>';
-                    }
-                }
 
-                codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4">';
+                codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4 mx-auto">';
                 if (appunto != undefined) {
                     codHtml += '<a href="dettaglioAppunto.html?appunto=' + appunto._id + '" class="list-group-item list-group-item-action flex-column align-items-start">';
                     codHtml += '<div class="d-flex w-100 justify-content-between">';
@@ -137,14 +130,7 @@ function stampaRisRicerca(appunti) {
                 if (I == 2) {
                     codHtml += '</div><div class="row">';
                     I = 0;
-                } else if (I == appuntiFiltered.length - 1) {
-                    if (appuntiFiltered.length == 1) {
-                        codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4"></div>';
-                    } else if (appuntiFiltered.length == 2) {
-                        codHtml += '<div class="col-sm-12 col-md-2 col-lg-2 col-xs-2"></div>';
-                    }
-                    codHtml += "</div>";
-                }
+                } 
                 I++;
             });
             $("#contRis").html(codHtml);
@@ -164,7 +150,7 @@ function aggiuntaAppunto() {
     $("#cognomeAutoreAppunto").removeClass("alert-danger");
     $("#argomentiAppunto").removeClass("alert-danger");
     $("#allegatiAppunto").removeClass("alert-danger");
-    $("#msgAddAppunto").text("");
+    $("#msgAddAppunto").text("").removeClass("alert alert-danger");
 
     //Controlli di input
     if ($("#descAppunto").val() != "") {

@@ -23,7 +23,7 @@ function gestReimpPwd() {
     $("#usernameReimpPwd").removeClass("alert-danger");
     $("#mailReimpPwd").removeClass("alert-danger");
     $("#telReimpPwd").removeClass("alert-danger");
-    $("#mexEmailReimpPwd").html("");
+    $("#mexEmailReimpPwd").html("").removeClass("alert alert-danger");
 
     //Controllo campi di input
     if ($("#usernameReimpPwd").val() != "") {

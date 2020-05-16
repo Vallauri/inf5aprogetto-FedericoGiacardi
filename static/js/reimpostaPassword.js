@@ -13,7 +13,7 @@ function gestPwd() {
     //Pulizia campi di input
     $("#pwdReimpPwd").removeClass("alert-danger");
     $("#pwdReimpRipetiPwd").removeClass("alert-danger");
-    $("#mexEmailReimpPwd").html("");
+    $("#mexEmailReimpPwd").html("").removeClass("alert alert-danger");
 
     //Controllo dati di input
     if (validaPwd($("#pwdReimpPwd").val())) {
