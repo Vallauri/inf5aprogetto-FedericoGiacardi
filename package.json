@@ -1,6 +1,9 @@
 {
   "name": "learnonthenet",
   "version": "1.0.0",
+  "engines": {
+    "node": "12.8.1"
+  },
   "description": "eleraning platform",
   "main": "server.js",
   "dependencies": {
