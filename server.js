@@ -216,6 +216,13 @@ ERRORS.create({
     defaultMessage: 'Esiste già in questo corso un esame con la medesima Descrizione e Data di Scadenza'
 });
 
+// code 628 - Exam already exists
+ERRORS.create({
+    code: 627,
+    name: 'TTS_NOT_AVAILABLE',
+    defaultMessage: 'Servizio TTS non disponibile'
+});
+
 // Impostazioni multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {

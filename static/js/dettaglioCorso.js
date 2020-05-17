@@ -1,18 +1,19 @@
 "use strict";
 let lezioni = [];
 
+//Routine Principale
 $(document).ready(function () {
     loadPagina();
 });
 
+//Caricamento Pagina
 function loadPagina() {
     let par = window.location.search.substring(1).split('=');
-    // Controllo sui parametri in GET (controllare se hanno senso o no ??)
+    // Controllo sui parametri in GET
     if(par[0] == "corso" && !isNaN(parseInt(par[1]))){
         let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', {"idCorso" : par[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgCorso");
         });
         chkToken.done(function (data) {
             caricamentoDatiCorso(data);
@@ -20,15 +21,13 @@ function loadPagina() {
         });
     }
     else{
-        alert("Errore nel passaggio dei parametri");
-        window.location.href = "corsi.html";
+        $("#msgCorso").html("Errore nel passaggio dei parametri").addClass("alert alert-danger");
     }
 }
 
 function caricamentoDatiCorso(modulo) {
     $("#contCorso").html("");
     let codHtml = "";
-    let aus;
     
     if (modulo == undefined || modulo.length == 0){
         codHtml += '<div class="row justify-content-center">';
@@ -40,19 +39,11 @@ function caricamentoDatiCorso(modulo) {
         codHtml += '</div>';
         codHtml += '</div>';
         $("#contCorso").parent().html(codHtml);
-        // $("#contCorso").hide();
     }
     else{
         codHtml += '<div class="col-lg-8 course_details_left">';
-        codHtml += '<div class="main_image">';
-        codHtml += '<img class="img-fluid" src="img/single_cource.png" alt="">'; // immagine del corso non presente su db
-        codHtml += '</div>';
         codHtml += '<div class="content_wrapper">';
-        codHtml += '<h4 class="title_top" id="descCorso" idCorso="' + modulo[0]._id + '">' + modulo[0]["descrizione"] +'</h4>';
-        codHtml += '<div class="content">';
-        codHtml += 'Breve descrizione del modulo'; // la mettiamo o no ??
-        codHtml += '</div>';
-
+        codHtml += '<h4 class="title_top" style="text-align:center;" id="descCorso" idCorso="' + modulo[0]._id + '">' + modulo[0]["descrizione"] +'</h4>';
         codHtml += '<h4 class="title">Argomenti del Corso</h4>';
         codHtml += '<div class="content">';
         codHtml += '<ul class="course_list">';
@@ -61,7 +52,6 @@ function caricamentoDatiCorso(modulo) {
             modulo[0]["argomentiModulo"].forEach(argomento => {
                 codHtml += '<li class="justify-content-between align-items-center d-flex">';
                 codHtml += '<p>' + argomento.descrizione + '</p>';
-                //codHtml += '<a class="btn_2 text-uppercase" href="dettaglioArgomento.html?argomento=' + argomento._id + '">View Details</a>'; // vedere se metterlo o no il dettaglio dell'argomento
                 codHtml += '</li>';
             });
         }
@@ -107,8 +97,7 @@ function caricamentoDatiCorso(modulo) {
 
         let chkToken = inviaRichiesta('/api/elGruppiAdmin', 'POST', { });
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgCorso");
         });
         chkToken.done(function (data) {
             if(data.length > 0){
@@ -125,17 +114,17 @@ function caricamentoDatiCorso(modulo) {
                 let chkToken = inviaRichiesta('/api/iscriviUtenteCorso', 'POST', {"idCorso" : $("#descCorso").attr("idCorso")});
                 chkToken.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 611)  // utente già presente in corso
-                        $(".msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+                        $("#msgCorso").text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
                     else
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#msgCorso");
                 });
                 chkToken.done(function (data) {
                     if (data.nModified == 1){
-                        alert("Iscrizione al corso effettuata correttamente!");
+                        $("#msgCorso").text("Iscrizione al corso effettuata correttamente!").removeClass("alert alert-danger").addClass("alert alert-success");
                         window.location.reload();
                     }
                     else
-                        $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                        $("#msgCorso").text("Si è verificato un errore durante l'iscrizione al corso").addClass("alert alert-danger");
                 });
             });
 
@@ -147,8 +136,7 @@ function caricamentoDatiCorso(modulo) {
 
                     let chkToken = inviaRichiesta('/api/elGruppiIscrivibiliCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                        console.log(jqXHR);
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#msgModalCorso");
                     });
                     chkToken.done(function (gruppi) {
                         if(gruppi.length > 0){
@@ -162,7 +150,6 @@ function caricamentoDatiCorso(modulo) {
                             cod += '<select name="iscriviGruppo" id="iscriviGruppo" title="Scegli il Gruppo" data-live-search="true" data-live-search-placeholder="Cerca Gruppo">';
                             data.forEach(gruppo => {
                                 cod += "<option value='" + gruppo._id + "'>" + gruppo.nome + "</option>";
-                                //$("#default-select-1 .list").append("<li data-value='" + gruppo._id + "' class='option'>" + gruppo.nome + "</li>");
                             });
                             cod += '</select>';
                             cod += '</div>';
@@ -176,19 +163,17 @@ function caricamentoDatiCorso(modulo) {
 
                             $("#btnSalvaModifiche").on("click", function () {
                                 if ($(this).html() == "Aggiungi") {
-                                    console.log("Gruppo da iscrivere: " + $("#iscriviGruppo option:selected").val());
                                     let chkToken = inviaRichiesta('/api/iscriviGruppoCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idGruppo" : $("#iscriviGruppo option:selected").val() });
                                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                                        console.log(jqXHR);
-                                        printErrors(jqXHR, ".msg");
+                                        printErrors(jqXHR, "#msgModalCorso");
                                     });
                                     chkToken.done(function (data) {
                                         if (data.ok == 1 && data.nModified > 0) {
-                                            alert("Iscrizione del gruppo al corso effettuata correttamente!");
+                                            $("#msgModalCorso").text("Iscrizione del gruppo al corso effettuata correttamente!").removeClass("alert alert-danger").addClass("alert alert-success");
                                             window.location.reload();
                                         }
                                         else
-                                            $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                                            $("#msgModalCorso").text("Si è verificato un errore durante l'iscrizione al corso").addClass("alert alert-danger");
                                     });
                                 }
                             });
@@ -205,11 +190,11 @@ function caricamentoDatiCorso(modulo) {
     }
 }
 
+//Controllo privilegi utente
 function chkModeratore(idCorso) {
     // Solo se utente loggato = moderatore gruppo
     let chkToken = inviaRichiesta('/api/chkModCorso', 'POST', { "idCorso": idCorso });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
         printErrors(jqXHR, ".msg");
     });
     chkToken.done(function (data) {
@@ -407,7 +392,6 @@ function chkModeratore(idCorso) {
                     printErrors(jqXHR, ".modal-body .msg");
                 });
                 chkToken.done(function (data) {
-                    console.log(data);
                     modificaCorso(data);
                 });
             });

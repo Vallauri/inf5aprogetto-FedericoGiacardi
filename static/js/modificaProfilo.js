@@ -1,3 +1,6 @@
+"use strict";
+
+// Routine Iniziale
 $(document).ready(function () {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
@@ -8,12 +11,14 @@ $(document).ready(function () {
     });
 });
 
+//Caricamento Pagina
 function loadPagina() {
     setMinDate();
     document.getElementById("gestFotoModProfilo").selectedIndex = -1;
     $('#gestFotoModProfilo').selectpicker('refresh');
     $("#contFotoModProfilo").css("display", "none");
     $("#gestFotoModProfilo").on("change", gestFotoProfilo);
+    //Recupero i dati del profilo utente
     let rqDatiProfilo = inviaRichiesta('/api/getDatiProfilo', 'POST', {});
     rqDatiProfilo.fail(function (jqXHR, test_status, str_error) {
         printErrors(jqXHR, "#msgModProfilo");
@@ -23,6 +28,7 @@ function loadPagina() {
     });
 }
 
+//Imposto come data di nascita massima 8 anni fa
 function setMinDate() {
     let aus = new Date();
     aus.setDate = aus.getDate();
@@ -31,6 +37,8 @@ function setMinDate() {
     $("#dataNascitaModProfilo").attr("max", data);
 }
 
+//Caricamento dati profilo utente
+//in form di modifica
 function caricaDatiProfilo(utente) {
     $("#nomeModProfilo").val(utente.nome);
     $("#cognomeModProfilo").val(utente.cognome);
@@ -43,6 +51,8 @@ function caricaDatiProfilo(utente) {
     $("#btnModProfilo").on("click", gestModifica);
 }
 
+//Converto la data dal formato MongoDB
+//al formato accettato dall'input date (che usa - come separatore)
 function formattazioneData(data) {
     let d = new Date(data);
     let mese = '' + (d.getMonth() + 1);
@@ -57,7 +67,10 @@ function formattazioneData(data) {
     return [anno, mese, giorno].join('-');
 }
 
+//Gestione Opzioni foto profilo
 function gestFotoProfilo() {
+    //Mostro il campo per il carimento della foto
+    //solo se si è scelto di caricarne una nuova
     if ($("#gestFotoModProfilo").val() == "nuova") {
         $("#contFotoModProfilo").css("display", "unset");
     }else{
@@ -65,6 +78,7 @@ function gestFotoProfilo() {
     }
 }
 
+//Gestione modifica Profilo Utente
 function gestModifica() {
     let foto = "";
     let errore = false;
@@ -77,8 +91,9 @@ function gestModifica() {
     $("#fotoModProfilo").removeClass("alert-danger");
     $("#telModProfilo").removeClass("alert-danger");
     $("#usernameModProfilo").removeClass("alert-danger");
-    $("#msgModProfilo").text("");
+    $("#msgModProfilo").text("").removeClass("alert alert-danger");
 
+    //Controllo validità dati di input
     if ($("#nomeModProfilo").val() != "") {
         if ($("#cognomeModProfilo").val() != "") {
             if (Date.parse($("#dataNascitaModProfilo").val())) {
@@ -117,7 +132,7 @@ function gestModifica() {
                                     let rqModProfilo = inviaRichiestaMultipart('/api/modificaProfilo', 'POST', formData);
                                     rqModProfilo.fail(function (jqXHR, test_status, str_error) {
                                         if (jqXHR.status == 603) {
-                                            $("#msgModProfilo").text("Credenziali Errate o Mancanti");
+                                            $("#msgModProfilo").text("Credenziali Errate o Mancanti").addClass("alert alert-danger");
                                         }
                                         else {
                                             printErrors(jqXHR, "#msgModProfilo");
@@ -128,45 +143,50 @@ function gestModifica() {
                                     });
                                 }
                             } else {
-                                gestErrori("Inserire uno Username", $("#usernameModProfilo"));
+                                gestErrori("Inserire uno Username", $("#usernameModProfilo"), "#msgModProfilo");
                             }
                         } else {
-                            gestErrori("Il numero di Telefono deve contenere 10 numeri", $("#telModProfilo"));
+                            gestErrori("Il numero di Telefono deve contenere 10 numeri", $("#telModProfilo"), "#msgModProfilo");
                         }
                     } else {
-                        gestErrori("Inserire una Email valida", $("#mailModProfilo"));
+                        gestErrori("Inserire una Email valida", $("#mailModProfilo"), "#msgModProfilo");
                     }
                 } else {
-                    gestErrori("Occorre avere almeno 8 anni", $("#dataNascitaModProfilo"));
+                    gestErrori("Occorre avere almeno 8 anni", $("#dataNascitaModProfilo"), "#msgModProfilo");
                 }
                 
             } else {
-                gestErrori("Inserire una Data di Nascita valida", $("#dataNascitaModProfilo"));
+                gestErrori("Inserire una Data di Nascita valida", $("#dataNascitaModProfilo"), "#msgModProfilo");
             }
         } else {
-            gestErrori("Inserire il Cognome", $("#cognomeModProfilo"));
+            gestErrori("Inserire il Cognome", $("#cognomeModProfilo"), "#msgModProfilo");
         }
     }
     else {
-        gestErrori("Inserire il Nome", $("#nomeModProfilo"));
+        gestErrori("Inserire il Nome", $("#nomeModProfilo"), "#msgModProfilo");
     }
 }
 
-function gestErrori(msg, controllo) {
-    $(".msg").html(msg);
+//Funzione di stampa errori
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg).addClass("alert alert-danger");
     controllo.addClass("alert-danger");
 }
 
+//Validazione Email tramite regex
 function validaEmail(email) {
     let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
 
+//Validazione Telefono tramite regex
 function validaTelefono(telefono) {
     let re = /^[0-9]{10,10}$/;
     return re.test(telefono);
 }
 
+//Calcola la differenza tra la data attuale e quella in input
+//e restituisce il valore in giorni
 function chkEtaMinima(dataNascita) {
     let dataBase = new Date();
     let diffTime = Math.abs(dataBase - dataNascita);

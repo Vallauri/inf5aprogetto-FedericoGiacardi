@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Learn On The Net</title>
-    <link rel="icon" href="img/favicon.png">
+    <link rel="icon" href="img/LogoFinale/favicon.png">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- animate CSS -->
@@ -33,11 +33,11 @@
 <body>
     <!--::header part start::-->
     <header class="main_menu home_menu">
-        <div class="container">
+        <div class="container" style="max-width: 100%!important;">
             <div class="row align-items-center">
                 <div class="col-lg-12">
                     <nav class="navbar navbar-expand-lg navbar-light">
-                        <a class="navbar-brand logo_2" href="index.html"> <img src="img/logo.png" alt="logo"> </a>
+                        <a class="navbar-brand logo_2" href="index.html"> <img src="img/LogoFinale/Logo.png" alt="logo"> </a>
                         <button class="navbar-toggler" type="button" data-toggle="collapse"
                             data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
@@ -60,11 +60,17 @@
                                     <a class="nav-link" href="gruppi.html">Gruppi</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="appunti.html">Appunti</a>
+                                    <a class="nav-link active" href="appunti.html">Appunti</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" href="allegati.html">Allegati</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="esami.html">Esami</a>
+                                </li>
+                                <li id="navMateria" class="nav-item"></li>
+                                <li id="navArgomenti" class="nav-item"></li>
+                                <li id="navRegAdmin" class="nav-item"></li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
                             </ul>
@@ -80,11 +86,13 @@
     <!-- Sezione Dati Appunti -->
     <section class="course_details_area section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Dettagli Appunto</h2>
+            <div class="section_tittle text-center">
+                <h2>Dettagli Appunto</h2>
+            </div>
             <div class="row" id="contDetAppunto"></div>
             <div class="row">
-                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                    <div id="msgDetAppunto" class="msg"> </div>
+                <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                    <div id="msgDetAppunto" role="alert" style="text-align: center;"> </div>
                 </div>
             </div>
             <br>
@@ -95,91 +103,99 @@
     <!-- Sezione Modifica Appunto -->
     <section id="sezModAppunto" style="display: none;" class="section_padding">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Modifica Appunto</h2>
+            <div class="section_tittle text-center">
+                <h2>Modifica Appunto</h2>
+            </div>
             <div class="row">
-                <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                <div class="col-sm-9 col-md-5 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
                         <div div class="card-body">
                             <form id="formModAppunto" class="form-contact">
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-heading"></i>
-                                            </span>
-                                            <input type="text" id="descModAppunto" name="descModAppunto" placeholder="Descrizione"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Descrizione'" required class="single-input">
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-7 col-lg-6 mx-auto">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-tag"></i>
+                                                </span>
+                                                <input type="text" id="descModAppunto" name="descModAppunto" placeholder="Descrizione"
+                                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                    onblur="this.placeholder = 'Descrizione'" required class="single-input">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="nomeAutoreModAppunto" name="nomeAutoreModAppunto"
-                                                placeholder="Nome Autore"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Nome Autore'" required class="single-input">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-user"> </i>
+                                                </span>
+                                                <input type="text" id="nomeAutoreModAppunto" name="nomeAutoreModAppunto" placeholder="Nome Autore"
+                                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                    onblur="this.placeholder = 'Nome Autore'" required class="single-input">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"> </i>
-                                            </span>
-                                            <input type="text" id="cognomeAutoreModAppunto" name="cognomeAutoreModAppunto" placeholder="Cognome Autore"
-                                                onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
-                                                onblur="this.placeholder = 'Cognome Autore'" required class="single-input">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-user"> </i>
+                                                </span>
+                                                <input type="text" id="cognomeAutoreModAppunto" name="cognomeAutoreModAppunto" placeholder="Cognome Autore"
+                                                    onfocus="this.placeholder = ''; this.classList.remove('alert-danger');"
+                                                    onblur="this.placeholder = 'Cognome Autore'" required class="single-input">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-tag"></i>
-                                            </span>
-                                            <div>
-                                                <div class="bootstrap-select-wrapper">
-                                                    <select id="argomentiModAppunto" title="Scegli gli argomento" data-live-search="true" data-live-search-placeholder="Cerca argomenti" multiple="true" data-multiple-separator=", ">
-                                                    </select>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-tag"></i>
+                                                </span>
+                                                <div>
+                                                    <div class="bootstrap-select-wrapper">
+                                                        <select id="argomentiModAppunto" title="Scegli gli argomento" data-live-search="true"
+                                                            data-live-search-placeholder="Cerca argomenti" multiple="true" data-multiple-separator=", ">
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-file"></i>
+                                                </span>
+                                                <div>
+                                                    <div class="bootstrap-select-wrapper">
+                                                        <select id="allegatiModAppunto" title="Scegli gli allegati" data-live-search="true"
+                                                            data-live-search-placeholder="Cerca allegati" multiple="true" data-multiple-separator=", ">
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-file-upload"></i>
+                                                </span>
+                                                <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
+                                                <div class="custom-file">
+                                                    <input type="file" id="newAllegatiModAppunto" class="custom-file-input" name="newAllegatiModAppunto"
+                                                        aria-describedby="descAllegati" class="single-input" multiple required>
+                                                    <label class="custom-file-label" for="newAllegatiModAppunto">Aggiungi Allegati</label>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-file"></i>
-                                            </span>
-                                            <div>
-                                                <div class="bootstrap-select-wrapper">
-                                                    <select id="allegatiModAppunto" title="Scegli gli allegati" data-live-search="true"
-                                                        data-live-search-placeholder="Cerca allegati" multiple="true" data-multiple-separator=", ">
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-file-upload"></i>
-                                            </span>
-                                            <!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
-                                            <div class="custom-file">
-                                                <input type="file" id="newAllegatiModAppunto" class="custom-file-input"
-                                                    name="newAllegatiModAppunto" aria-describedby="descAllegati"
-                                                    class="single-input" multiple required>
-                                                <label class="custom-file-label" for="newAllegatiModAppunto">Aggiungi Allegati</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="msgModAppunto" class="msg"> </div>
                                 </div>
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="form-group">
-                                        <a id="btnModAppunto" class="genric-btn primary circle btn-block"
-                                            style="color: #fff!important;">Invia</a>
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                                        <div id="msgModAppunto" role="alert" style="text-align: center;"> </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                                        <div class="form-group">
+                                            <a id="btnModAppunto" class="genric-btn primary circle btn-block"><i class="fas fa-edit"></i> Invia</a>
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -192,7 +208,7 @@
     <!-- Fine Sezione Modifica Appunto  -->
 
     <!-- Modal Eliminazione-->
-    <div class="modal fade" id="modalConfElimina" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+    <div class="modal fade" id="modalConfElimina" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true" style="margin-top: 10%;">
         <div class="modal-dialog" role="document" >
             <div class="modal-content">
                 <div class="modal-header">
@@ -214,7 +230,7 @@
 
     <!-- Modal Eliminazione-->
     <div class="modal fade" id="modalMexElimina" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-hidden="true" data-backdrop="static" data-keyboard="false" style="margin-top: 10%;">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-body">
@@ -239,68 +255,76 @@
     <!-- Sezione Lettura Appunti-->
     <section id="sezioneTTSAppunti" class="course_details_area section_padding" style="display: none;">
         <div class="container-fluid">
-            <h2 align="center" class="section_tittle">Lettura Appunto</h2>
+            <div class="section_tittle text-center">
+                <h2>Lettura Appunto</h2>
+            </div>
             <div class="row" id="contTTSAppunto">
-                <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                <div class="col-sm-9 col-md-5 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
                         <div div class="card-body">
                             <form id="formModAppunto" class="form-contact">
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-file"></i>
-                                            </span>
-                                            <div>
-                                                <div class="bootstrap-select-wrapper">
-                                                    <select id="allegatiTTSAppunto" title="Allegati da leggere" multiple="true"
-                                                        data-multiple-separator=", " aria-describedby="descallegatiTTSAppunto">
-                                                    </select>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-7 col-lg-6 mx-auto">
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-file"></i>
+                                                </span>
+                                                <div>
+                                                    <div class="bootstrap-select-wrapper">
+                                                        <select id="allegatiTTSAppunto" title="Allegati da leggere" multiple="true"
+                                                            data-multiple-separator=", " aria-describedby="descallegatiTTSAppunto">
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <small id="descallegatiTTSAppunto" class="form-text text-muted">
+                                                Sono ammessi solo file PDF e Docx
+                                            </small>
                                         </div>
-                                        <small id="descallegatiTTSAppunto" class="form-text text-muted">
-                                            Sono ammessi solo file PDF e Docx
-                                        </small>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-language"></i>
-                                            </span>
-                                            <div>
-                                                <div class="bootstrap-select-wrapper">
-                                                    <select id="linguaTTSAppunto" title="Lingua di lettura"></select>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-language"></i>
+                                                </span>
+                                                <div>
+                                                    <div class="bootstrap-select-wrapper">
+                                                        <select id="linguaTTSAppunto" title="Lingua di lettura"></select>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <small id="descVoceTTSAppunto" class="form-text text-muted">
+                                                Lingua degli allegati scelti
+                                            </small>
                                         </div>
-                                        <small id="descVoceTTSAppunto" class="form-text text-muted">
-                                            Lingua degli allegati scelti
-                                        </small>
-                                    </div>
-                                    <div id="contVoceTTSAppunto" class="input-group form-group" style="display: none;">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-file-audio"></i>
-                                            </span>
-                                            <div>
-                                                <div class="bootstrap-select-wrapper">
-                                                    <select id="voceTTSAppunto" title="Voce per lettura" aria-describedby="descVoceTTSAppunto">
-                                                    </select>
+                                        <div id="contVoceTTSAppunto" class="input-group form-group" style="display: none;">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-file-audio"></i>
+                                                </span>
+                                                <div>
+                                                    <div class="bootstrap-select-wrapper">
+                                                        <select id="voceTTSAppunto" title="Voce per lettura" aria-describedby="descVoceTTSAppunto">
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <small id="descVoceTTSAppunto" class="form-text text-muted">
+                                                Le Voci V 1, 2 e 3 sono basate su Deep Learning
+                                            </small>
                                         </div>
-                                        <small id="descVoceTTSAppunto" class="form-text text-muted">
-                                            Le Voci V 1, 2 e 3 sono basate su Deep Learning
-                                        </small>
+                                        <br>
                                     </div>
-                                    <br>
-                                    <div id="msgTTSAppunto" class="msg"> </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                                        <div id="msgTTSAppunto" role="alert" style="text-align: center;"> </div>
+                                    </div>
                                 </div>
                                 <br>
-                                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
+                                <div class="col-sm-6 col-md-12 col-lg-7 mx-auto">
                                     <div class="form-group">
-                                        <a href="#sezStatoOp" id="btnLetturaAppunto" class="genric-btn primary circle btn-block" style="color: #fff!important;">Leggi</a>
+                                        <a href="#sezStatoOp" id="btnLetturaAppunto" class="genric-btn primary circle btn-block"><i class="fas fa-volume-up"></i> Leggi</a>
                                         <a href="https://cloud.ibm.com/docs/text-to-speech?topic=text-to-speech-gettingStarted"
                                             class="genric-btn link circle btn-block" style="color: #415094!important">Servizio basato su IBM Text to Speech</a>
                                     </div>
@@ -319,7 +343,7 @@
     <section id="sezStatoOp" class="course_details_area section_padding" style="display: none;">
         <div class="container-fluid">
             <div class="row" id="contDetAppunto">
-                <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                <div class="col-sm-9 col-md-5 col-lg-5 mx-auto">
                     <div class="card card-signin my-5">
                         <div id="bodyCardStatoOp" class="card-body">
                             <div id="titoloCardStatoOp" class="card card-title" style="text-align: center; border:0"></div>
@@ -329,8 +353,8 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-6 col-md-12 col-lg-6 mx-auto">
-                    <div id="msgDetAppunto" class="msg"> </div>
+                <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                    <div id="msgDetAppunto" role="alert" style="text-align: center;"> </div>
                 </div>
             </div>
             <br>
@@ -340,7 +364,7 @@
 
     <!-- Modal Eliminazione-->
     <div class="modal fade" id="modalMexDownload" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-hidden="true" data-backdrop="static" data-keyboard="false" style="margin-top: 10%;">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-body">
@@ -369,49 +393,25 @@
             <div class="row justify-content-between">
                 <div class="col-sm-6 col-md-4 col-xl-3">
                     <div class="single-footer-widget footer_1">
-                        <a href="index.html"> <img src="img/logo.png" alt=""> </a>
-                        <p>But when shot real her. Chamber her one visite removal six
-                            sending himself boys scot exquisite existend an </p>
-                        <p>But when shot real her hamber her </p>
+                        <h4>Chi Siamo</h4>
+                        <p>Una Nuova Piattaforma per apprendere in modo rapido, innovativo ed efficente.</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-4 col-xl-4">
-                    <div class="single-footer-widget footer_2">
-                        <h4>Newsletter</h4>
-                        <p>Stay updated with our latest trends Seed heaven so said place winged over given forth fruit.
-                        </p>
-                        <form action="#">
-                            <div class="form-group">
-                                <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder='Enter email address'
-                                        onfocus="this.placeholder = ''"
-                                        onblur="this.placeholder = 'Enter email address'">
-                                    <div class="input-group-append">
-                                        <button class="btn btn_1" type="button"><i class="ti-angle-right"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                        <div class="social_icon">
-                            <a href="#"> <i class="ti-facebook"></i> </a>
-                            <a href="#"> <i class="ti-twitter-alt"></i> </a>
-                            <a href="#"> <i class="ti-instagram"></i> </a>
-                            <a href="#"> <i class="ti-skype"></i> </a>
-                        </div>
-                    </div>
                 </div>
                 <div class="col-xl-3 col-sm-6 col-md-4">
                     <div class="single-footer-widget footer_2">
-                        <h4>Contact us</h4>
+                        <h4>Contattaci</h4>
                         <div class="contact_info">
-                            <p><span> Address :</span> Hath of it fly signs bear be one blessed after </p>
-                            <p><span> Phone :</span> +2 36 265 (8060)</p>
-                            <p><span> Email : </span>info@colorlib.com </p>
+                            <p><span> Telefono Giacardi :</span> 3481194171 </p>
+                            <p><span> Telefono Fontana :</span> 3383789301 </p>
+                            <p><span> Email Giacardi :</span> fgiacardi01@gmail.com </p>
+                            <p><span> Email Fontana : </span> s.fontana.0447@vallauri.edu </p>
                         </div>
                     </div>
                 </div>
             </div>
-
+    
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -422,8 +422,8 @@
                                 <p class="footer-text m-0">
                                     <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                                     Copyright &copy;
-                                    <script>document.write(new Date().getFullYear());</script> All rights reserved |
-                                    This template is made with <i class="ti-heart" aria-hidden="true"></i> by <a
+                                    <script>document.write(new Date().getFullYear());</script> All rights reserved | This
+                                    template is made with <i class="ti-heart" aria-hidden="true"></i> by <a
                                         href="https://colorlib.com" target="_blank">Colorlib</a>
                                     <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                                 </p>

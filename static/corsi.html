@@ -100,7 +100,11 @@
                         <div class="col-sm-1 col-md-1 col-lg-1 col-xs-1"></div>
                     </div>
                     <br>
-                    <div id="msgRicerca" role="alert" style="text-align: center;"></div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                            <div id="msgRicerca" role="alert" style="text-align: center;"> </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <br>
@@ -116,7 +120,7 @@
                             <form>
                                 <label for="tipoRicerca">Corsi da cercare</label>
                                 <div class="form-select" id="default-select">
-                                    <select name="tipoRicerca" id="tipoRicerca" title="Ricerca Corsi">
+                                    <select name="tipoRicerca" id="tipoRicerca" title="Ricerca Corsi" class="form-control">
                                         <option value="all" selected>Tutti i corsi</option>
                                         <option value="yourGroup">Corsi dei tuoi gruppi</option>
                                     </select>
@@ -124,11 +128,15 @@
                                 <label for="tipoCorso">Tipi di corso da cercare</label>
                                 <div class="form-select" id="default-select-1">
                                     <select id="tipoCorso" title="Scegli il Tipo di Modulo" data-live-search="true"
-                                        data-live-search-placeholder="Cerca Tipo Modulo">
+                                        data-live-search-placeholder="Cerca Tipo Modulo" class="form-control">
                                     </select>
                                 </div>
                             </form>
-                            <div id="msgErrRicAvanzata" role="alert" style="text-align: center;"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                            <div id="msgErrRicAvanzata" role="alert" style="text-align: center;"> </div>
                         </div>
                     </div>
                 </div>
