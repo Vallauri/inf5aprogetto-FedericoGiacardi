@@ -81,7 +81,7 @@ function caricamentoDatiCorso(appunto) {
         codHtml += '</div>';
         codHtml += '<h4 class="title">Data Caricamento</h4>';
         codHtml += '<div class="content">';
-        codHtml += new Date(appunto[0]["dataCaricamento"]).toLocaleDateString();
+        codHtml += setFormatoDate(new Date(appunto[0]["dataCaricamento"]));
         codHtml += '</div>';
         codHtml += '<h4 class="title">Autore Appunto</h4>';
         codHtml += '<div id="nomeCognomeAutoreAppunto" class="content">';
