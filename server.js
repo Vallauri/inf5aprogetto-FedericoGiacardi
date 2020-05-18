@@ -302,6 +302,10 @@ const certificate = fs.readFileSync("keys/certificate.crt", "utf8");
 const credentials = { "key": privateKey, "cert": certificate };
 
 /* ************************************************************ */
+app.use("/", express.static('./static'));
+app.use("/static", express.static("static"));
+
+/* ************************************************************ */
 
 // avvio server
 const TIMEOUT = 3000; // 60 SEC
@@ -318,9 +322,6 @@ httpsServer.listen(port, '127.0.0.1', function () {
 });
 httpsServer.timeout = 600000;
 
-/* ************************************************************ */
-app.use("/", express.static('./static'));
-app.use("/static", express.static("static"));
 // middleware
 app.use("/", bodyParser.json());
 app.use("/", bodyParser.urlencoded({ extended: true }));
