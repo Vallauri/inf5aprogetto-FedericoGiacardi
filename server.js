@@ -10,7 +10,11 @@ var async = require("async");
 var crypto = require("crypto");
 require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
-const textToSpeech = new TextToSpeechV1({});
+const { IamAuthenticator } = require('ibm-watson/auth');
+const textToSpeech = new TextToSpeechV1({
+    authenticator: new IamAuthenticator({ apikey: process.env.TEXT_TO_SPEECH_APIKEY }),
+    url: process.env.TEXT_TO_SPEECH_URL
+});
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
 
