@@ -703,7 +703,7 @@ function drawModaleDomande(prov){
     });
 }
 
-function getNewId(prov){ // da testare
+function getNewId(prov){
     let domande;
     let num;
     if(prov == "ins")
