@@ -46,7 +46,7 @@
 
                         <div class="collapse navbar-collapse main-menu-item justify-content-end"
                             id="navbarSupportedContent">
-                            <ul class="navbar-nav align-items-center">
+                            <ul id="ulNavBar" class="navbar-nav align-items-center">
                                 <li class="nav-item">
                                     <a class="nav-link" href="index.html">Home</a>
                                 </li>
@@ -65,6 +65,12 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="allegati.html">Allegati</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="esami.html">Esami</a>
+                                </li>
+                                <li id="navMateria" class="nav-item"></li>
+                                <li id="navArgomenti" class="nav-item"></li>
+                                <li id="navRegAdmin" class="nav-item"></li>
                                 <li id="profiloUtNavBar" class="nav-item avatar dropdown">
                                 </li>
                             </ul>
@@ -98,8 +104,10 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-xl-12">
-                    <div class="section_tittle text-center">
-                        <p class="msg"></p>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                            <div id="msgDetGruppo" role="alert" style="text-align: center;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -135,49 +143,25 @@
             <div class="row justify-content-between">
                 <div class="col-sm-6 col-md-4 col-xl-3">
                     <div class="single-footer-widget footer_1">
-                        <a href="index.html"> <img src="img/logo.png" alt=""> </a>
-                        <p>But when shot real her. Chamber her one visite removal six
-                            sending himself boys scot exquisite existend an </p>
-                        <p>But when shot real her hamber her </p>
+                        <h4>Chi Siamo</h4>
+                        <p>Una Nuova Piattaforma per apprendere in modo rapido, innovativo ed efficente.</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-4 col-xl-4">
-                    <div class="single-footer-widget footer_2">
-                        <h4>Newsletter</h4>
-                        <p>Stay updated with our latest trends Seed heaven so said place winged over given forth fruit.
-                        </p>
-                        <form action="#">
-                            <div class="form-group">
-                                <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder='Enter email address'
-                                        onfocus="this.placeholder = ''"
-                                        onblur="this.placeholder = 'Enter email address'">
-                                    <div class="input-group-append">
-                                        <button class="btn btn_1" type="button"><i class="ti-angle-right"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                        <div class="social_icon">
-                            <a href="#"> <i class="ti-facebook"></i> </a>
-                            <a href="#"> <i class="ti-twitter-alt"></i> </a>
-                            <a href="#"> <i class="ti-instagram"></i> </a>
-                            <a href="#"> <i class="ti-skype"></i> </a>
-                        </div>
-                    </div>
                 </div>
                 <div class="col-xl-3 col-sm-6 col-md-4">
                     <div class="single-footer-widget footer_2">
-                        <h4>Contact us</h4>
+                        <h4>Contattaci</h4>
                         <div class="contact_info">
-                            <p><span> Address :</span> Hath of it fly signs bear be one blessed after </p>
-                            <p><span> Phone :</span> +2 36 265 (8060)</p>
-                            <p><span> Email : </span>info@colorlib.com </p>
+                            <p><span> Telefono Giacardi :</span> 3481194171 </p>
+                            <p><span> Telefono Fontana :</span> 3383789301 </p>
+                            <p><span> Email Giacardi :</span> fgiacardi01@gmail.com </p>
+                            <p><span> Email Fontana : </span> s.fontana.0447@vallauri.edu </p>
                         </div>
                     </div>
                 </div>
             </div>
-
+    
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -185,9 +169,14 @@
                     <div class="copyright_part_text text-center">
                         <div class="row">
                             <div class="col-lg-12">
-                                <p class="footer-text m-0"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="ti-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
+                                <p class="footer-text m-0">
+                                    <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                                    Copyright &copy;
+                                    <script>document.write(new Date().getFullYear());</script> All rights reserved | This
+                                    template is made with <i class="ti-heart" aria-hidden="true"></i> by <a
+                                        href="https://colorlib.com" target="_blank">Colorlib</a>
+                                    <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                                </p>
                             </div>
                         </div>
                     </div>

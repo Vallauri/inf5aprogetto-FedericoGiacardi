@@ -735,7 +735,7 @@ app.post("/api/elGruppi", function (req, res) {
 
 app.post("/api/elMaterie", function (req, res) {
     utenti.aggregate([
-        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id), "validita" : "true" } }, // controllare
+        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id), "validita" : "true" } },
         {
             $lookup:
             {
@@ -749,7 +749,7 @@ app.post("/api/elMaterie", function (req, res) {
                             "let": { "argomenti": "$argomenti.codArg" },
                             "pipeline": [
                                 { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
-                                { "$match": { "$expr": { "$eq": ["validita", "true"] } } }, // controllare
+                                { "$match": { "$expr": { "$eq": ["$validita", "true"] } } }, // non evita che l'appunto sia nell'elenco, ma dovrebbe funzionare tutto lo stesso
                             ],
                             "as": "argomenti"
                         }
@@ -779,14 +779,14 @@ app.post("/api/elAppunti", function (req, res) {
                 "let": { "appunto": "$_id" },
                 "pipeline": [
                     { "$match": { "$expr": { "$eq": ["$codUtente", "$$appunto"] } } },
-                    { "$match": { "$expr" : { "$eq": ["validita", "true"] } } }, // controllare
+                    { "$match": { "$expr" : { "$eq": ["$validita", "true"] } } },
                     {
                         "$lookup": {
                             "from": argomenti.collection.name,
                             "let": { "argomenti": "$argomenti.codArgomento" },
                             "pipeline": [
                                 { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
-                                { "$match": { "$expr": { "$eq": ["validita", "true"] } } }, // controllare
+                                { "$match": { "$expr": { "$eq": ["$validita", "true"] } } }, // non evita che l'appunto sia nell'elenco, ma dovrebbe funzionare tutto lo stesso
                             ],
                             "as": "argomenti"
                         }
@@ -817,14 +817,14 @@ app.post("/api/feedModuli", function (req, res) {
                 "let": { "moduloUt": "$moduli.codModulo", "moduloGruppo": "$moduliGruppi.codModulo"},
                 "pipeline": [
                     { "$match": { "$expr": { "$or": [{ "$in": ["$_id", "$$moduloUt"] }, { "$in": ["$_id", "$$moduloGruppo"] }] }} },
-                    { "$match": { "$expr": { "$eq": ["validita", "true"] } } }, // controllare
+                    { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
                     {
                         "$lookup": {
                             "from": argomenti.collection.name,
                             "let": { "argomenti": "$argomenti.codArgomento" },
                             "pipeline": [
                                 { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
-                                { "$match": { "$expr": { "$eq": ["validita", "true"] } } }, // controllare
+                                { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
                                 {
                                     "$lookup": {
                                         "from": moduli.collection.name,
@@ -861,7 +861,7 @@ app.post("/api/elEventiCalendario", function (req, res) {
                 "let": { "lezione": "$lezioni.codLez" },
                 "pipeline": [
                     { "$match": { "$expr": { "$in": ["$_id", "$$lezione"] } } },
-                    { "$match": { "$expr": { "$eq": ["validita", "true"] } } } // controllare
+                    { "$match": { "$expr": { "$eq": ["$validita", "true"] } } }
                 ],
                 as: "datiLezione"
             }
@@ -878,7 +878,7 @@ app.post("/api/elEventiCalendario", function (req, res) {
 
 app.post("/api/dettaglioEventoModuli", function (req, res) {
     moduli.aggregate([
-        { $match: { "_id": parseInt(req.body.idEvento), "validita" : "true" } }, // controllare
+        { $match: { "_id": parseInt(req.body.idEvento), "validita" : "true" } },
         {
             $lookup:
             {
@@ -1512,7 +1512,7 @@ app.post("/api/iscriviUtenteCorso", function (req, res) {
 
             if (add) {
                 let now = new Date().toISOString();
-                utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { $push: { moduli: { codModulo: parseInt(req.body.idCorso), dataInizio: now, scadenza: null } } })
+                utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id), dataFine: null }, { $push: { moduli: { codModulo: parseInt(req.body.idCorso), dataInizio: now, scadenza: null, dataFine: null } } })
                     .exec()
                     .then(results => {
                         //console.log(results);
@@ -1780,7 +1780,8 @@ app.post("/api/aggiungiCorso", function (req, res) {
                                             codTipoModulo: parseInt(req.body.tipoCorso),
                                             codMateria: parseInt(req.body.materia),
                                             codAutore: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
-                                            argomenti: vetArgomenti
+                                            argomenti: vetArgomenti,
+                                            argomentiDaApprovare: vetArgomenti
                                         });
                                         aggCorso.save().then(results => { res.send(JSON.stringify("aggCorsoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
                                     }).catch(err => {
@@ -1829,7 +1830,7 @@ app.post("/api/elTipiGruppi", function (req, res) {
 app.post("/api/cercaGruppo", function (req, res) {
     let filtri = req.body.filtri;
     if (filtri.gruppiDaCercare == "all") { // controllo se i gruppi da cercare sono tutti o solo quelli dell'utente
-        if (filtri.tipoGruppo != "none") { // controllo se è stato specificato un tipo di gruppo
+        if (filtri.tipoGruppo != "") { // controllo se è stato specificato un tipo di gruppo
             gruppi.aggregate([
                 { $match: { nome: new RegExp(req.body.valore, "i") } },
                 { $match: { tipoGruppo: parseInt(filtri.tipoGruppo) } },
@@ -1877,7 +1878,7 @@ app.post("/api/cercaGruppo", function (req, res) {
     }
     else {
         // qui sono nel ramo in cui i gruppi richiesti sono quelli dell'utente
-        if (filtri.tipoGruppo == "none") { // controllo se il tipo di gruppo è stato specificato o no
+        if (filtri.tipoGruppo == "") { // controllo se il tipo di gruppo è stato specificato o no
             utenti.aggregate([
                 { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
                 {
@@ -2334,6 +2335,7 @@ app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"), function (req
                                                     cognomeAutore: req.body.cognome,
                                                     codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
                                                     argomenti: vetArgomenti,
+                                                    argomentiDaApprovare: vetArgomenti,
                                                     allegati: vetAllegati
                                                 });
                                                 aggAppunto.save().then(results => { res.send(JSON.stringify("aggAppuntoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
@@ -2669,8 +2671,7 @@ function gestModDelAllegati(req, res) {
 app.post("/api/removeAppunto", function (req, res) {
     console.log(req.body.codAppunto);
     if (req.body.codAppunto != null) {
-        // appunti.remove({ "_id": parseInt(req.body.codAppunto) }).exec().then(resRem => {
-        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, { $set : {"validita" : "false"}}).exec().then(resRem => { // controllare
+        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, { $set : {"validita" : "false"}}).exec().then(resRem => {
             lezioni.updateMany({}, { $pull: { "appunti":{"codAppunto": parseInt(req.body.codAppunto) }} }).exec().then(results =>{
                 let token = createToken(req.payload);
                 writeCookie(res, token);
@@ -3708,6 +3709,7 @@ app.post("/api/salvaRisultatoEsame", function (req, res) {
 });
 //#endregion
 
+//#region MODERAZIONE MATERIE
 app.post("/api/elMatModerate", function (req, res) {
     if (JSON.parse(JSON.stringify(req.payload))._id) { 
         materie.find({ $and: [{ "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, {"validita":"true"}]}).exec().then(results => {
@@ -3839,12 +3841,12 @@ app.post("/api/modificaMateria", function (req, res) {
     }
 });
 
-app.post("/api/approvaArgomento", function (req, res) {
+app.post("/api/approvaArgomento", function (req, res) { // da notificare cambiamento a Giacca
     if (req.body.codArgomento) {
         argomentiTemp.findOne({ "_id": parseInt(req.body.codArgomento) }).exec().then(resultsArgTemp =>{
             if (resultsArgTemp) {
-                argomenti.count({ $and: [{ "descrizione": req.body.descArgomento }, { "codMateria": parseInt(req.body.codMateria) }] }).exec().then(nArgs=>{
-                    if (nArgs > 0) {
+                argomenti.count({ $and: [{ "descrizione": resultsArgTemp.descrizione }, { "codMateria": parseInt(resultsArgTemp.codMateria) }] }).exec().then(nArgs=>{
+                    if (nArgs == 0) {
                         argomenti.find({}).exec().then(results => {
                             let vet = JSON.parse(JSON.stringify(results));
                             const addArgomento = new argomenti({
@@ -3903,7 +3905,9 @@ app.post("/api/rifiutoArgomento", function (req, res) {
         gestErrorePar(req, res);
     }
 });
+//#endregion
 
+//#region MODERAZIONE ARGOMENTI
 app.post("/api/elArgomentiModerati", function (req, res) {
     if (JSON.parse(JSON.stringify(req.payload))._id) {
         argomenti.aggregate([
@@ -4302,6 +4306,7 @@ app.post("/api/rifiutaModulo", function (req, res) {
         gestErrorePar(req, res);
     }
 });
+//#endregion
 
 app.post("/api/registraAdmin", function (req, res) {
     if (req.body.nome != "") {

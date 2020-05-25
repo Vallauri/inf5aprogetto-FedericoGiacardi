@@ -38,7 +38,7 @@ function loadPagina() {
     if (par[0] == "appunto" && !isNaN(parseInt(par[1]))) {
         let datiAppuntoRQ = inviaRichiesta('/api/datiAppuntoById', 'POST', { "idAppunto": par[1] });
         datiAppuntoRQ.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgDetAppunto");
         });
         datiAppuntoRQ.done(function (data) {
             window.sessionStorage.removeItem("codAppunto");
@@ -51,7 +51,7 @@ function loadPagina() {
         });
     }
     else {
-        $(".msg").html("Errore nel passaggio dei parametri");
+        $("#msgDetAppunto").text("Errore nel passaggio dei parametri").addClass("alert alert-danger");
         window.location.href = "appunti.html";
     }
 }
@@ -225,7 +225,7 @@ function gestModifica() {
     $("#argomentiModAppunto").removeClass("alert-danger");
     $("#allegatiModAppunto").removeClass("alert-danger");
     $("#newAllegatiModAppunto").removeClass("alert-danger");
-    $("#msgModAppunto").text("");
+    $("#msgModAppunto").text("").removeClass("alert alert-danger");
     let argomentiOk = false;
     let allegatiOk = false;
 
@@ -266,7 +266,7 @@ function gestModifica() {
                             let modAppuntoRQ = inviaRichiestaMultipart('/api/modificaAppunto', 'POST', formData);
                             modAppuntoRQ.fail(function (jqXHR, test_status, str_error) {
                                 if (jqXHR.status == 603) {
-                                    $("#msgModAppunto").text("Parametri Errati o Mancanti");
+                                    $("#msgModAppunto").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
                                 }
                                 else {
                                     printErrors(jqXHR, "#msgModAppunto");
@@ -299,11 +299,11 @@ function gestModifica() {
     
 }
 
+//Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
-    if (controllo) {
+    $(target).html(msg).addClass("alert alert-danger");
+    if(controllo)
         controllo.addClass("alert-danger");
-    }
 }
 
 function clearInputFields() {
@@ -313,7 +313,7 @@ function clearInputFields() {
     document.getElementById("argomentiModAppunto").selectedIndex = -1;
     document.getElementById("allegatiModAppunto").selectedIndex = -1;
     $("#newAllegatiModAppunto").val("");
-    $("#msgModAppunto").text("");
+    $("#msgModAppunto").text("").removeClass("alert alert-danger");
     window.location.reload();
 }
 
@@ -322,7 +322,7 @@ function eliminaAppunto() {
         let eliminaAppuntoRQ = inviaRichiesta('/api/removeAppunto', 'POST', { "codAppunto": window.sessionStorage.getItem("codAppunto")});
         eliminaAppuntoRQ.fail(function (jqXHR, test_status, str_error) {
             if (jqXHR.status == 603) {
-                $("#msgDetAppunto").text("Parametri Errati o Mancanti");
+                $("#msgDetAppunto").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
             }
             else {
                 printErrors(jqXHR, "#msgDetAppunto");
@@ -403,7 +403,7 @@ function loadLinguaTTS() {
         document.getElementById("linguaTTSAppunto").selectedIndex = -1;
         $("#linguaTTSAppunto").html(codHtml).selectpicker("refresh");
     }).catch(err=>{
-        $("#msgTTSAppunto").html("Errore Caricamento Lingue");
+        $("#msgTTSAppunto").html("Errore Caricamento Lingue").addClass("alert alert-danger");
     });
 }
 
@@ -430,7 +430,7 @@ function loadVociTTS() {
             $("#voceTTSAppunto").html(codhtml).selectpicker("refresh");
             $("#contVoceTTSAppunto").css("display", "unset");
         }).catch(err => {
-            $("#msgTTSAppunto").html("Errore Caricamento Voci");
+            $("#msgTTSAppunto").html("Errore Caricamento Voci").addClass("alert alert-danger");
         });       
     }else{
         $("#voceTTSAppunto").html("").selectpicker("refresh");
@@ -444,7 +444,7 @@ function gestRqTTS() {
             if (document.getElementById("linguaTTSAppunto").selectedIndex != 0) {
                 if (document.getElementById("voceTTSAppunto").selectedIndex != 0) {
                     $("#sezStatoOp").css("display", "unset");
-                    $("#msgTTSAppunto").html("");
+                    $("#msgTTSAppunto").html("").removeClass("alert alert-danger");
                     setCardStatoOp("InCorso");
                     let rqTTS = inviaRichiestaTTS('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val() });
                     rqTTS.fail(function (jqXHR, test_status, str_error) {
@@ -502,7 +502,7 @@ function setCardStatoOp(stato, msgErrore) {
     }else if(stato == "opOk"){
         $("#btnTTSAppunto").removeAttr("disabled");
         $("#btnLetturaAppunto").removeAttr("disabled");
-        testoOp = "<h3>Lettura completata</h3><div id='msgDownloadAppunto' class='msg'> </div>";
+        testoOp = "<h3>Lettura completata</h3><div class='row'><divclass='col-sm-12 col-md-7 col-lg-7 mx-auto'><div id='msgDownloadAppunto' role='alert' style='text-align: center;'></div></div></div>";
         codHtmlBtn = '<button id="btnStatoOp" onclick="gestDownloadAudio();" class="btn btn-primary" type="button"><i class="fa fa-download" aria-hidden="true"></i> Download Audio</button>';
     } else if (stato == "errore" && msgErrore != undefined){
         $("#btnTTSAppunto").removeAttr("disabled");
@@ -517,7 +517,7 @@ function setCardStatoOp(stato, msgErrore) {
 function gestDownloadAudio() {
     $("#btnTTSAppunto").attr("disabled", "disabled");
     $("#btnLetturaAppunto").attr("disabled", "disabled");
-    $("#msgDownloadAppunto").html("");
+    $("#msgDownloadAppunto").html("").removeClass("alert alert-danger");
     let vetAus = JSON.parse(window.sessionStorage.getItem("ttsAudio"));
     for (let i = 0; i < vetAus.length; i++) {
         fetch('/api/downloadAudioTTS?allegato=' + vetAus[i])

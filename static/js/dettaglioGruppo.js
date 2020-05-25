@@ -9,8 +9,7 @@ function loadPagina() {
     if(par[0] == "gruppo" && !isNaN(parseInt(par[1]))){
         let chkToken = inviaRichiesta('/api/datiGruppoById', 'POST', {"idGruppo" : par[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgDetGruppo");
         });
         chkToken.done(function (data) {
             caricamentoDatiGruppo(data);
@@ -18,7 +17,7 @@ function loadPagina() {
         });
     }
     else{
-        alert("Errore nel passaggio dei parametri");
+        $("#msgDetGruppo").text("Errore nel passaggio dei parametri").addClass("alert alert-danger");
         window.location.href = "gruppi.html";
     }
 }
@@ -44,9 +43,6 @@ function caricamentoDatiGruppo(gruppo) {
     }
     else{
         codHtml += '<div class="col-lg-8 course_details_left">';
-        // codHtml += '<div class="main_image">';
-        // codHtml += '<img class="img-fluid" src="img/single_cource.png" alt="">'; // immagine del gruppo non presente su db
-        // codHtml += '</div>';
         codHtml += '<div class="content_wrapper">';
         codHtml += '<h4 class="title_top">' + gruppo[0]["nome"] +'</h4>';
         codHtml += '<div class="content" id="descGruppo" idGruppo="' + gruppo[0]._id + '">' + gruppo[0]["descrizione"] + '</div>';
@@ -98,9 +94,6 @@ function caricamentoDatiGruppo(gruppo) {
         codHtml += '</a>';
         codHtml += '</li>';
         codHtml += '</ul>'; 
-        // codHtml += '<div class="col-lg-12 text-center">';
-        // codHtml += '<button id="btnIscrivitiGruppo" class="genric-btn success radius">Iscriviti al Gruppo</button>'; // da vedere (non so se farlo, bisognerebbe fare una gestione delle richieste ad inviti)
-        // codHtml += '</div>';
         codHtml += '</div>';
         codHtml += '</div>';
         
@@ -112,8 +105,7 @@ function chkModeratore(idGruppo) {
     // Solo se utente loggato = moderatore gruppo
     let chkToken = inviaRichiesta('/api/chkModGruppo', 'POST', { "idGruppo": idGruppo });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, "#msgDetGruppo");
     });
     chkToken.done(function (data) {
         if (data.ris == "autore") {
@@ -130,34 +122,30 @@ function chkModeratore(idGruppo) {
             $("#btnIscrivitiGruppo").hide();
 
             $("#btnSalvaModifiche").on("click", function () {
-                /*if($(this).html() == "Salva Aggiunte"){
-                    window.location.reload();
-                }
-                else */
                 if ($(this).html() == "Salva Modifiche"){
                     if(chkCorrettezzaDati()){
                         let chkToken = inviaRichiesta('/api/modificaGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "nome": $("#nome").val().trim(), "descrizione": $("#descrizione").val().trim(), "tipoGruppo": $("#tipoGruppo option:selected").val() });
                         chkToken.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgModGruppo");
                         });
                         chkToken.done(function (data) {
                             if (data.ok == 1)
                                 window.location.reload();
                             else
-                                $(".modal-body .msg").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare");
+                                $("#msgModGruppo").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare").addClass("alert alert-danger");
                         });
                     }
                 }
                 else if ($(this).html() == "Conferma Rimozione"){
                     let chkToken = inviaRichiesta('/api/rimuoviGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                        printErrors(jqXHR, ".modal-body .msg");
+                        printErrors(jqXHR, "#msgRemGruppo");
                     });
                     chkToken.done(function (data) {
                         if (data.ok == 1)
                             window.location.href = "gruppi.html";
                         else
-                            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione del gruppo. Riprovare");
+                            $("#msgRemGruppo").text("Si è verificato un errore durante la rimozione del gruppo. Riprovare").addClass("alert alert-danger");
                     });
                 }
             });
@@ -182,8 +170,7 @@ function chkModeratore(idGruppo) {
                 cod += '<button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>';
                 cod += '</div>';
                 cod += '</div>';
-                cod += '<p class="msg" style="margin-top:5px"></p>';
-                // cod += '<span id="elUtAdd" idUt=""></span>'; // serve per add diversa da quella gestita ora
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgCercaUt" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
@@ -191,12 +178,12 @@ function chkModeratore(idGruppo) {
                 $("#dettGruppoMod .modal-body").append(cod);
 
                 $("#btnRicerca").on("click", function () {
-                    $(".modal-body .msg").text("");
+                    $("#msgCercaUt").text("").removeClass("alert alert-danger");
 
                     if ($("#txtRicerca").val() != "") {
                         let ricerca = inviaRichiesta('/api/cercaUtenteAggiuntaGruppo', 'POST', { "valore": $("#txtRicerca").val() });
                         ricerca.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgCercaUt");
                         });
                         ricerca.done(function (data) {
                             console.log(data);
@@ -204,7 +191,7 @@ function chkModeratore(idGruppo) {
                         });
                     }
                     else {
-                        $(".modal-body .msg").text("Inserire un valore per la ricerca");
+                        $("#msgCercaUt").text("Inserire un valore per la ricerca").addClass("alert alert-danger");
                         $("#txtRicerca").focus();
                     }
                 });
@@ -240,7 +227,7 @@ function chkModeratore(idGruppo) {
 
                 let chkToken = inviaRichiesta('/api/datiGruppoById', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
                 chkToken.fail(function (jqXHR, test_status, str_error) {
-                    printErrors(jqXHR, ".modal-body .msg");
+                    printErrors(jqXHR, "#msgModGruppo");
                 });
                 chkToken.done(function (data) {
                     console.log(data);
@@ -258,7 +245,7 @@ function chkModeratore(idGruppo) {
                 cod += '<div class="row">';
                 cod += '<div class="col-lg-12 text-center">';
                 cod += '<p>Sei sicuro di voler rimuovere il gruppo? Tutti i dati ad esso collegati verranno rimossi</p>';
-                cod += '<p class="msg"></p>';
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgRemGruppo" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
 
@@ -273,7 +260,7 @@ function chkModeratore(idGruppo) {
 function dettaglioUtente(utenti) {
     console.log(utenti);
     let codHtml = "";
-    $(".modal-body .msg").html("");
+    $("#msgCercaUt").html("").removeClass("alert alert-danger");
     $("#risultato").remove();
 
     if (utenti.length > 0) {
@@ -297,7 +284,7 @@ function dettaglioUtente(utenti) {
         codHtml += '</div>';
     }
     else {
-        $(".modal-body .msg").text("Nessun utente trovato");
+        $("#msgCercaUt").text("Nessun utente trovato").addClass("alert alert-danger");
         $("#risultato").remove();
     }
 
@@ -305,31 +292,24 @@ function dettaglioUtente(utenti) {
 }
 
 function addIscrittoGruppo(idUtente) {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgCercaUt").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/insNuovoMembroGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "idUtente" : idUtente });
     chkToken.fail(function (jqXHR, test_status, str_error) {
         if (jqXHR.status == 610)  // utente già presente in gruppo
-            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+            $("#msgCercaUt").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
         else
-            printErrors(jqXHR, ".modal-body .msg");
+            printErrors(jqXHR, "#msgCercaUt");
     });
     chkToken.done(function (data) {
         if(data.nModified == 1)
             window.location.reload();
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta al gruppo");
+            $("#msgCercaUt").text("Si è verificato un errore durante l'aggiunta al gruppo").addClass("alert alert-danger");
     });
 }
 
 function modificaGruppo(dettGruppo){
-    /*
-        nome
-        descrizione
-        foto (?)
-        tipo di gruppo
-        ...
-    */
     let cod = "";
     cod += '<div class="row">';
     cod += '<div class="col-lg-12 text-center container">';
@@ -346,39 +326,31 @@ function modificaGruppo(dettGruppo){
     cod += '<input type="text" class="form-control" name="descrizione" id="descrizione" value="' + dettGruppo[0].descrizione + '" placeholder="Inserisci qui la descrizione del gruppo...">';
     cod += '</div>';
     cod += '</div>';
-    // cod += '<div class="form-group row">'; // foto da gestire...
-    // cod += '<label for="nome" class="col-sm-3 col-form-label">Foto del Gruppo</label>';
-    // cod += '<div class="col-sm-9">';
-    // cod += '<input type="text" class="form-control" name="nome" id="nome" placeholder="Inserisci qui il nome del gruppo...">';
-    // cod += '</div>';
-    // cod += '</div>';
-    //cod += '<div class="form-group row">';
     let tipiGruppi = inviaRichiesta('/api/elTipiGruppi', 'POST', {});
     tipiGruppi.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+        printErrors(jqXHR, "#msgDetGruppo");
+        $("#dettGruppoMod").modal('hide');
     });
     tipiGruppi.done(function (data) {
         cod += '<div class="form-select row" id="default-select">';
         cod += '<label for="tipoGruppo" class="col-sm-3 col-form-label">Tipo di Gruppo</label>';
         cod += '<div class="col-sm-9">';
         cod += '<select name="tipoGruppo" id="tipoGruppo" title="Scegli il Tipo di Gruppo" data-live-search="true" data-live-search-placeholder="Cerca Tipo Gruppo">';
-        // cod += '<select name="tipoGruppo" id="tipoGruppo">';
         data.forEach(tipogruppo => {
             cod += "<option value='" + tipogruppo._id + "' " + (tipogruppo._id == dettGruppo[0].tipoGruppo ?  "selected" : "") + ">" + tipogruppo.descrizione + "</option>";
-            //$("#default-select-1 .list").append("<li data-value='" + tipogruppo._id + "' class='option'>" + tipogruppo.descrizione + "</li>");
         });
         cod += '</select>';
         cod += '</div>';
         cod += '</div>';
-        //cod += '</div>';
         cod += '</form>';
-        cod += '<p class="msg" style="margin-top:5px"></p>';
+        cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgModGruppo" role="alert" style="text-align: center;"></div></div></div>';
         cod += '</div>';
         cod += '</div>';
         
         let compGruppo = inviaRichiesta('/api/elComponentiGruppo', 'POST', {"idGruppo" : dettGruppo[0]._id});
         compGruppo.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+            printErrors(jqXHR, "#msgDetGruppo");
+            $("#dettGruppoMod").modal('hide');
         });
         compGruppo.done(function (componenti) {
             if(componenti != null && componenti.length > 0){
@@ -413,13 +385,13 @@ function modificaGruppo(dettGruppo){
 }
 
 function chkCorrettezzaDati() {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModGruppo").text("").removeClass("alert alert-danger");
 
     if($("#nome").val().trim() == ""){
-        $(".modal-body .msg").text("Devi inserire il nome del gruppo");
+        $("#msgModGruppo").text("Devi inserire il nome del gruppo").addClass("alert alert-danger");
     }
     else if ($("#descrizione").val().trim() == "") {
-        $(".modal-body .msg").text("Devi inserire la descrizione del gruppo");
+        $("#msgModGruppo").text("Devi inserire la descrizione del gruppo").addClass("alert alert-danger");
     }
     else{
         return true;
@@ -428,22 +400,22 @@ function chkCorrettezzaDati() {
 }
 
 function removeIscrittoGruppo(idUtente) {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModGruppo").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/removeMembroGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo"), "idUtente": idUtente });
     chkToken.fail(function (jqXHR, test_status, str_error) {
         if (jqXHR.status == 609)  // l'autore del gruppo non può essere rimosso
-            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+            $("#msgModGruppo").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-dialog");
         else
-            printErrors(jqXHR, ".modal-body .msg");
+            printErrors(jqXHR, "#msgModGruppo");
     });
     chkToken.done(function (data) {
         if (data.nModified == 1){
-            $(".modal-body .msg").css("color", "green").text("Utente rimosso dal gruppo");
+            $("#msgModGruppo").text("Utente rimosso dal gruppo").addClass("alert alert-success");
             $("#tabCompGruppoRem").children().remove();
             let compGruppo = inviaRichiesta('/api/elComponentiGruppo', 'POST', { "idGruppo": $("#descGruppo").attr("idGruppo") });
             compGruppo.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+                printErrors(jqXHR, "#msgModGruppo");
             });
             compGruppo.done(function (componenti) {
                 let cod = "";
@@ -472,6 +444,6 @@ function removeIscrittoGruppo(idUtente) {
             });
         }
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione dal gruppo");
+            $("#msgModGruppo").text("Si è verificato un errore durante la rimozione dal gruppo").addClass("alert alert-danger");
     });
 }

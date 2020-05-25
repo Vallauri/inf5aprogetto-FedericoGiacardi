@@ -11,8 +11,7 @@ function loadPagina() {
     if(par[0] == "corso" && !isNaN(parseInt(par[1]))){
         let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', {"idCorso" : par[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgDetCorso");
         });
         chkToken.done(function (data) {
             caricamentoDatiCorso(data);
@@ -20,7 +19,7 @@ function loadPagina() {
         });
     }
     else{
-        alert("Errore nel passaggio dei parametri");
+        $("#msgDetCorso").text("Errore nel passaggio dei parametri").addClass("alert alert-danger");
         window.location.href = "corsi.html";
     }
 }
@@ -40,18 +39,17 @@ function caricamentoDatiCorso(modulo) {
         codHtml += '</div>';
         codHtml += '</div>';
         $("#contCorso").parent().html(codHtml);
-        // $("#contCorso").hide();
     }
     else{
         codHtml += '<div class="col-lg-8 course_details_left">';
-        codHtml += '<div class="main_image">';
-        codHtml += '<img class="img-fluid" src="img/single_cource.png" alt="">'; // immagine del corso non presente su db
-        codHtml += '</div>';
+        // codHtml += '<div class="main_image">';
+        // codHtml += '<img class="img-fluid" src="img/single_cource.png" alt="">'; // immagine del corso non presente su db
+        // codHtml += '</div>';
         codHtml += '<div class="content_wrapper">';
         codHtml += '<h4 class="title_top" id="descCorso" idCorso="' + modulo[0]._id + '">' + modulo[0]["descrizione"] +'</h4>';
-        codHtml += '<div class="content">';
-        codHtml += 'Breve descrizione del modulo'; // la mettiamo o no ??
-        codHtml += '</div>';
+        // codHtml += '<div class="content">';
+        // codHtml += 'Breve descrizione del modulo'; // la mettiamo o no ??
+        // codHtml += '</div>';
 
         codHtml += '<h4 class="title">Argomenti del Corso</h4>';
         codHtml += '<div class="content">';
@@ -61,7 +59,6 @@ function caricamentoDatiCorso(modulo) {
             modulo[0]["argomentiModulo"].forEach(argomento => {
                 codHtml += '<li class="justify-content-between align-items-center d-flex">';
                 codHtml += '<p>' + argomento.descrizione + '</p>';
-                //codHtml += '<a class="btn_2 text-uppercase" href="dettaglioArgomento.html?argomento=' + argomento._id + '">View Details</a>'; // vedere se metterlo o no il dettaglio dell'argomento
                 codHtml += '</li>';
             });
         }
@@ -107,8 +104,7 @@ function caricamentoDatiCorso(modulo) {
 
         let chkToken = inviaRichiesta('/api/elGruppiAdmin', 'POST', { });
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgDetCorso");
         });
         chkToken.done(function (data) {
             if(data.length > 0){
@@ -125,17 +121,17 @@ function caricamentoDatiCorso(modulo) {
                 let chkToken = inviaRichiesta('/api/iscriviUtenteCorso', 'POST', {"idCorso" : $("#descCorso").attr("idCorso")});
                 chkToken.fail(function (jqXHR, test_status, str_error) {
                     if (jqXHR.status == 611)  // utente già presente in corso
-                        $(".msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+                        $("#msgDetCorso").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
                     else
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#msgDetCorso");
                 });
                 chkToken.done(function (data) {
                     if (data.nModified == 1){
-                        alert("Iscrizione al corso effettuata correttamente!");
+                        alert("Iscrizione al corso effettuata correttamente!"); // cambiare con modal
                         window.location.reload();
                     }
                     else
-                        $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                        $("#msgDetCorso").text("Si è verificato un errore durante l'iscrizione al corso").addClass("alert alert-danger");
                 });
             });
 
@@ -147,8 +143,7 @@ function caricamentoDatiCorso(modulo) {
 
                     let chkToken = inviaRichiesta('/api/elGruppiIscrivibiliCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                        console.log(jqXHR);
-                        printErrors(jqXHR, ".msg");
+                        printErrors(jqXHR, "#msgDetCorso");
                     });
                     chkToken.done(function (gruppi) {
                         if(gruppi.length > 0){
@@ -162,7 +157,6 @@ function caricamentoDatiCorso(modulo) {
                             cod += '<select name="iscriviGruppo" id="iscriviGruppo" title="Scegli il Gruppo" data-live-search="true" data-live-search-placeholder="Cerca Gruppo">';
                             data.forEach(gruppo => {
                                 cod += "<option value='" + gruppo._id + "'>" + gruppo.nome + "</option>";
-                                //$("#default-select-1 .list").append("<li data-value='" + gruppo._id + "' class='option'>" + gruppo.nome + "</li>");
                             });
                             cod += '</select>';
                             cod += '</div>';
@@ -179,16 +173,15 @@ function caricamentoDatiCorso(modulo) {
                                     console.log("Gruppo da iscrivere: " + $("#iscriviGruppo option:selected").val());
                                     let chkToken = inviaRichiesta('/api/iscriviGruppoCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idGruppo" : $("#iscriviGruppo option:selected").val() });
                                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                                        console.log(jqXHR);
-                                        printErrors(jqXHR, ".msg");
+                                        printErrors(jqXHR, "#msgDetCorso");
                                     });
                                     chkToken.done(function (data) {
                                         if (data.ok == 1 && data.nModified > 0) {
-                                            alert("Iscrizione del gruppo al corso effettuata correttamente!");
+                                            alert("Iscrizione del gruppo al corso effettuata correttamente!"); // da fare con modal
                                             window.location.reload();
                                         }
                                         else
-                                            $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                                            $("#msgDetCorso").text("Si è verificato un errore durante l'iscrizione al corso").addClass("alert alert-danger");
                                     });
                                 }
                             });
@@ -210,7 +203,7 @@ function chkModeratore(idCorso) {
     let chkToken = inviaRichiesta('/api/chkModCorso', 'POST', { "idCorso": idCorso });
     chkToken.fail(function (jqXHR, test_status, str_error) {
         console.log(jqXHR);
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, "#msgDetCorso");
     });
     chkToken.done(function (data) {
         if (data.ris == "autore") {
@@ -231,34 +224,30 @@ function chkModeratore(idCorso) {
             //$("#btnIscriviGruppoCorso").hide(); // da controllare il caso in cui un'utente è iscritto ed è mod di un gruppo (bisogna dargli la possibilità di iscrivere il gruppo)
 
             $("#btnSalvaModifiche").on("click", function () {
-                /*if($(this).html() == "Salva Aggiunte"){
-                    window.location.reload();
-                }
-                else */
                 if ($(this).html() == "Salva Modifiche") {
                     if (chkCorrettezzaDati()) {
                         let chkToken = inviaRichiesta('/api/modificaCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "nome": $("#nome").val().trim(), /*"descrizione": $("#descrizione").val().trim(),*/ "tipoCorso": $("#tipiCorsi option:selected").val(), "materia": $("#materie option:selected").val() });
                         chkToken.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgModCorso");
                         });
                         chkToken.done(function (data) {
                             if (data.ok == 1)
                                 window.location.reload();
                             else
-                                $(".modal-body .msg").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare");
+                                $("#msgModCorso").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare").addClass("alert alert-danger");
                         });
                     }
                 }
                 else if ($(this).html() == "Conferma Rimozione") {
                     let chkToken = inviaRichiesta('/api/rimuoviCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                        printErrors(jqXHR, ".modal-body .msg");
+                        printErrors(jqXHR, "#msgRemCorso");
                     });
                     chkToken.done(function (data) {
                         if (data.ok == 1)
                             window.location.href = "corsi.html";
                         else
-                            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione del corso. Riprovare");
+                            $("#msgRemCorso").text("Si è verificato un errore durante la rimozione del corso. Riprovare").addClass("alert alert-danger");
                     });
                 }
             });
@@ -282,7 +271,7 @@ function chkModeratore(idCorso) {
                 cod += '<button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>';
                 cod += '</div>';
                 cod += '</div>';
-                cod += '<p class="msg" style="margin-top:5px"></p>';
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgCercaArg" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
@@ -290,19 +279,19 @@ function chkModeratore(idCorso) {
                 $("#dettCorsoMod .modal-body").append(cod);
 
                 $("#btnRicerca").on("click", function () {
-                    $(".modal-body .msg").text("");
+                    $("#msgCercaArg").text("").removeClass("alert alert-dialog");
 
                     if ($("#txtRicerca").val() != "") {
                         let ricerca = inviaRichiesta('/api/cercaArgAggiuntaCorso', 'POST', { "valore": $("#txtRicerca").val() });
                         ricerca.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgCercaArg");
                         });
                         ricerca.done(function (data) {
                             dettArgomento(data);
                         });
                     }
                     else {
-                        $(".modal-body .msg").text("Inserire un valore per la ricerca");
+                        $("#msgCercaArg").text("Inserire un valore per la ricerca").addClass("alert alert-dialog");
                         $("#txtRicerca").focus();
                     }
                 });
@@ -349,7 +338,7 @@ function chkModeratore(idCorso) {
                 cod += '<button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>';
                 cod += '</div>';
                 cod += '</div>';
-                cod += '<p class="msg" style="margin-top:5px"></p>';
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgCercaLez" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
@@ -357,19 +346,19 @@ function chkModeratore(idCorso) {
                 $("#dettCorsoMod .modal-body").append(cod);
 
                 $("#btnRicerca").on("click", function () {
-                    $(".modal-body .msg").text("");
+                    $("#msgCercaLez").text("").removeClass("alert alert-danger");
 
                     if ($("#txtRicerca").val() != "") {
                         let ricerca = inviaRichiesta('/api/cercaLezAggiuntaCorso', 'POST', { "valore": $("#txtRicerca").val() });
                         ricerca.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgCercaLez");
                         });
                         ricerca.done(function (data) {
                             dettLezione(data);
                         });
                     }
                     else {
-                        $(".modal-body .msg").text("Inserire un valore per la ricerca");
+                        $("#msgCercaLez").text("Inserire un valore per la ricerca").addClass("alert alert-danger");
                         $("#txtRicerca").focus();
                     }
                 });
@@ -404,7 +393,7 @@ function chkModeratore(idCorso) {
 
                 let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
                 chkToken.fail(function (jqXHR, test_status, str_error) {
-                    printErrors(jqXHR, ".modal-body .msg");
+                    printErrors(jqXHR, "#msgModCorso");
                 });
                 chkToken.done(function (data) {
                     console.log(data);
@@ -421,7 +410,7 @@ function chkModeratore(idCorso) {
                 cod += '<div class="row">';
                 cod += '<div class="col-lg-12 text-center">';
                 cod += '<p>Sei sicuro di voler rimuovere il corso? Tutti i dati ad esso collegati verranno rimossi</p>';
-                cod += '<p class="msg"></p>';
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgRemCorso" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
 
@@ -482,7 +471,7 @@ function aggiungiDettagliIscritto(){
 function dettArgomento(argomenti){
     console.log(argomenti);
     let codHtml = "";
-    $(".modal-body .msg").html("");
+    $("#msgCercaArg").html("").removeClass("alert alert-danger");
     $("#risultato").remove();
 
     if (argomenti.length > 0) {
@@ -504,7 +493,7 @@ function dettArgomento(argomenti){
         codHtml += '</div>';
     }
     else {
-        $(".modal-body .msg").text("Nessun argomento trovato");
+        $("#msgCercaArg").text("Nessun argomento trovato").addClass("alert alert-danger");
         $("#risultato").remove();
     }
 
@@ -513,27 +502,27 @@ function dettArgomento(argomenti){
 
 function addArgCorso(idArg){
     console.log("Argomento: " + idArg);
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgCercaArg").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/insNuovoArgCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idArg": idArg });
     chkToken.fail(function (jqXHR, test_status, str_error) {
         if (jqXHR.status == 612)  // argomento già presente in corso
-            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+            $("#msgCercaArg").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
         else
-            printErrors(jqXHR, ".modal-body .msg");
+            printErrors(jqXHR, "#msgCercaArg");
     });
     chkToken.done(function (data) {
         if (data.nModified == 1)
             window.location.reload();
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta dell'argomento al corso");
+            $("#msgCercaArg").text("Si è verificato un errore durante l'aggiunta dell'argomento al corso").addClass("alert alert-danger");
     });
 }
 
 function dettLezione(lezioni) {
     console.log(lezioni);
     let codHtml = "";
-    $(".modal-body .msg").html("");
+    $("#msgCercaLez").html("").removeClass("alert alert-danger");
     $("#risultato").remove();
 
     if (lezioni.length > 0) {
@@ -555,7 +544,7 @@ function dettLezione(lezioni) {
         codHtml += '</div>';
     }
     else {
-        $(".modal-body .msg").text("Nessuna lezione trovata");
+        $("#msgCercaLez").text("Nessuna lezione trovata").addClass("alert alert-danger");
         $("#risultato").remove();
     }
 
@@ -564,31 +553,24 @@ function dettLezione(lezioni) {
 
 function addLezCorso(idLez) {
     console.log("Lezione: " + idLez);
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgCercaLez").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/insNuovaLezCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idLez": idLez });
     chkToken.fail(function (jqXHR, test_status, str_error) {
         if (jqXHR.status == 613)  // lezione già presente in corso
-            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+            $("#msgCercaLez").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
         else
-            printErrors(jqXHR, ".modal-body .msg");
+            printErrors(jqXHR, "#msgCercaLez");
     });
     chkToken.done(function (data) {
         if (data.nModified == 1)
             window.location.reload();
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta della lezione al corso");
+            $("#msgCercaLez").text("Si è verificato un errore durante l'aggiunta della lezione al corso").addClass("alert alert-danger");
     });
 }
 
 function modificaCorso(dettCorso) {
-    /*
-        nome
-        descrizione
-        foto (?)
-        tipo di gruppo
-        ...
-    */
     let codHtml = "";
     codHtml += '<div class="row">';
     codHtml += '<div class="col-lg-12 text-center container">';
@@ -600,18 +582,6 @@ function modificaCorso(dettCorso) {
     codHtml += '<input type="text" class="form-control" name="nome" id="nome" value="' + dettCorso[0].descrizione + '" placeholder="Inserisci qui il nome del corso...">';
     codHtml += '</div>';
     codHtml += '</div>';
-    // codHtml += '<div class="form-group row">';
-    // codHtml += '<label for="descrizione" class="col-sm-3 col-form-label">Descrizione Corso</label>'; // Non c'è la desc su DB, la mettiamo ??
-    // codHtml += '<div class="col-sm-9">';
-    // codHtml += '<input type="text" class="form-control" name="descrizione" id="descrizione" value="' + dettCorso[0].descrizione + '" placeholder="Inserisci qui la descrizione del corso...">';
-    // codHtml += '</div>';
-    // codHtml += '</div>';
-    // codHtml += '<div class="form-group row">'; // foto da gestire...
-    // codHtml += '<label for="nome" class="col-sm-3 col-form-label">Foto del Corso</label>';
-    // codHtml += '<div class="col-sm-9">';
-    // codHtml += '<input type="text" class="form-control" name="nome" id="nome" placeholder="Inserisci qui il nome del gruppo...">';
-    // codHtml += '</div>';
-    // codHtml += '</div>';
     codHtml += '<div class="form-group row">';
     codHtml += '<label for="tipiCorsi" class="col-sm-3 col-form-label">Tipo di Corso</label>';
     codHtml += '<div class="col-sm-9">';
@@ -689,45 +659,40 @@ function modificaCorso(dettCorso) {
 
     codHtml += '</div>';
 
-    codHtml += '<p class="msg" style="margin-top:5px"></p>';
+    codHtml += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgModCorso" role="alert" style="text-align: center;"></div></div></div>';
     codHtml += '</div>';
     codHtml += '</div>';
     $("#dettCorsoMod .modal-body").append(codHtml);
 
     let tipiCorsi = inviaRichiesta('/api/elTipiCorsi', 'POST', {});
     tipiCorsi.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+        printErrors(jqXHR, "#msgModCorso");
     });
     tipiCorsi.done(function (data) {
         data.forEach(tipocorso => {
             $("#tipiCorsi").append("<option value='" + tipocorso._id + "' " + (tipocorso._id == dettCorso[0].codTipoModulo ? "selected" : "") + ">" + tipocorso.descrizione + "</option>");
-            //$("#default-select-1 .list").append("<li data-value='" + tipocorso._id + "' class='option'>" + tipocorso.descrizione + "</li>");
         });
         $('#tipiCorsi').selectpicker('refresh');
     });
 
     let materie = inviaRichiesta('/api/elSimpleMaterie', 'POST', {});
     materie.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+        printErrors(jqXHR, "#msgModCorso");
     });
     materie.done(function (data) {
         data.forEach(materia => {
             $("#materie").append("<option value='" + materia._id + "' " + (materia._id == dettCorso[0].codMateria ? "selected" : "") + ">" + materia.descrizione + "</option>");
-            //$("#default-select-1 .list").append("<li data-value='" + materia._id + "' class='option'>" + materia.descrizione + "</li>");
         });
         $('#materie').selectpicker('refresh');
     });
 }
 
 function chkCorrettezzaDati() {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModCorso").text("").removeClass("alert alert-danger");
 
     if ($("#nome").val().trim() == "") {
-        $(".modal-body .msg").text("Devi inserire il nome del corso");
+        $("#msgModCorso").text("Devi inserire il nome del corso").addClass("alert alert-danger");
     }
-    /*else if ($("#descrizione").val().trim() == "") {
-        $(".modal-body .msg").text("Devi inserire la descrizione del gruppo");
-    }*/
     else {
         return true;
     }
@@ -735,18 +700,18 @@ function chkCorrettezzaDati() {
 }
 
 function removeArgCorso(idArgomento) {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModCorso").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/removeArgCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idArgomento": idArgomento });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".modal-body .msg");
+        printErrors(jqXHR, "#msgModCorso");
     });
     chkToken.done(function (data) {
         if (data.nModified == 1) {
-            $(".modal-body .msg").css("color", "green").text("Argomento rimosso dal corso");
+            $("#msgModCorso").text("Argomento rimosso dal corso").addClass("alert alert-success");
             let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
             chkToken.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".modal-body .msg");
+                printErrors(jqXHR, "#msgModCorso");
             });
             chkToken.done(function (dettCorso) {
                 if (dettCorso[0]["argomentiModulo"] != undefined && dettCorso[0]["argomentiModulo"].length > 0) {
@@ -774,23 +739,23 @@ function removeArgCorso(idArgomento) {
             });
         }
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione dell'argomento dal corso");
+            $("#msgModCorso").text("Si è verificato un errore durante la rimozione dell'argomento dal corso").addClass("alert alert-danger");
     });
 }
 
 function removeLezCorso(idLezione) {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModCorso").text("").addClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/removeLezCorso', 'POST', { "idCorso": $("#descCorso").attr("idCorso"), "idLezione": idLezione });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".modal-body .msg");
+        printErrors(jqXHR, "#msgModCorso");
     });
     chkToken.done(function (data) {
         if (data.nModified == 1) {
-            $(".modal-body .msg").css("color", "green").text("Lezione rimossa dal corso");
+            $("#msgModCorso").text("Lezione rimossa dal corso").addClass("alert alert-success");
             let chkToken = inviaRichiesta('/api/datiCorsoById', 'POST', { "idCorso": $("#descCorso").attr("idCorso") });
             chkToken.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".modal-body .msg");
+                printErrors(jqXHR, "#msgModCorso");
             });
             chkToken.done(function (dettCorso) {
                 if (dettCorso[0]["lezioniModulo"] != undefined && dettCorso[0]["lezioniModulo"].length > 0) {
@@ -819,6 +784,6 @@ function removeLezCorso(idLezione) {
             });
         }
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione della lezione dal corso");
+            $("#msgModCorso").text("Si è verificato un errore durante la rimozione della lezione dal corso").addClass("alert alert-danger");
     });
 }
