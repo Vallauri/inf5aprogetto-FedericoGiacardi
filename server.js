@@ -271,7 +271,7 @@ const upload = multer({ storage: storage, fileFilter: fileFilter,  });
 
 const uploadAllegati = multer({ storage: storageAllegati });//<!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
 
-const HTTPS = require('https');
+const HTTPS = require('http');
 
 
 // express
