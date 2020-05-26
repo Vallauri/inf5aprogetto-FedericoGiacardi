@@ -17,7 +17,9 @@ let vetLingue = {
     "es-US":"Spagnolo (Nord America)"
 };
 
+//Routine Principale
 $(document).ready(function () {
+    //Controllo validità token
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
         window.location.href = "login.html";
@@ -51,24 +53,23 @@ function loadPagina() {
         });
     }
     else {
-        $("#msgDetAppunto").text("Errore nel passaggio dei parametri").addClass("alert alert-danger");
+        $("#msgDetAppunto").html("Errore nel passaggio dei parametri").addClass("alert alert-danger");
         window.location.href = "appunti.html";
     }
 }
 
+//Stampa Dati Corso
 function caricamentoDatiCorso(appunto) {
     $("#contDetAppunto").html("");
     let codHtml = "";
 
     if (appunto == undefined || appunto.length == 0) {
-        // codHtml += '<div class="row justify-content-center">';
         codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto">';
         codHtml += '<div class="section_tittle text-center">';
         codHtml += '<h2>L\'Appunto richiesto non è disponibile</h2>';
         codHtml += '<p><a href="appunti.html">Torna agli appunti</a></p>';
         codHtml += '</div>';
         codHtml += '</div>';
-        // codHtml += '</div>';
         $("#contDetAppunto").html(codHtml);
     }
     else {
@@ -80,7 +81,7 @@ function caricamentoDatiCorso(appunto) {
         codHtml += '</div>';
         codHtml += '<h4 class="title">Data Caricamento</h4>';
         codHtml += '<div class="content">';
-        codHtml += new Date(appunto[0]["dataCaricamento"]).toLocaleDateString();
+        codHtml += setFormatoDate(new Date(appunto[0]["dataCaricamento"]));
         codHtml += '</div>';
         codHtml += '<h4 class="title">Autore Appunto</h4>';
         codHtml += '<div id="nomeCognomeAutoreAppunto" class="content">';
@@ -97,7 +98,7 @@ function caricamentoDatiCorso(appunto) {
             for (let i = 0; i < appunto[0]["detArgomenti"].length; i++) {
                 codHtml += '<li class="justify-content-between align-items-center d-flex">';
                 codHtml += '<p class="descAppunto" codArgomento="' + appunto[0]["detArgomenti"][i]._id+'">' + appunto[0]["detArgomenti"][i].descrizione + '</p>';
-                codHtml += '<p>Data aggiunta: ' + new Date(appunto[0]["argomenti"][i].dataAggiunta).toLocaleDateString() + '</p>';
+                codHtml += '<p>Data aggiunta: ' + setFormatoDate(new Date(appunto[0]["argomenti"][i].dataAggiunta)) + '</p>';
                 codHtml += '</li>';
             }
         }
@@ -119,7 +120,7 @@ function caricamentoDatiCorso(appunto) {
                 ausVet = appunto[0]["detAllegati"][i].percorso.split('\\');
                 ausVet = ausVet[ausVet.length - 1].split(/_(.+)/);
                 codHtml += '<p class="descAllegati" codAllegato="' + appunto[0]["detAllegati"][i]._id+'">' + ausVet[1] + '</p>';
-                codHtml += '<p>Data aggiunta: ' + new Date(appunto[0]["detAllegati"][i].dataCaricamento).toLocaleDateString() + '</p>';
+                codHtml += '<p>Data aggiunta: ' + setFormatoDate(new Date(appunto[0]["detAllegati"][i].dataCaricamento)) + '</p>';
                 codHtml += '</li>';
             }
         }
@@ -144,6 +145,8 @@ function caricamentoDatiCorso(appunto) {
     }
 }
 
+//Caricamento Dati appunto scelto
+//in form modifica
 function loadDatiModifica() {
     if ($("#btnModAppunto").attr("stato")=="chiuso") {
         let vetNomeCognome = $("#nomeCognomeAutoreAppunto").html().split(' ');
@@ -185,6 +188,7 @@ function loadDatiModifica() {
     
 }
 
+//Caricamento combo box argomenti
 function loadArgomenti() {
     let elArgomenti = inviaRichiesta('/api/elencoArgomenti', 'POST', {});
     elArgomenti.fail(function (jqXHR, test_status, str_error) {
@@ -200,6 +204,7 @@ function loadArgomenti() {
     });
 }
 
+//Caricamento combo box allegati
 function loadAllegati(idSelect) {
     let elArgomenti = inviaRichiesta('/api/elencoAllegati', 'POST', {});
     elArgomenti.fail(function (jqXHR, test_status, str_error) {
@@ -218,6 +223,7 @@ function loadAllegati(idSelect) {
     });
 }
 
+//Gestione modifica Appunto
 function gestModifica() {
     $("#descModAppunto").removeClass("alert-danger");
     $("#nomeAutoreModAppunto").removeClass("alert-danger");
@@ -225,10 +231,11 @@ function gestModifica() {
     $("#argomentiModAppunto").removeClass("alert-danger");
     $("#allegatiModAppunto").removeClass("alert-danger");
     $("#newAllegatiModAppunto").removeClass("alert-danger");
-    $("#msgModAppunto").text("").removeClass("alert alert-danger");
+    $("#msgModAppunto").removeClass("alert alert-danger").text("");
     let argomentiOk = false;
     let allegatiOk = false;
 
+    //Controllo dati di input
     if (window.sessionStorage.getItem("codAppunto") != null) {
         if ($("#descModAppunto").val() != "") {
             if ($("#nomeAutoreModAppunto").val() != "") {
@@ -306,17 +313,21 @@ function gestErrori(msg, controllo, target) {
         controllo.addClass("alert-danger");
 }
 
+//Pulizia Campi di input
 function clearInputFields() {
     $("#descModAppunto").val("");
     $("#nomeAutoreModAppunto").val("");
     $("#cognomeAutoreModAppunto").val("");
     document.getElementById("argomentiModAppunto").selectedIndex = -1;
     document.getElementById("allegatiModAppunto").selectedIndex = -1;
+    $('#allegatiModAppunto').selectpicker('refresh');
+    $('#argomentiModAppunto').selectpicker('refresh');
     $("#newAllegatiModAppunto").val("");
     $("#msgModAppunto").text("").removeClass("alert alert-danger");
     window.location.reload();
 }
 
+//Gestione Eliminazione Appunto
 function eliminaAppunto() {
     if (window.sessionStorage.getItem("codAppunto") != null) {
         let eliminaAppuntoRQ = inviaRichiesta('/api/removeAppunto', 'POST', { "codAppunto": window.sessionStorage.getItem("codAppunto")});
@@ -336,6 +347,7 @@ function eliminaAppunto() {
     }
 }
 
+//Gestione Text to Speech Appunto
 function gestTTS() {
     let codHtml = "";
     let args = $(".descAllegati");
@@ -366,6 +378,7 @@ function gestTTS() {
     loadLinguaTTS();
 }
 
+//Recupero elenco voci disponibili text to speech
 function getVociTTS() {
     return new Promise((resolve, reject) =>{
         if (window.sessionStorage.getItem("ttsVoicesList") == null) {
@@ -384,6 +397,7 @@ function getVociTTS() {
     });  
 }
 
+//Recupero elenco lingue disponibili text to speech
 function loadLinguaTTS() {
     let codHtml = "", aus = "";
     let vetOpt = new Array();
@@ -407,6 +421,7 @@ function loadLinguaTTS() {
     });
 }
 
+//Stampa elenco lingue disponibili text to speech
 function loadVociTTS() {
     if (document.getElementById("linguaTTSAppunto").selectedIndex != -1) {
         getVociTTS().then(elVoci => {
@@ -438,7 +453,9 @@ function loadVociTTS() {
     }
 }
 
+//Richiesta servizio Text to Speech
 function gestRqTTS() {
+    //Controllo dati di input
     if (document.getElementById("allegatiTTSAppunto").selectedIndex != -1) {
         if (chkEstensioneAllegati($("#allegatiTTSAppunto").val())) {
             if (document.getElementById("linguaTTSAppunto").selectedIndex != 0) {
@@ -474,10 +491,11 @@ function gestRqTTS() {
     }
 }
 
+//Controllo estensione allegati caricati
 function chkEstensioneAllegati(allegati) {
     let ret = true;
     let valore = "";
-
+    //Accetto solo gli allegati .pdf o .docx
     for (let I = 0; I < allegati.length; I++) {
         valore = $("#allegatiTTSAppunto option[value=" + allegati[I]+"]").text()
         if (getEstensioneFile(valore) != "pdf" && getEstensioneFile(valore) != "docx") {
@@ -488,10 +506,12 @@ function chkEstensioneAllegati(allegati) {
     return ret;
 }
 
+//Recupero estensione file
 function getEstensioneFile(fileName) {
     return fileName.slice((fileName.lastIndexOf(".") - 1 >>> 0) + 2);
 }
 
+//Stampa stato operazione text to sppech
 function setCardStatoOp(stato, msgErrore) {
     let testoOp = "", codHtmlBtn = "";
     if (stato == "InCorso") {
@@ -514,11 +534,17 @@ function setCardStatoOp(stato, msgErrore) {
     $("#textCardStatoOp").html(codHtmlBtn);
 }
 
+//Gestione Download Audio
 function gestDownloadAudio() {
     $("#btnTTSAppunto").attr("disabled", "disabled");
     $("#btnLetturaAppunto").attr("disabled", "disabled");
     $("#msgDownloadAppunto").html("").removeClass("alert alert-danger");
     let vetAus = JSON.parse(window.sessionStorage.getItem("ttsAudio"));
+    //La res.download mi del server mi restituisce un blob
+    //io visualizzo questo blob collegandolo ad un link "invisibile"
+    //cliccando su tale link il file viene aperto nel browser se la preview è supportata (es. pdf)
+    //oppure direttamente scaricato (es. file .wav)
+    //il problema è che non si può intercettare l'eventuale errore del blob
     for (let i = 0; i < vetAus.length; i++) {
         fetch('/api/downloadAudioTTS?allegato=' + vetAus[i])
             .then(resp => resp.blob())
@@ -527,7 +553,6 @@ function gestDownloadAudio() {
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                // the filename you want
                 a.download = vetAus[i].split('/')[vetAus[i].split('/').length-1];
                 document.body.appendChild(a);
                 a.click();
@@ -552,8 +577,17 @@ function gestDownloadAudio() {
     }
 }
 
+//Pulizia campi sezione Text to Speech
 function clearSezTTS() {
     document.getElementById("allegatiTTSAppunto").selectedIndex = -1;
     document.getElementById("linguaTTSAppunto").selectedIndex = -1;
     document.getElementById("voceTTSAppunto").selectedIndex = -1;
+}
+
+//Funzione di impostazione formato date
+function setFormatoDate(data) {
+    let dd = ("0" + (data.getDate())).slice(-2);
+    let mm = ("0" + (data.getMonth() + 1)).slice(-2);
+    let yyyy = data.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
 }

@@ -12,9 +12,9 @@ $(document).ready(function () {
             window.location.href = "areaPersonale.html";
         } else {
             loadPagina();
+            $("#voceRegAdmin").addClass("active");
         }
     });
-    $("#voceRegAdmin").addClass("active");
 });
 
 //Caricamento Pagina

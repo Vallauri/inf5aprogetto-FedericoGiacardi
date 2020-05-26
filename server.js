@@ -10,14 +10,18 @@ var async = require("async");
 var crypto = require("crypto");
 require('dotenv').config();
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
-const textToSpeech = new TextToSpeechV1({});
+const { IamAuthenticator } = require('ibm-watson/auth');
+const textToSpeech = new TextToSpeechV1({
+    authenticator: new IamAuthenticator({ apikey: process.env.TEXT_TO_SPEECH_APIKEY }),
+    url: process.env.TEXT_TO_SPEECH_URL
+});
 const port = process.env.PORT || 8888;
 const fileContentReader = require("./FileReader/filecontentReader");
 
 const multer = require("multer"); // Modulo per salvataggio immagini su server
 
 /* CONNESSIONE AL DATABASE */
-mongoose.connect("mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS + "@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
 console.log("Everything seems ok...");
 
 // code 404 - database connection error
@@ -216,6 +220,13 @@ ERRORS.create({
     defaultMessage: 'Esiste già in questo corso un esame con la medesima Descrizione e Data di Scadenza'
 });
 
+// code 628 - Exam already exists
+ERRORS.create({
+    code: 627,
+    name: 'TTS_NOT_AVAILABLE',
+    defaultMessage: 'Servizio TTS non disponibile'
+});
+
 // Impostazioni multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -258,7 +269,7 @@ const upload = multer({ storage: storage, fileFilter: fileFilter,  });
 
 const uploadAllegati = multer({ storage: storageAllegati });//<!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
 
-const HTTPS = require('https');
+const HTTP = require('http');
 
 
 // express
@@ -291,13 +302,17 @@ const certificate = fs.readFileSync("keys/certificate.crt", "utf8");
 const credentials = { "key": privateKey, "cert": certificate };
 
 /* ************************************************************ */
+app.use("/", express.static('./static'));
+app.use("/static", express.static("static"));
+
+/* ************************************************************ */
 
 // avvio server
 const TIMEOUT = 3000; // 60 SEC
 let pageNotFound;
 
-var httpsServer = HTTPS.createServer(credentials, app);
-httpsServer.listen(port, '127.0.0.1', function () {
+var httpServer = HTTP.createServer(app);
+httpServer.listen(port, function () {
     fs.readFile("./static/error.html", function (err, content) {
         if (err)
             content = JSON.stringify(new ERRORS.PAGE_NOT_FOUND({}));
@@ -305,11 +320,8 @@ httpsServer.listen(port, '127.0.0.1', function () {
     });
     console.log("Server in ascolto https://127.0.0.1: " + this.address().port);
 });
-httpsServer.timeout = 600000;
+httpServer.timeout = 600000;
 
-/* ************************************************************ */
-app.use("/", express.static('./static'));
-app.use("/static", express.static("static"));
 // middleware
 app.use("/", bodyParser.json());
 app.use("/", bodyParser.urlencoded({ extended: true }));
