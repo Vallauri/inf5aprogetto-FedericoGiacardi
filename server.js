@@ -313,7 +313,7 @@ app.use("/static", express.static("static"));
 const TIMEOUT = 3000; // 60 SEC
 let pageNotFound;
 
-var httpsServer = HTTPS.createServer(credentials, app);
+var httpsServer = HTTPS.createServer(app);
 httpsServer.listen(port, function () {
     fs.readFile("./static/error.html", function (err, content) {
         if (err)
