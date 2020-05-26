@@ -175,7 +175,8 @@ function clearInputFields() {
 //Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
     $(target).html(msg).addClass("alert alert-danger");
-    controllo.addClass("alert-danger");
+    if(controllo)
+        controllo.addClass("alert-danger");
 }
 
 //Stampo i corsi trovati con la ricerca

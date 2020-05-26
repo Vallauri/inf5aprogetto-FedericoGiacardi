@@ -20,11 +20,9 @@ function loadPagina() {
     if (esame[0] == "esame" && !isNaN(parseInt(esame[1])) && corso[0] == "corso" && !isNaN(parseInt(corso[1]))){
         let chkToken = inviaRichiesta('/api/datiEsameById', 'POST', {"idEsame" : esame[1], "idCorso" : corso[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
             printErrors(jqXHR, "#msgGenEsame");
         });
         chkToken.done(function (data) {
-            console.log(data);
             caricamentoDatiEsame(data);
             //chkModeratore(parseInt(par[1]));
         });
@@ -63,7 +61,6 @@ function caricamentoDatiEsame(esame) {
         codHtml += '</div>';
         codHtml += '</div>';
         $("#contEsami").parent().html(codHtml);
-        // $("#contEsami").hide();
     }
     else if(esame == "esameNonValido"){
         codHtml += '<div class="row justify-content-center">';
@@ -115,7 +112,6 @@ function caricamentoDatiEsame(esame) {
         if (new Date(esame.dataScadenza) >= new Date()){
             let chkToken = inviaRichiesta('/api/chkSvolgimentoEsame', 'POST', { "idEsame": esame._id });
             chkToken.fail(function (jqXHR, test_status, str_error) {
-                console.log(jqXHR);
                 printErrors(jqXHR, "#msgGenEsame");
             });
             chkToken.done(function (data) {
@@ -188,7 +184,6 @@ function eseguiEsame(idEsame){
 function chkModeratore(idCorso) {
     let chkToken = inviaRichiesta('/api/chkModCorso', 'POST', { "idCorso": idCorso });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
         printErrors(jqXHR, "#msgGenEsame");
     });
     chkToken.done(function (data) {
@@ -214,7 +209,6 @@ function chkModeratore(idCorso) {
         esamiPerTabella = [];
 
         if (data.ris == "autore") {
-            // devo mettere anche la parte per l'inserimento di un nuovo esame
             codHtml = "";
             codHtml += '<div class="col-md-12 col-lg-12 mx-auto text-center">';
             codHtml += '<h4 class="title_top">Nuovo Esame</h4>';
@@ -267,9 +261,9 @@ function chkModeratore(idCorso) {
             codHtml += '</div>';
             codHtml += '</div>';
             codHtml += '</div>';
-            codHtml += '<div class="row text-center">';
-            codHtml += '<div class="col-lg-12 mx-auto">';
-            codHtml += '<div id="msgAddEsame" class="msg"></div>';
+            codHtml += '<div class="row">';
+            codHtml += '<div class="col-sm-12 col-md-7 col-lg-7 mx-auto">';
+            codHtml += '<div id="msgAddEsame" role="alert" style="text-align: center;"></div>';
             codHtml += '</div>';
             codHtml += '</div>';
             codHtml += '<div class="row">'
@@ -313,7 +307,7 @@ function chkModeratore(idCorso) {
                 $("#durata").removeClass("alert-danger");
                 $("#dataScadenza").removeClass("alert-danger");
                 $("#oraFineEsame").removeClass("alert-danger");
-                $("#msgAddEsame").html("");
+                $("#msgAddEsame").html("").removeClass("alert alert-danger");
 
                 if ($("#descEsame").val().trim() != ""){
                     if ($("#durata").val().trim() != ""){
@@ -374,7 +368,7 @@ function chkModeratore(idCorso) {
                                                     clickSalvaModifiche();
                                                 }
                                                 else
-                                                    $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
+                                                    $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare").addClass("alert alert-danger");
                                             });
                                         }
                                         else {
@@ -409,129 +403,16 @@ function chkModeratore(idCorso) {
     });
 }
 
-function closeModalOnModify(){
-    $("#insNuovaDomanda").modal('hide');
-    $("#dettEsameMod").modal('show');
-}
-
-function allowNumbersOnly(e) {
-    var code = (e.which) ? e.which : e.keyCode;
-    if (code > 31 && (code < 48 || code > 57)) {
-        e.preventDefault();
-    }
+//Funzione di stampa errori
+function gestErrori(msg, controllo, target) {
+    $(target).html(msg).addClass("alert alert-danger");
+    if (controllo)
+        controllo.addClass("alert-danger");
 }
 
 function clickSalvaModifiche(){
     $("#btnSalvaModifiche").on("click", function () {
-        if ($(this).html() == "Salva Modifiche") {
-            $("#descrizione").removeClass("alert-danger");
-            $("#durataMod").removeClass("alert-danger");
-            $("#dataScadenzaMod").removeClass("alert-danger");
-            $("#oraFineEsameMod").removeClass("alert-danger");
-            $("#msgModEsame").html("");
-
-            if ($("#descrizione").val().trim() != "") {
-                if ($("#durataMod").val().trim() != "") {
-                    if ($("#dataScadenzaMod").val().trim() != "") {
-                        if ($("#oraFineEsameMod").val().trim() != "") {
-                            // controllo su data e ora scadenza esame
-                            let dataLetta = $("#dataScadenzaMod").val();
-                            let ora = $("#oraFineEsameMod").val();
-                            let scadEsame = new Date(dataLetta + "T" + ora);
-
-                            if ($("#bdTabDomEsameMod").children().length != 0) {
-
-                                let dati = new Object();
-                                dati.idEsame = $("#listaDomandeEsameMod").attr("idEsame");
-                                dati.idCorso = window.location.search.substring(1).split('=')[1];
-                                dati.descrizione = $("#descrizione").val().trim();
-                                dati.durata = $("#durataMod").val().trim();
-                                dati.dataScadenza = scadEsame.toJSON();
-                                let domande = $("#bdTabDomEsameMod").children();
-                                dati.domande = new Array();
-
-                                for (let i = 0; i < domande.length; i++) {
-                                    let vet = new Array();
-                                    let campi = $(domande[i]).children();
-                                    vet.push($(domande[i]).attr('tipoDom'));
-                                    for (let j = 0; j < campi.length - 2; j++)
-                                        vet.push($(campi[j]).html());
-
-                                    dati.domande.push(vet.join(';'));
-                                }
-
-                                console.log(dati);
-                                let chkToken = inviaRichiesta('/api/modificaEsame', 'POST', dati);
-                                chkToken.fail(function (jqXHR, test_status, str_error) {
-                                    console.log(jqXHR);
-                                    printErrors(jqXHR, "#msgModEsame");
-                                });
-                                chkToken.done(function (data) {
-                                    if (data == "modEsameOk") {
-                                        $("#dettEsameMod .modal-title").html("Risultato Operazione");
-                                        $("#dettEsameMod .modal-body").children().remove();
-                                        $("#btnSalvaModifiche").show().html("Chiudi");
-                                        $("#btnAnnulla").hide();
-
-                                        let cod = "";
-                                        cod += '<div class="row">';
-                                        cod += '<div class="col-lg-12 text-center">';
-                                        cod += '<p>Esame modificato correttamente</p>';
-                                        cod += '</div>';
-                                        cod += '</div>';
-
-                                        $("#dettEsameMod .modal-body").append(cod);
-                                    }
-                                    else
-                                        $("#msgModEsame").text("Si è verificato un errore durante la modifica dell\'esame. Riprovare");
-                                });
-                            }
-                            else {
-                                gestErrori("Devi inserire almeno una domanda", null, "#msgModEsame");
-                            }
-                        }
-                        else {
-                            gestErrori("Devi inserire l'ora di scadenza dell'esame", $("#oraFineEsameMod"), "#msgModEsame");
-                        }
-                    }
-                    else {
-                        gestErrori("Devi inserire la data di scadenza dell'esame", $("#dataScadenzaMod"), "#msgModEsame");
-                    }
-                }
-                else {
-                    gestErrori("Devi inserire la durata dell'esame", $("#durataMod"), "#msgModEsame");
-                }
-            }
-            else {
-                gestErrori("Devi inserire la descrizione dell'esame", $("#descrizione"), "#msgModEsame");
-            }
-        }
-        else if ($(this).html() == "Conferma Rimozione"){
-            let chkToken = inviaRichiesta('/api/rimuoviEsame', 'POST', { "idEsame": $("#msgRimEsame").attr("idEsame") });
-            chkToken.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, "#msgRimEsame");
-            });
-            chkToken.done(function (data) {
-                if (data == "rimEsameOk"){
-                    $("#dettEsameMod .modal-title").html("Risultato Operazione");
-                    $("#dettEsameMod .modal-body").children().remove();
-                    $("#btnSalvaModifiche").show().html("Chiudi");
-                    $("#btnAnnulla").hide();
-
-                    let cod = "";
-                    cod += '<div class="row">';
-                    cod += '<div class="col-lg-12 text-center">';
-                    cod += '<p>Esame rimosso correttamente</p>';
-                    cod += '</div>';
-                    cod += '</div>';
-                    
-                    $("#dettEsameMod .modal-body").append(cod);
-                }
-                else
-                    $("#msgRimEsame").text("Si è verificato un errore durante la rimozione dell\'esame. Riprovare");
-            });
-        }
-        else if($(this).html() == "Chiudi"){
+        if($(this).html() == "Chiudi"){
             window.location.reload();
         }
         else if($(this).html() == "Torna Indietro"){
