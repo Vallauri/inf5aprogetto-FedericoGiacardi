@@ -2,6 +2,8 @@
 
 ![](/Immagini/Home.PNG)
 
+## [Test dell'app](https://learn-on-the-net.herokuapp.com/index.html)
+
 ## Descrizione:
 Piattaforma di e-learning che consente di seguire, individualmente o come parte di un gruppo, corsi relativi a determinati argomenti, parte di una serie di materie. 
 Ogni corso può prevedere degli esami finali. 
@@ -119,8 +121,15 @@ Infine, è presente un form per l'aggiunta di una nuova materia.
 ## Aggiunte Previste fino al 10/05/2020
 * Aggiunta sezione per svolgimento esame.
 
-## Problemi riscontrati
+## Problemi e considerazioni
 La relizzazione della funzionalità di lettura automatica del file si è rivelata molto ostica.
 Non essendo disponibile un modulo per l'estrazione del contenuto del file capace di offrire buone prestazioni su tipi di file diversi si è dovuto scrivere un nostro modulo, FileReader, che combini un modulo per la lettura di PDF con uno per la lettura dei DOCX. Particolarmente complicata si è poi rivelata la combinazione dell'estrazione del file con la sua lettura tramite IBM Watson a causa delle molte operazioni asincrone da coordinare. Il meccanismo risulta ad oggi funzionante, tuttavia siamo consci del fatto che sia piuttosto limitato, soprattuto per i pochi tipi di file supportati.
 Molto complessa, sempre per il dover andare a coordinare più operazioni asincrone, si è rivelata la funzionalità di modifica dell'appunto. Si tratta della funzione che ha richiesto più tempo ma ad oggi risulta funzionante.
 Anche la gestione dell'eliminazione di materie e argomenti si è rivelata complessa, per la necessità di intervenire su più tabelle collegate. Anche questa problematica è stata superata.
+L'hosting su Heroku si è rivelato meno problematico del previsto.
+Il modulo bycript ha generato qualche problema di compatibilità risolto modificando il package.
+Si è poi dovuto modificare l'autenticazione all'account di Gmail per abilitare l'accesso anche ad IP esterni.
+Sopratutto, si è dovuto passare dal modulo HTTPS a quello HTTP per far fronte al fatto che il load balancer di Heroku invia alla nostra app del traffico non cifrato.
+In sostanza, quando il server di Heroku riceve del traffico HTTPS lo blocca e apre una connessione HTTP verso il nostro web dyno. Quest'ultimo risponderà al server che comunicherà la risposta in HTTPS, garantendo quindi la sicurezza della comunicazione, al client.
+In questo modo non dovremo impostare alcun certificato sul nostro Dyno e, dato che esso riceverà soltanto traffico HTTP, dovremo utilizzare il modulo HTTP nel nostro server.
+Con il meccanismo descritto in precedenza Heroku garantirà comunque la sicurezza dell'applicazione.
