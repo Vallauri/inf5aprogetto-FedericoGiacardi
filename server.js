@@ -20,8 +20,6 @@ const fileContentReader = require("./FileReader/filecontentReader");
 
 const multer = require("multer"); // Modulo per salvataggio immagini su server
 
-//"mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS + "@learnonthenet-rqmxj.mongodb.net/progetto?retryWrites=true&w=majority"
-
 /* CONNESSIONE AL DATABASE */
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
 console.log("Everything seems ok...");
@@ -271,7 +269,7 @@ const upload = multer({ storage: storage, fileFilter: fileFilter,  });
 
 const uploadAllegati = multer({ storage: storageAllegati });//<!-- Vedere file da rifiutare per rischio sicurezza es.JS -->
 
-const HTTPS = require('http');
+const HTTP = require('http');
 
 
 // express
@@ -313,8 +311,8 @@ app.use("/static", express.static("static"));
 const TIMEOUT = 3000; // 60 SEC
 let pageNotFound;
 
-var httpsServer = HTTPS.createServer(app);
-httpsServer.listen(port, function () {
+var httpServer = HTTP.createServer(app);
+httpServer.listen(port, function () {
     fs.readFile("./static/error.html", function (err, content) {
         if (err)
             content = JSON.stringify(new ERRORS.PAGE_NOT_FOUND({}));
@@ -322,7 +320,7 @@ httpsServer.listen(port, function () {
     });
     console.log("Server in ascolto https://127.0.0.1: " + this.address().port);
 });
-httpsServer.timeout = 600000;
+httpServer.timeout = 600000;
 
 // middleware
 app.use("/", bodyParser.json());
