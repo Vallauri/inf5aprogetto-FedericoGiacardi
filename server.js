@@ -6,8 +6,6 @@ let mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const nodemailer = require('nodemailer');
-const { google } = require("googleapis");
-const OAuth2 = google.auth.OAuth2;
 var async = require("async");
 var crypto = require("crypto");
 require('dotenv').config();
@@ -25,17 +23,6 @@ const multer = require("multer"); // Modulo per salvataggio immagini su server
 /* CONNESSIONE AL DATABASE */
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
 console.log("Everything seems ok...");
-
-const oauth2Client = new OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground" // Redirect URL
-);
-
-oauth2Client.setCredentials({
-    refresh_token: "1//0frLEZ131yAr3CgYIARAAGA8SNwF-L9IrRyhtq3QMFuUnDxuAQvU9YtC5BOIBp9vH2dU-xVnfybPr6tR35AeuoKT_YrqQ9vWwl04"
-});
-const accessToken = oauth2Client.getAccessToken();
 
 // code 404 - database connection error
 ERRORS.create({
@@ -571,12 +558,8 @@ app.post('/api/invioMailReimpostaPwd', function (req, res, next) {
             let transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                    type: "OAuth2",
-                    clientId: process.env.CLIENT_ID,
-                    clientSecret: process.env.CLIENT_SECRET,
                     user: 'learnonthenet7@gmail.com',
-                    refreshToken:"1//0frLEZ131yAr3CgYIARAAGA8SNwF-L9IrRyhtq3QMFuUnDxuAQvU9YtC5BOIBp9vH2dU-xVnfybPr6tR35AeuoKT_YrqQ9vWwl04",
-                    accessToken: accessToken
+                    pass: process.env.PWD_GMAIL
                 }
             });
 
@@ -627,12 +610,8 @@ app.post("/api/reimpostaPwd", function (req, res) {
                                     let transporter = nodemailer.createTransport({
                                         service: 'gmail',
                                         auth: {
-                                            type: "OAuth2",
-                                            clientId: process.env.CLIENT_ID,
-                                            clientSecret: process.env.CLIENT_SECRET,
                                             user: 'learnonthenet7@gmail.com',
-                                            refreshToken: "1//0frLEZ131yAr3CgYIARAAGA8SNwF-L9IrRyhtq3QMFuUnDxuAQvU9YtC5BOIBp9vH2dU-xVnfybPr6tR35AeuoKT_YrqQ9vWwl04",
-                                            accessToken: accessToken
+                                            pass: 'S8Fh!lU?y8'
                                         }
                                     });
 
