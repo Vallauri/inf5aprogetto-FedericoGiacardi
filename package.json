@@ -16,6 +16,7 @@
     "express": "^4.17.1",
     "express-zip": "^3.0.0",
     "formidable": "^1.2.2",
+    "googleapis": "^51.0.0",
     "ibm-watson": "^5.4.0",
     "jsonwebtoken": "^8.5.1",
     "minimist": "^1.2.5",
