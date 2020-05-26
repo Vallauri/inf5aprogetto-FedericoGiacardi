@@ -35,7 +35,7 @@ function loadPagina() {
 function getElMaterie() {
     let rqElMatModerate = inviaRichiesta('/api/elMatModerate', 'POST', {});
     rqElMatModerate.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, "#msgElAllegati");
+        printErrors(jqXHR, "#msgElMaterie");
     });
     rqElMatModerate.done(function (data) {
         stampaTabMaterie(data);
@@ -49,6 +49,7 @@ function getElArgMaterie() {
         printErrors(jqXHR, "#msgElArgMaterie");
     });
     rqElArgMatModerate.done(function (data) {
+        $("#sezArgMateria").show();
         stampaTabAllegatiMaterie(data);
     });
 }
@@ -61,7 +62,6 @@ function stampaTabMaterie(materie) {
     if (materie.length > 0) {
         $("#sezNoMaterie").hide();
         $("#sezElMaterie").show();
-        $("#sezArgMateria").show();
         $("#corpoTabMaterie").html("");
         materie.forEach(materia => {
             riga = $("<tr></tr>");
@@ -109,6 +109,7 @@ function gestModMateria(btn) {
         $("#descModMateria").val(celle[0]["innerText"]);
         $("#dataModMateria").val(d);
         $("#modalModMateria").modal("show");
+        $("#msgModMateria").text("").removeClass("alert alert-danger");
     } 
 }
 
@@ -139,6 +140,7 @@ function gestEliminaMateria(btn) {
     $("#contModaleEliminazioneMat").text("Sei sicuro di voler eliminare questo materia? Tale operazione cancellerà tutti i dati ad essa collegati");
     $("#btnConfEliminazioneMat").removeAttr("disabled");
     $("#modalEliminazioneMat").modal("show");
+    $("#msgEliminazioneMat").text("").removeClass("alert alert-danger");
 }
 
 //Gestione Eliminazione materia
@@ -225,6 +227,7 @@ function openModalApprovaArgomento(btn) {
     $("#contModale").text("Sei sicuro di voler accettare questo argomento?");
     $("#btnConfApprovArgomento").removeAttr("disabled");
     $("#modalApprovArgomento").modal("show");
+    $("#msgApprovArgomento").text("").removeClass("alert alert-danger");
 }
 
 //Gestione Approvazione Argomento
@@ -255,6 +258,7 @@ function openModalRifiutoArgomento(btn) {
     $("#contModaleRifiuto").text("Sei sicuro di voler rifiutare questo argomento?");
     $("#btnConfRifiutoArgomento").removeAttr("disabled");
     $("#modalRifiutoArgomento").modal("show");
+    $("#msgRifiutoArgomento").text("").removeClass("alert alert-danger");
 }
 
 //Gestione Rifiuto Argomento
@@ -274,6 +278,6 @@ function rifiutaAllegato(btn) {
             getElArgMaterie();
         });
     } else {
-        gestErrori("Codice argomento mancante. Ricaricare la pagine", $("#btnConfRifiutoArgomento"), "#modalRifiutoArgomento");
+        gestErrori("Codice argomento mancante. Ricaricare la pagina", $("#btnConfRifiutoArgomento"), "#modalRifiutoArgomento");
     }
 }

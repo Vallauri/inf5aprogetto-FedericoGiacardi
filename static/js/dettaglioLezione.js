@@ -6,14 +6,13 @@ $(document).ready(function () {
 function loadPagina() {
     let par = window.location.search.substring(1).split('&');
     let lez = par[0].split('=');
-    let corso = par[1].split('='); // da cambiate in caso la lezione non venga aperta da un corso
+    let corso = par[1].split('='); // da cambiare in caso la lezione non venga aperta da un corso
 
     // Controllo sui parametri in GET (controllare se hanno senso o no ??)
     if(lez[0] == "lezione" && !isNaN(parseInt(lez[1]))){
         let chkToken = inviaRichiesta('/api/datiLezioneById', 'POST', {"idLezione" : lez[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgDetLezione");
         });
         chkToken.done(function (data) {
             caricamentoDatiLezione(data);
@@ -21,13 +20,12 @@ function loadPagina() {
         });
     }
     else{
-        alert("Errore nel passaggio dei parametri");
+        $("#msgDetLezione").text("Errore nel passaggio dei parametri").addClass("alert alert-danger");
         if (corso[0]="corso") {
             window.location.href = "dettaglioCorso.html?corso=" + corso[1];
         }else{
             window.location.href = "dettaglioCorso.html?corso=" + corso[1];
-        }
-        
+        }   
     }
 }
 
@@ -65,7 +63,7 @@ function caricamentoDatiLezione(lezione) {
         
         let chkToken = inviaRichiesta('/api/chkModLezione', 'POST', { "idLez": lezione[0]._id });
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            printErrors(jqXHR, ".msg");
+            printErrors(jqXHR, "#msgDetLezione");
         });
         chkToken.done(function (data) {
             if (lezione[0]["elencoAppunti"] != undefined && lezione[0]["elencoAppunti"].length > 0) {
@@ -125,17 +123,17 @@ function caricamentoDatiLezione(lezione) {
                     let chkToken = inviaRichiesta('/api/partecipaLezione', 'POST', { "idLez": $("#descLezione").attr("idLez") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
                         if (jqXHR.status == 615)  // utente già partecipante
-                            $(".msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+                            $("#msgDetLezione").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
                         else
-                            printErrors(jqXHR, ".msg");
+                            printErrors(jqXHR, "#msgDetLezione");
                     });
                     chkToken.done(function (data) {
                         if (data.nModified == 1) {
-                            alert("Ora partecipi alla lezione!");
+                            alert("Ora partecipi alla lezione!"); // cambiare con modal
                             window.location.reload();
                         }
                         else
-                            $(".msg").text("Si è verificato un errore durante l'iscrizione al corso");
+                            $("#msgDetLezione").text("Si è verificato un errore durante l'iscrizione al corso").addClass("alert alert-danger");
                     });
                 });
             }
@@ -147,8 +145,7 @@ function chkModeratore(idLez) {
     // Solo se utente loggato = moderatore lezione
     let chkToken = inviaRichiesta('/api/chkModLezione', 'POST', { "idLez": idLez });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
-        printErrors(jqXHR, ".msg");
+        printErrors(jqXHR, "#msgDetLezione");
     });
     chkToken.done(function (data) {
         if (data.ris == "autore") {
@@ -164,34 +161,30 @@ function chkModeratore(idLez) {
             $(".right-contents").append(codHtml);
 
             $("#btnSalvaModifiche").on("click", function () {
-                /*if($(this).html() == "Salva Aggiunte"){
-                    window.location.reload();
-                }
-                else */
                 if ($(this).html() == "Salva Modifiche"){
                     if(chkCorrettezzaDati()){
                         let chkToken = inviaRichiesta('/api/modificaLezione', 'POST', { "idLez": $("#descLezione").attr("idLez"), "titolo": $("#titolo").val().trim(), "dataScadenza": $("#dataScadenza").val().trim() });
                         chkToken.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgModLez");
                         });
                         chkToken.done(function (data) {
                             if (data.ok == 1)
                                 window.location.reload();
                             else
-                                $(".modal-body .msg").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare");
+                                $("#msgModLez").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare").addClass("alert alert-danger");
                         });
                     }
                 }
                 else if ($(this).html() == "Conferma Rimozione"){
                     let chkToken = inviaRichiesta('/api/rimuoviLezione', 'POST', { "idLez": $("#descLezione").attr("idLez") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
-                        printErrors(jqXHR, ".modal-body .msg");
+                        printErrors(jqXHR, "#msgRemLez");
                     });
                     chkToken.done(function (data) {
                         if (data.ok == 1)
                             window.location.href = "dettaglioCorso.html?corso=" + window.location.search.substring(1).split('&')[1].split('=')[1]; // controllare se giusto
                         else
-                            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione della lezione. Riprovare");
+                            $("#msgRemLez").text("Si è verificato un errore durante la rimozione della lezione. Riprovare").addClass("alert alert-danger");
                     });
                 }
             });
@@ -216,7 +209,7 @@ function chkModeratore(idLez) {
                 cod += '<button class="genric-btn success circle" id="btnRicerca"><i class="fa fa-search" aria-hidden="true"></i></button>';
                 cod += '</div>';
                 cod += '</div>';
-                cod += '<p class="msg" style="margin-top:5px"></p>';
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgAddAppunto" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
                 cod += '</div>';
@@ -224,12 +217,12 @@ function chkModeratore(idLez) {
                 $("#dettLezioneMod .modal-body").append(cod);
 
                 $("#btnRicerca").on("click", function () {
-                    $(".modal-body .msg").text("");
+                    $("#msgAddAppunto").text("").removeClass("alert alert-danger");
 
                     if ($("#txtRicerca").val() != "") {
                         let ricerca = inviaRichiesta('/api/cercaAppuntoAggiuntaLez', 'POST', { "valore": $("#txtRicerca").val() });
                         ricerca.fail(function (jqXHR, test_status, str_error) {
-                            printErrors(jqXHR, ".modal-body .msg");
+                            printErrors(jqXHR, "#msgAddAppunto");
                         });
                         ricerca.done(function (data) {
                             console.log(data);
@@ -237,7 +230,7 @@ function chkModeratore(idLez) {
                         });
                     }
                     else {
-                        $(".modal-body .msg").text("Inserire un valore per la ricerca");
+                        $("#msgAddAppunto").text("Inserire un valore per la ricerca").addClass("alert alert-danger");
                         $("#txtRicerca").focus();
                     }
                 });
@@ -273,7 +266,7 @@ function chkModeratore(idLez) {
 
                 let chkToken = inviaRichiesta('/api/datiLezioneById', 'POST', { "idLezione": $("#descLezione").attr("idLez") });
                 chkToken.fail(function (jqXHR, test_status, str_error) {
-                    printErrors(jqXHR, ".modal-body .msg");
+                    printErrors(jqXHR, "#msgModLez");
                 });
                 chkToken.done(function (data) {
                     console.log(data);
@@ -291,7 +284,7 @@ function chkModeratore(idLez) {
                 cod += '<div class="row">';
                 cod += '<div class="col-lg-12 text-center">';
                 cod += '<p>Sei sicuro di voler rimuovere la lezione? Tutti i dati ad essa collegati verranno rimossi</p>';
-                cod += '<p class="msg"></p>';
+                cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgRemLez" role="alert" style="text-align: center;"></div></div></div>';
                 cod += '</div>';
                 cod += '</div>';
 
@@ -306,7 +299,7 @@ function chkModeratore(idLez) {
 function dettaglioAppunto(appunti) {
     console.log(appunti);
     let codHtml = "";
-    $(".modal-body .msg").html("");
+    $("#msgAddAppunto").html("").removeClass("alert alert-danger");
     $("#risultato").remove();
 
     if (appunti.length > 0) {
@@ -330,7 +323,7 @@ function dettaglioAppunto(appunti) {
         codHtml += '</div>';
     }
     else {
-        $(".modal-body .msg").text("Nessun appunto trovato");
+        $("#msgAddAppunto").text("Nessun appunto trovato").addClass("alert alert-danger");
         $("#risultato").remove();
     }
 
@@ -338,20 +331,20 @@ function dettaglioAppunto(appunti) {
 }
 
 function addAppuntoLez(idAppunto) {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgAddAppunto").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/insNuovoAppuntoLez', 'POST', { "idLez": $("#descLezione").attr("idLez"), "idAppunto" : idAppunto });
     chkToken.fail(function (jqXHR, test_status, str_error) {
         if (jqXHR.status == 616)  // appunto già presente in lezione
-            $(".modal-body .msg").show().text(JSON.parse(jqXHR.responseText)["message"]);
+            $("#msgAddAppunto").show().text(JSON.parse(jqXHR.responseText)["message"]).addClass("alert alert-danger");
         else
-            printErrors(jqXHR, ".modal-body .msg");
+            printErrors(jqXHR, "#msgAddAppunto");
     });
     chkToken.done(function (data) {
         if(data.nModified == 1)
             window.location.reload();
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante l'aggiunta alla lezione");
+            $("#msgAddAppunto").text("Si è verificato un errore durante l'aggiunta alla lezione").addClass("alert alert-danger");
     });
 }
 
@@ -378,22 +371,16 @@ function modificaLezione(dettLezione){
         cod += '<input type="date" class="form-control" name="dataScadenza" id="dataScadenza">';
     cod += '</div>';
     cod += '</div>';
-    // cod += '<div class="form-group row">'; // foto da gestire...
-    // cod += '<label for="nome" class="col-sm-1-12 col-form-label">Foto del Gruppo</label>';
-    // cod += '<div class="col-sm-1-12">';
-    // cod += '<input type="text" class="form-control" name="nome" id="nome" placeholder="Inserisci qui il nome del gruppo...">';
-    // cod += '</div>';
-    // cod += '</div>';
-    //cod += '<div class="form-group row">';
     
     cod += '</form>';
-    cod += '<p class="msg" style="margin-top:5px"></p>';
+    cod += '<div class="row"><div class="col-sm-12 col-md-7 col-lg-7 mx-auto"><div id="msgModLez" role="alert" style="text-align: center;"></div></div></div>';
     cod += '</div>';
     cod += '</div>';
     
     let appLezione = inviaRichiesta('/api/elAppuntiLez', 'POST', {"idLezione" : dettLezione[0]._id});
     appLezione.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+        printErrors(jqXHR, "#msgDetLezione");
+        $("#dettLezioneMod").modal('hide');
     });
     appLezione.done(function (dettLez) {
         cod += '<div class="row">';
@@ -426,13 +413,13 @@ function modificaLezione(dettLezione){
 }
 
 function chkCorrettezzaDati() {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModLez").text("").removeClass("alert alert-danger");
 
     if($("#titolo").val().trim() == ""){
-        $(".modal-body .msg").text("Devi inserire il titolo della lezione");
+        $("#msgModLez").text("Devi inserire il titolo della lezione").addClass("alert alert-danger");
     }
     else if ($("#dataScadenza").val().trim() != "" && new Date($("#dataScadenza").val()) < new Date()) {
-        $(".modal-body .msg").text("Devi scegliere una data di scadenza della lezione successiva a quella odierna");
+        $("#msgModLez").text("Devi scegliere una data di scadenza della lezione successiva a quella odierna").addClass("alert alert-danger");
     }
     else{
         return true;
@@ -441,20 +428,20 @@ function chkCorrettezzaDati() {
 }
 
 function removeAppuntoLezione(idAppunto) {
-    $(".modal-body .msg").text("").css("color", "red");
+    $("#msgModLez").text("").removeClass("alert alert-danger");
 
     let chkToken = inviaRichiesta('/api/removeAppuntoLez', 'POST', { "idLez": $("#descLezione").attr("idLez"), "idAppunto": idAppunto });
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        printErrors(jqXHR, ".modal-body .msg");
+        printErrors(jqXHR, "#msgModLez");
     });
     chkToken.done(function (data) {
         if (data.nModified == 1){
-            $(".modal-body .msg").css("color", "green").text("Appunto rimosso dalla lezione");
+            $("#msgModLez").text("Appunto rimosso dalla lezione").addClass("alert alert-success");
             $("#tabAppuntiLez").children().remove();
 
             let appLezione = inviaRichiesta('/api/elAppuntiLez', 'POST', { "idLezione": $("#descLezione").attr("idLez") });
             appLezione.fail(function (jqXHR, test_status, str_error) {
-                printErrors(jqXHR, ".msg"); // capire come visualizzarlo perché così lo visualizza sulla pagina, non sul modal
+                printErrors(jqXHR, "#msgModLez");
             });
             appLezione.done(function (dettLez) {
                 let cod = "";
@@ -483,6 +470,6 @@ function removeAppuntoLezione(idAppunto) {
             });
         }
         else
-            $(".modal-body .msg").text("Si è verificato un errore durante la rimozione dal gruppo");
+            $("#msgModLez").text("Si è verificato un errore durante la rimozione dal gruppo").addClass("alert alert-danger");
     });
 }

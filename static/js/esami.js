@@ -53,7 +53,6 @@ function caricamentoDatiEsami(esami) {
         codHtml += '</div>';
         codHtml += '</div>';
         $("#contEsami").parent().html(codHtml);
-        // $("#contEsami").hide();
     }
     else{
         codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto justify-content-center">';
@@ -127,7 +126,6 @@ function chkModeratore(idCorso) {
             esamiPerTabella = [];
 
             if (data.ris == "autore") {
-                // devo mettere anche la parte per l'inserimento di un nuovo esame
                 codHtml = "";
                 codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto text-center">';
                 codHtml += '<h4 class="title_top">Nuovo Esame</h4>';
@@ -200,9 +198,9 @@ function chkModeratore(idCorso) {
                 codHtml += '</div>';
                 codHtml += '</div>';
                 codHtml += '</div>';
-                codHtml += '<div class="row text-center">';
-                codHtml += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto">';
-                codHtml += '<div id="msgAddEsame" class="msg"></div>';
+                codHtml += '<div class="row">';
+                codHtml += '<div class="col-sm-12 col-md-7 col-lg-7 mx-auto">';
+                codHtml += '<div id="msgAddEsame" role="alert" style="text-align: center;"></div>';
                 codHtml += '</div>';
                 codHtml += '</div>';
                 codHtml += '<div class="row">'
@@ -249,7 +247,7 @@ function chkModeratore(idCorso) {
                     $("#oraFineEsame").removeClass("alert-danger");
                     $("#maxVoto").removeClass("alert-danger");
                     $("#minVoto").removeClass("alert-danger");
-                    $("#msgAddEsame").html("");
+                    $("#msgAddEsame").html("").removeClass("alert alert-danger");
 
                     if ($("#descEsame").val().trim() != "") {
                         if ($("#durata").val().trim() != "") {
@@ -317,7 +315,7 @@ function chkModeratore(idCorso) {
                                                                             clickSalvaModifiche();
                                                                         }
                                                                         else
-                                                                            $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare");
+                                                                            $("#msgAddEsame").text("Si è verificato un errore durante l'inserimento dell\'esame. Riprovare").addClass("alert alert-danger");
                                                                     });
                                                                 }
                                                                 else {
@@ -377,7 +375,7 @@ function chkModeratore(idCorso) {
 }
 
 function gestErrori(msg, controllo, target) {
-    $(target).html(msg);
+    $(target).html(msg).addClass("alert alert-danger");
     if(controllo != null)
         controllo.addClass("alert-danger");
 }
@@ -403,10 +401,12 @@ function drawModaleDomande(prov){
     codHtml += '<option value="close">Domanda Chiusa</option>';
     codHtml += '</select>';
     codHtml += '<div style="margin-top:15px" class="row" id="dettDomanda"></div>';
-    codHtml += '<p id="msgInsDomanda" class="msg"></p>';
+    codHtml += '<div class="row">';
+    codHtml += '<div class="col-sm-12 col-md-7 col-lg-7 mx-auto">';
+    codHtml += '<div id="msgInsDomanda" role="alert" style="text-align: center;"></div>';
     codHtml += '</div>';
-    //codHtml += '<div style="margin-top:15px">';
-    //codHtml += '</div>';
+    codHtml += '</div>';
+    codHtml += '</div>';
     codHtml += '</div>';
     codHtml += '</div>';
     codHtml += '<div class="modal-footer">';
@@ -424,7 +424,7 @@ function drawModaleDomande(prov){
     $('#tipoDomanda').selectpicker('refresh');
     document.getElementById("tipoDomanda").selectedIndex = -1;
     $("#tipoDomanda").on("change", function () {
-        $("#msgInsDomanda").html("");
+        $("#msgInsDomanda").html("").removeClass("alert alert-danger");
         let cod = '';
         cod += '<div class="col-sm-10 col-md-10 col-lg-10 mx-auto">';
         cod += '<form>';
@@ -531,10 +531,10 @@ function drawModaleDomande(prov){
 
         if ($("option:selected", this).val() == "multi") {
             $("#numRisp").on('change', function () {
-                $("#msgInsDomanda").html("");
+                $("#msgInsDomanda").html("").removeClass("alert alert-danger");
                 if ($(this).val().trim() != "") {
                     if (parseInt($(this).val()) < 2 || parseInt($(this).val()) > 10)
-                        $("#msgInsDomanda").html("Devi scegliere un numero di risposte compreso tra 2 e 10");
+                        $("#msgInsDomanda").html("Devi scegliere un numero di risposte compreso tra 2 e 10").addClass("alert alert-danger");
                     else {
                         cod = '';
                         let nRisp = parseInt($(this).val());
@@ -562,13 +562,13 @@ function drawModaleDomande(prov){
                     }
                 }
                 else
-                    $("#msgInsDomanda").html("Devi inserire un numero di risposte (compreso tra 2 e 10)");
+                    $("#msgInsDomanda").html("Devi inserire un numero di risposte (compreso tra 2 e 10)").addClass("alert alert-danger");
             });
         }
     });
 
     $("#btnSalvaDomanda").on("click", function () {
-        $("#msgInsDomanda").html("");
+        $("#msgInsDomanda").html("").removeClass("alert alert-danger");
         if ($("#tipoDomanda option:selected").val() != undefined) {
             let invia = false;
             let cod = '';
@@ -576,13 +576,13 @@ function drawModaleDomande(prov){
             switch ($("#tipoDomanda option:selected").val()) {
                 case "trueFalse":
                     if ($("#domanda").val().trim() == "")
-                        $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                        $("#msgInsDomanda").html("Devi inserire il testo della domanda").addClass("alert alert-danger");
                     else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
-                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio").addClass("alert alert-danger");
                     else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
-                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00").addClass("alert alert-danger");
                     else if ($("input[name='risposta']:checked").val() == undefined)
-                        $("#msgInsDomanda").html("Devi scegliere la risposta alla domanda");
+                        $("#msgInsDomanda").html("Devi scegliere la risposta alla domanda").addClass("alert alert-danger");
                     else{
                         cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                         cod += '<td>' + $("#domanda").val().trim() + '</td>';
@@ -597,13 +597,13 @@ function drawModaleDomande(prov){
 
                 case "multi":
                     if ($("#domanda").val().trim() == "")
-                        $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                        $("#msgInsDomanda").html("Devi inserire il testo della domanda").addClass("alert alert-danger");
                     else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
-                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio").addClass("alert alert-danger");
                     else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
-                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00").addClass("alert alert-danger");
                     else if ($("#contRisposte input[type='checkbox']:checked").length == 0)
-                        $("#msgInsDomanda").html("Devi specificare quali risposte sono quelle giuste");
+                        $("#msgInsDomanda").html("Devi specificare quali risposte sono quelle giuste").addClass("alert alert-danger");
                     else{
                         let corretto = true;
                         let ris = new Array();
@@ -640,13 +640,13 @@ function drawModaleDomande(prov){
 
                 case "open": // da controllare ?!?!!??!?!
                     if ($("#domanda").val().trim() == "")
-                        $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                        $("#msgInsDomanda").html("Devi inserire il testo della domanda").addClass("alert alert-danger");
                     else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
-                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio").addClass("alert alert-danger");
                     else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
-                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00").addClass("alert alert-danger");
                     else if ($("#risposta").val().trim() == "")
-                        $("#msgInsDomanda").html("Devi inserire la risposta alla domanda"); // non so se ha senso fargli mettere la risposta alla domanda aperta ?!?!?!?!
+                        $("#msgInsDomanda").html("Devi inserire la risposta alla domanda").addClass("alert alert-danger"); // non so se ha senso fargli mettere la risposta alla domanda aperta ?!?!?!?!
                     else {
                         cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                         cod += '<td>' + $("#domanda").val().trim() + '</td>';
@@ -661,13 +661,13 @@ function drawModaleDomande(prov){
 
                 case "close":
                     if ($("#domanda").val().trim() == "")
-                        $("#msgInsDomanda").html("Devi inserire il testo della domanda");
+                        $("#msgInsDomanda").html("Devi inserire il testo della domanda").addClass("alert alert-danger");
                     else if ($("#punteggioDom").val().trim() == "" || isNaN($("#punteggioDom").val().trim()))
-                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio");
+                        $("#msgInsDomanda").html("Devi inserire un numero come punteggio").addClass("alert alert-danger");
                     else if (parseFloat($("#punteggioDom").val().trim()) < 0.01 || parseFloat($("#punteggioDom").val().trim()) > 10.00)
-                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00");
+                        $("#msgInsDomanda").html("Il punteggio deve essere compreso tra 0.01 e 10.00").addClass("alert alert-danger");
                     else if ($("#risposta").val().trim() == "")
-                        $("#msgInsDomanda").html("Devi inserire la risposta alla domanda");
+                        $("#msgInsDomanda").html("Devi inserire la risposta alla domanda").addClass("alert alert-danger");
                     else {
                         cod += '<tr id="dom_' + idNewRow + '" tipoDom="' + $("#tipoDomanda option:selected").val() + '">';
                         cod += '<td>' + $("#domanda").val().trim() + '</td>';
@@ -698,12 +698,12 @@ function drawModaleDomande(prov){
             }
         }
         else {
-            $("#msgInsDomanda").html("Devi scegliere il tipo di domanda");
+            $("#msgInsDomanda").html("Devi scegliere il tipo di domanda").addClass("alert alert-danger");
         }
     });
 }
 
-function getNewId(prov){ // da testare
+function getNewId(prov){
     let domande;
     let num;
     if(prov == "ins")
@@ -812,9 +812,9 @@ function modificaEsame(idEsame){
         cod += '<input type="number" step="0.01" min="0.01" max="10.00" id="votoMinEsame" name="votoMinEsame" class="form-control" value="' + parseFloat(dettEsame.minVoto) + '">'
         cod += '</div>';
         cod += '</div>';
-        cod += '<div class="row text-center">';
-        cod += '<div class="col-sm-12 col-md-12 col-lg-12 mx-auto">';
-        cod += '<div id="msgModEsame" class="msg"></div>';
+        cod += '<div class="row">';
+        cod += '<div class="col-sm-12 col-md-7 col-lg-7 mx-auto">';
+        cod += '<div id="msgModEsame" role="alert" style="text-align: center;"></div>';
         cod += '</div>';
         cod += '</div>';
         cod += '<div class="row">'
@@ -919,7 +919,7 @@ function clickSalvaModifiche(){
             $("#oraFineEsameMod").removeClass("alert-danger");
             $("#votoMaxEsame").removeClass("alert-danger");
             $("#votoMinEsame").removeClass("alert-danger");
-            $("#msgModEsame").html("");
+            $("#msgModEsame").html("").removeClass("alert alert-danger");
 
             if ($("#descrizione").val().trim() != "") {
                 if ($("#durataMod").val().trim() != "") {
@@ -981,7 +981,7 @@ function clickSalvaModifiche(){
                                                             $("#dettEsameMod .modal-body").append(cod);
                                                         }
                                                         else
-                                                            $("#msgModEsame").text("Si è verificato un errore durante la modifica dell\'esame. Riprovare");
+                                                            $("#msgModEsame").text("Si è verificato un errore durante la modifica dell\'esame. Riprovare").addClass("alert alert-danger");
                                                     });
                                                 }
                                                 else {
@@ -1046,7 +1046,7 @@ function clickSalvaModifiche(){
                     $("#dettEsameMod .modal-body").append(cod);
                 }
                 else
-                    $("#msgRimEsame").text("Si è verificato un errore durante la rimozione dell\'esame. Riprovare");
+                    $("#msgRimEsame").text("Si è verificato un errore durante la rimozione dell\'esame. Riprovare").addClass("alert alert-danger");
             });
         }
         else if($(this).html() == "Chiudi"){
@@ -1069,7 +1069,11 @@ function rimuoviEsame(idEsame){
     cod += '<div class="row">';
     cod += '<div class="col-sm-12 col-md-12 col-lg-12 text-center">';
     cod += '<p>Sei sicuro di voler rimuovere l\'esame? Tutti i dati ad esso collegati verranno rimossi</p>';
-    cod += '<div id="msgRimEsame" idEsame="' + idEsame + '" class="msg"></div>';
+    cod += '<div class="row">';
+    cod += '<div class="col-sm-12 col-md-7 col-lg-7 mx-auto">';
+    cod += '<div id="msgRimEsame" idEsame="' + idEsame + '" role="alert" style="text-align: center;"></div>';
+    cod += '</div>';
+    cod += '</div>';
     cod += '</div>';
     cod += '</div>';
 

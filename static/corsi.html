@@ -120,8 +120,8 @@
                             <form>
                                 <label for="tipoRicerca">Corsi da cercare</label>
                                 <div class="form-select" id="default-select">
-                                    <select name="tipoRicerca" id="tipoRicerca" title="Ricerca Corsi" class="form-control">
-                                        <option value="all" selected>Tutti i corsi</option>
+                                    <select name="tipoRicerca" id="tipoRicerca" title="Ricerca Corsi">
+                                        <option value="yourCourses">Corsi cui sei iscritto</option>
                                         <option value="yourGroup">Corsi dei tuoi gruppi</option>
                                     </select>
                                 </div>
@@ -194,6 +194,18 @@
                                                 <div>
                                                     <select id="materiaCorso" class="single-input" required title="Materia" data-live-search="true"
                                                         data-live-search-placeholder="Cerca Materia" data-width="100%">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="input-group form-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-list"> </i>
+                                                </span>
+                                                <div>
+                                                    <select id="argomentiCorso" multiple required title="Scegli gli argomenti" data-live-search="true"
+                                                        data-live-search-placeholder="Cerca argomenti" multiple="true" data-multiple-separator=", ">
                                                     </select>
                                                 </div>
                                             </div>

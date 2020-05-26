@@ -379,7 +379,6 @@ function controllaToken(req, res, next) {
         '/api/invioMailReimpostaPwd'
     ];
     
-    // if (req.originalUrl == '/api/login' || req.originalUrl == '/api/logout' || req.originalUrl == '/api/registrati' || req.originalUrl == '/api/reimpostaPwd' || req.originalUrl == '/api/loadCounter' || req.originalUrl == '/api/elRecensioni' || req.originalUrl == '/api/invioMailReimpostaPwd') 
     if (urlNotToCheck.find((url) => { return url == req.originalUrl; }))
         next();
     else {
@@ -741,8 +740,6 @@ app.post("/api/elGruppi", function (req, res) {
             $lookup:
             {
                 from: gruppi.collection.name,
-                // localField: "gruppo.codGruppo",
-                // foreignField: "_id",
                 "let": { "gruppo": "$gruppo.codGruppo" },
                 "pipeline": [
                     { "$match": { "$expr": { "$in": ["$_id", "$$gruppo"] } } },
@@ -771,7 +768,7 @@ app.post("/api/elGruppi", function (req, res) {
 
 app.post("/api/elMaterie", function (req, res) {
     utenti.aggregate([
-        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+        { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id), "validita" : "true" } },
         {
             $lookup:
             {
@@ -784,7 +781,8 @@ app.post("/api/elMaterie", function (req, res) {
                             "from": argomenti.collection.name,
                             "let": { "argomenti": "$argomenti.codArg" },
                             "pipeline": [
-                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } }
+                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
+                                { "$match": { "$expr": { "$eq": ["$validita", "true"] } } }, // non evita che l'appunto sia nell'elenco, ma dovrebbe funzionare tutto lo stesso
                             ],
                             "as": "argomenti"
                         }
@@ -814,12 +812,14 @@ app.post("/api/elAppunti", function (req, res) {
                 "let": { "appunto": "$_id" },
                 "pipeline": [
                     { "$match": { "$expr": { "$eq": ["$codUtente", "$$appunto"] } } },
+                    { "$match": { "$expr" : { "$eq": ["$validita", "true"] } } },
                     {
                         "$lookup": {
                             "from": argomenti.collection.name,
                             "let": { "argomenti": "$argomenti.codArgomento" },
                             "pipeline": [
-                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } }
+                                { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
+                                { "$match": { "$expr": { "$eq": ["$validita", "true"] } } }, // non evita che l'appunto sia nell'elenco, ma dovrebbe funzionare tutto lo stesso
                             ],
                             "as": "argomenti"
                         }
@@ -850,12 +850,14 @@ app.post("/api/feedModuli", function (req, res) {
                 "let": { "moduloUt": "$moduli.codModulo", "moduloGruppo": "$moduliGruppi.codModulo"},
                 "pipeline": [
                     { "$match": { "$expr": { "$or": [{ "$in": ["$_id", "$$moduloUt"] }, { "$in": ["$_id", "$$moduloGruppo"] }] }} },
+                    { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
                     {
                         "$lookup": {
                             "from": argomenti.collection.name,
                             "let": { "argomenti": "$argomenti.codArgomento" },
                             "pipeline": [
                                 { "$match": { "$expr": { "$in": ["$_id", "$$argomenti"] } } },
+                                { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
                                 {
                                     "$lookup": {
                                         "from": moduli.collection.name,
@@ -891,7 +893,8 @@ app.post("/api/elEventiCalendario", function (req, res) {
                 from: lezioni.collection.name,
                 "let": { "lezione": "$lezioni.codLez" },
                 "pipeline": [
-                    { "$match": { "$expr": { "$in": ["$_id", "$$lezione"] } } }
+                    { "$match": { "$expr": { "$in": ["$_id", "$$lezione"] } } },
+                    { "$match": { "$expr": { "$eq": ["$validita", "true"] } } }
                 ],
                 as: "datiLezione"
             }
@@ -908,7 +911,7 @@ app.post("/api/elEventiCalendario", function (req, res) {
 
 app.post("/api/dettaglioEventoModuli", function (req, res) {
     moduli.aggregate([
-        { $match: { "_id": parseInt(req.body.idEvento) } },
+        { $match: { "_id": parseInt(req.body.idEvento), "validita" : "true" } },
         {
             $lookup:
             {
@@ -959,7 +962,7 @@ app.post("/api/dettaglioEventoModuli", function (req, res) {
 
 app.post("/api/dettaglioEventoEsame", function (req, res) {
     esami.aggregate([
-        { $match: { "_id": parseInt(req.body.idEvento) } },
+        { $match: { "_id": parseInt(req.body.idEvento), "validita" : true } }, // controllare
         {
             $lookup:
             {
@@ -980,7 +983,7 @@ app.post("/api/dettaglioEventoEsame", function (req, res) {
 });
 
 app.post("/api/dettaglioEventoLezione", function (req, res) {
-    lezioni.findOne({ "_id": parseInt(req.body.idEvento) }).exec().then(result => {
+    lezioni.findOne({ "_id": parseInt(req.body.idEvento), "validita" : "true" }).exec().then(result => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -1018,9 +1021,9 @@ app.post("/api/elTipiCorsi", function (req, res) {
 
 app.post("/api/cercaCorso", function (req, res) {
     let filtri = req.body.filtri;
-    if (filtri.corsiDaCercare == "all") { // controllo se i corsi da cercare sono tutti o solo quelli del gruppo
+    if (filtri.corsiDaCercare == "") { // controllo se i corsi da cercare sono tutti o solo quelli del gruppo
         let filtriFind;
-        if (filtri.tipoCorso != "none") // controllo se è stato specificato un tipo di corso
+        if (filtri.tipoCorso != "") // controllo se è stato specificato un tipo di corso
             filtriFind = { descrizione: new RegExp(req.body.valore, "i"), codTipoModulo: parseInt(filtri.tipoCorso), validita : "true" };
         else
             filtriFind = { descrizione: new RegExp(req.body.valore, "i"), validita: "true" };
@@ -1085,9 +1088,9 @@ app.post("/api/cercaCorso", function (req, res) {
             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
         });
     }
-    else {
+    else if(filtri.corsiDaCercare == "yourGroup") {
         // qui sono nel ramo in cui i corsi richiesti sono quelli del gruppo
-        if (filtri.tipoCorso == "none") { // controllo se il tipo di corso è stato specificato o no
+        if (filtri.tipoCorso == "") { // controllo se il tipo di corso è stato specificato o no
             utenti.aggregate([
                 { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
                 {
@@ -1099,7 +1102,7 @@ app.post("/api/cercaCorso", function (req, res) {
                         "let": { "moduli": "$moduliGruppi.codModulo" },
                         "pipeline": [
                             { "$match": { "$expr": { "$in": ["$_id", "$$moduli"] } } },
-                            { "$match": { "$expr": { "$eq": ["$validita", true] } } },
+                            { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
                         ],
                         as: "moduliTrovati"
                     }
@@ -1180,7 +1183,171 @@ app.post("/api/cercaCorso", function (req, res) {
                         "pipeline": [
                             { "$match": { "$expr": { "$in": ["$_id", "$$moduli"] } } },
                             { "$match": { "$expr": { "$eq": ["$codTipoModulo", tipoCorso] } } },
-                            { "$match": { "$expr": { "$eq": ["$validita", true] } } },
+                            { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
+                        ],
+                        as: "moduliTrovati"
+                    }
+                }
+            ]).exec().then(results => {
+                if (results[0].moduliTrovati.length > 0) {
+                    let modId = [];
+                    let tipiModId = [];
+                    let chkDesc = new RegExp(req.body.valore, "i");
+                    results[0].moduliTrovati.forEach(ris => {
+                        if (chkDesc.test(ris.descrizione)) {
+                            modId.push(ris._id);
+                            tipiModId.push(ris.codTipoModulo);
+                        }
+                    });
+
+                    tipiModuli.aggregate([
+                        { "$match": { "$expr": { "$in": ["$_id", tipiModId] } } },
+                        {
+                            $lookup:
+                            {
+                                from: moduli.collection.name,
+                                "let": { "tipomodulo": "$_id" },
+                                "pipeline": [
+                                    { "$match": { "$expr": { "$eq": ["$codTipoModulo", "$$tipomodulo"] } } },
+                                    { "$match": { "$expr": { "$in": ["$_id", modId] } } },
+                                    {
+                                        "$lookup": {
+                                            "from": utenti.collection.name,
+                                            "localField": "codAutore",
+                                            "foreignField": "_id",
+                                            "as": "autore"
+                                        }
+                                    },
+                                    {
+                                        "$lookup": {
+                                            "from": materie.collection.name,
+                                            "localField": "codMateria",
+                                            "foreignField": "_id",
+                                            "as": "materia"
+                                        }
+                                    }
+                                ],
+                                as: "moduli"
+                            }
+                        }
+                    ]).exec().then(results => {
+                        // console.log(results);
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify(results));
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                }
+                else {
+                    //console.log(results[0].moduliTrovati);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results[0].moduliTrovati));
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+    }
+    else{
+        // qui sono nel ramo in cui i corsi richiesti sono quelli a cui è iscritto
+        if (filtri.tipoCorso == "") { // controllo se il tipo di corso è stato specificato o no
+            utenti.aggregate([
+                { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+                {
+                    $lookup:
+                    {
+                        from: moduli.collection.name,
+                        // localField: "moduliGruppi.codModulo",
+                        // foreignField: "_id",
+                        "let": { "moduli": "$moduli.codModulo" },
+                        "pipeline": [
+                            { "$match": { "$expr": { "$in": ["$_id", "$$moduli"] } } },
+                            { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
+                        ],
+                        as: "moduliTrovati"
+                    }
+                }
+            ]).exec().then(results => {
+                if (results[0].moduliTrovati.length > 0) {
+                    let modId = [];
+                    let tipiModId = [];
+                    let chkDesc = new RegExp(req.body.valore, "i");
+                    results[0].moduliTrovati.forEach(ris => {
+                        if (chkDesc.test(ris.descrizione)) {
+                            modId.push(ris._id);
+                            tipiModId.push(ris.codTipoModulo);
+                        }
+                    });
+
+                    tipiModuli.aggregate([
+                        { "$match": { "$expr": { "$in": ["$_id", tipiModId] } } },
+                        {
+                            $lookup:
+                            {
+                                from: moduli.collection.name,
+                                "let": { "tipomodulo": "$_id" },
+                                "pipeline": [
+                                    { "$match": { "$expr": { "$eq": ["$codTipoModulo", "$$tipomodulo"] } } },
+                                    { "$match": { "$expr": { "$in": ["$_id", modId] } } },
+                                    {
+                                        "$lookup": {
+                                            "from": utenti.collection.name,
+                                            "localField": "codAutore",
+                                            "foreignField": "_id",
+                                            "as": "autore"
+                                        }
+                                    },
+                                    {
+                                        "$lookup": {
+                                            "from": materie.collection.name,
+                                            "localField": "codMateria",
+                                            "foreignField": "_id",
+                                            "as": "materia"
+                                        }
+                                    }
+                                ],
+                                as: "moduli"
+                            }
+                        }
+                    ]).exec().then(results => {
+                        // console.log(results);
+                        let token = createToken(req.payload);
+                        writeCookie(res, token);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify(results));
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                }
+                else {
+                    // console.log(results[0].moduliTrovati);
+                    let token = createToken(req.payload);
+                    writeCookie(res, token);
+                    res.writeHead(200, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify(results[0].moduliTrovati));
+                }
+            }).catch(err => {
+                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+            });
+        }
+        else {
+            // qui sono nel ramo in cui sono stati richiesti i corsi a cui è iscritto di un determinato tipo di corso
+            let tipoCorso = parseInt(filtri.tipoCorso);
+            utenti.aggregate([
+                { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
+                {
+                    $lookup:
+                    {
+                        from: moduli.collection.name,
+                        "let": { "moduli": "$moduli.codModulo" },
+                        "pipeline": [
+                            { "$match": { "$expr": { "$in": ["$_id", "$$moduli"] } } },
+                            { "$match": { "$expr": { "$eq": ["$codTipoModulo", tipoCorso] } } },
+                            { "$match": { "$expr": { "$eq": ["$validita", "true"] } } },
                         ],
                         as: "moduliTrovati"
                     }
@@ -1378,7 +1545,7 @@ app.post("/api/iscriviUtenteCorso", function (req, res) {
 
             if (add) {
                 let now = new Date().toISOString();
-                utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, { $push: { moduli: { codModulo: parseInt(req.body.idCorso), dataInizio: now, scadenza: null } } })
+                utenti.updateOne({ _id: parseInt(JSON.parse(JSON.stringify(req.payload))._id), dataFine: null }, { $push: { moduli: { codModulo: parseInt(req.body.idCorso), dataInizio: now, scadenza: null, dataFine: null } } })
                     .exec()
                     .then(results => {
                         //console.log(results);
@@ -1467,7 +1634,7 @@ app.post("/api/iscriviGruppoCorso", function (req, res) {
 
 app.post("/api/elSimpleMaterie", function (req, res) {
     //HO TOLTO IL SELECT select("descrizione")
-    materie.find({}).exec().then(results => {
+    materie.find({"validita" : "true"}).exec().then(results => {
         //console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
@@ -1525,7 +1692,7 @@ app.post("/api/removeLezCorso", function (req, res) {
 });
 
 app.post("/api/cercaArgAggiuntaCorso", function (req, res) {
-    argomenti.find({ descrizione: new RegExp(req.body.valore, "i") }).select("_id descrizione").exec().then(results => {
+    argomenti.find({ descrizione: new RegExp(req.body.valore, "i"), validita : "true" }).select("_id descrizione").exec().then(results => {
         //console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
@@ -1568,7 +1735,7 @@ app.post("/api/insNuovoArgCorso", function (req, res) {
 });
 
 app.post("/api/cercaLezAggiuntaCorso", function (req, res) {
-    lezioni.find({ titolo: new RegExp(req.body.valore, "i"), dataScadenza: { $exists: false } }).select("_id titolo").exec().then(results => {
+    lezioni.find({ titolo: new RegExp(req.body.valore, "i"), dataScadenza: { $exists: false }, validita: "true" }).select("_id titolo").exec().then(results => {
         //console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
@@ -1627,28 +1794,47 @@ app.post("/api/aggiungiCorso", function (req, res) {
     if (req.body.descrizione != "") {
         if (req.body.tipoCorso != "") {
             if (req.body.materia != "") {
-                moduli.count({ $and: [{ "descrizione": req.body.descrizione }, { "codMateria": parseInt(req.body.materia) }, { "codTipoModulo": parseInt(req.body.tipoCorso) }] }).exec().then(nCorsi => {
-                    if (nCorsi == 0) {
-                        moduli.find({}).sort({ _id: 1 }).exec().then(results => {
-                            let vet = JSON.parse(JSON.stringify(results));
-                            const aggCorso = new moduli({
-                                _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
-                                descrizione: req.body.descrizione,
-                                dataCreazione: new Date(),
-                                codTipoModulo: parseInt(req.body.tipoCorso),
-                                codMateria: parseInt(req.body.materia),
-                                codAutore: parseInt(JSON.parse(JSON.stringify(req.payload))._id)
+                if (req.body.argomenti.length > 0) {
+                    moduli.count({ $and: [{ "descrizione": req.body.descrizione }, { "codMateria": parseInt(req.body.materia) }, { "codTipoModulo": parseInt(req.body.tipoCorso) }] }).exec().then(nCorsi => {
+                        if (nCorsi == 0) {
+                            moduliTemp.count({ $and: [{ "descrizione": req.body.descrizione }, { "codMateria": parseInt(req.body.materia) }, { "codTipoModulo": parseInt(req.body.tipoCorso) }] }).exec().then(nCorsi => {
+                                if (nCorsi == 0) {
+                                    moduliTemp.find({}).sort({ _id: 1 }).exec().then(results => {
+                                        let vet = JSON.parse(JSON.stringify(results));
+                                        let vetArgomenti = new Array();
+                                        for (let i = 0; i < req.body.argomenti.length; i++) {
+                                            vetArgomenti[i] = { "codArgomento": parseInt(req.body.argomenti[i]) };
+                                        }
+
+                                        const aggCorso = new moduliTemp({
+                                            _id: parseInt(vet[vet.length - 1]["_id"]) + 1,
+                                            descrizione: req.body.descrizione,
+                                            dataCreazione: new Date(),
+                                            codTipoModulo: parseInt(req.body.tipoCorso),
+                                            codMateria: parseInt(req.body.materia),
+                                            codAutore: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
+                                            argomenti: vetArgomenti,
+                                            argomentiDaApprovare: vetArgomenti
+                                        });
+                                        aggCorso.save().then(results => { res.send(JSON.stringify("aggCorsoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
+                                    }).catch(err => {
+                                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                                    });
+                                } else {
+                                    error(req, res, null, JSON.stringify(new ERRORS.EXISTING_COURSE({})));
+                                }
+                            }).catch(err => {
+                                error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
                             });
-                            aggCorso.save().then(results => { res.send(JSON.stringify("aggCorsoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
-                        }).catch(err => {
-                            error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                        });
-                    } else {
-                        error(req, res, null, JSON.stringify(new ERRORS.EXISTING_COURSE({})));
-                    }
-                }).catch(err => {
-                    error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
-                });
+                        } else {
+                            error(req, res, null, JSON.stringify(new ERRORS.EXISTING_COURSE({})));
+                        }
+                    }).catch(err => {
+                        error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
+                    });
+                } else {
+                    gestErrorePar(req, res);
+                }
             } else {
                 gestErrorePar(req, res);
             }
@@ -1677,7 +1863,7 @@ app.post("/api/elTipiGruppi", function (req, res) {
 app.post("/api/cercaGruppo", function (req, res) {
     let filtri = req.body.filtri;
     if (filtri.gruppiDaCercare == "all") { // controllo se i gruppi da cercare sono tutti o solo quelli dell'utente
-        if (filtri.tipoGruppo != "none") { // controllo se è stato specificato un tipo di gruppo
+        if (filtri.tipoGruppo != "") { // controllo se è stato specificato un tipo di gruppo
             gruppi.aggregate([
                 { $match: { nome: new RegExp(req.body.valore, "i") } },
                 { $match: { tipoGruppo: parseInt(filtri.tipoGruppo) } },
@@ -1725,7 +1911,7 @@ app.post("/api/cercaGruppo", function (req, res) {
     }
     else {
         // qui sono nel ramo in cui i gruppi richiesti sono quelli dell'utente
-        if (filtri.tipoGruppo == "none") { // controllo se il tipo di gruppo è stato specificato o no
+        if (filtri.tipoGruppo == "") { // controllo se il tipo di gruppo è stato specificato o no
             utenti.aggregate([
                 { $match: { "_id": parseInt(JSON.parse(JSON.stringify(req.payload))._id) } },
                 {
@@ -2084,7 +2270,7 @@ app.post("/api/ricercaAppunti", function (req, res) {
     if (req.body.tipo != "") {
         if (req.body.tipo.toUpperCase() == "DESCRIZIONE") {
             appunti.aggregate([
-                { $match: { "descrizione": new RegExp(req.body.par, "i") } },
+                { $match: { "descrizione": new RegExp(req.body.par, "i"), "validita" : "true" } },
                 {
                     $lookup:
                     {
@@ -2107,7 +2293,7 @@ app.post("/api/ricercaAppunti", function (req, res) {
         } else if (req.body.tipo.toUpperCase() == "ARGOMENTO") {
             console.log(req.body.par);
             let aus = new RegExp(req.body.par, "i");
-            appunti.aggregate([{ $match: {} },
+            appunti.aggregate([{ $match: { "validita" : "true" } },
             {
                 $lookup:
                 {
@@ -2143,7 +2329,7 @@ app.post("/api/ricercaAppunti", function (req, res) {
 });
 
 app.post("/api/elencoArgomenti", function (req, res) {
-    argomenti.find({}).exec().then(results => {
+    argomenti.find({validita:"true"}).exec().then(results => {
         let token = createToken(req.payload);
         writeCookie(res, token);
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -2182,6 +2368,7 @@ app.post("/api/aggiungiAppunti", uploadAllegati.array("allegati"), function (req
                                                     cognomeAutore: req.body.cognome,
                                                     codUtente: parseInt(JSON.parse(JSON.stringify(req.payload))._id),
                                                     argomenti: vetArgomenti,
+                                                    argomentiDaApprovare: vetArgomenti,
                                                     allegati: vetAllegati
                                                 });
                                                 aggAppunto.save().then(results => { res.send(JSON.stringify("aggAppuntoOk")); }).catch(errSave => { error(req, res, errSave, JSON.stringify(new ERRORS.QUERY_EXECUTE({}))); });
@@ -2257,7 +2444,7 @@ function addAllegato(desc, req,res) {
 
 app.post("/api/datiAppuntoById", function (req, res) {
     appunti.aggregate([
-        { $match: { "_id": parseInt(req.body.idAppunto) } },
+        { $match: { "_id": parseInt(req.body.idAppunto), "validita" : "true" } },
         {
             $lookup:
             {
@@ -2517,7 +2704,7 @@ function gestModDelAllegati(req, res) {
 app.post("/api/removeAppunto", function (req, res) {
     console.log(req.body.codAppunto);
     if (req.body.codAppunto != null) {
-        appunti.remove({ "_id": parseInt(req.body.codAppunto) }).exec().then(resRem => {
+        appunti.updateOne({ "_id": parseInt(req.body.codAppunto) }, { $set : {"validita" : "false"}}).exec().then(resRem => {
             lezioni.updateMany({}, { $pull: { "appunti":{"codAppunto": parseInt(req.body.codAppunto) }} }).exec().then(results =>{
                 let token = createToken(req.payload);
                 writeCookie(res, token);
@@ -2796,7 +2983,7 @@ function chkEtaMinima(dataNascita) {
 //#region LEZIONI
 app.post("/api/datiLezioneById", function (req, res) {
     lezioni.aggregate([
-        { $match: { "_id": parseInt(req.body.idLezione) } },
+        { $match: { "_id": parseInt(req.body.idLezione), "validita" : "true" } },
         {
             $lookup:
             {
@@ -2906,7 +3093,7 @@ app.post("/api/partecipaLezione", function (req, res) {
 });
 
 app.post("/api/cercaAppuntoAggiuntaLez", function (req, res) {
-    appunti.find({ descrizione: new RegExp(req.body.valore, "i") }).select("_id descrizione nomeAutore cognomeAutore").exec().then(results => {
+    appunti.find({ descrizione: new RegExp(req.body.valore, "i"), "validita" : "true" }).select("_id descrizione nomeAutore cognomeAutore").exec().then(results => {
         //console.log(results);
         let token = createToken(req.payload);
         writeCookie(res, token);
@@ -3012,7 +3199,7 @@ app.post("/api/removeAppuntoLez", function (req, res) {
 });
 
 app.post("/api/rimuoviLezione", function (req, res) {
-    lezioni.findOneAndRemove({ _id: parseInt(req.body.idLez) }, (err, response) => {
+    lezioni.updateOne({ _id: parseInt(req.body.idLez) }, { $set : {"validita" : "false"}}).exec().then(result => { // controllare
         utenti.updateMany({}, {
             $pull: {
                 "lezioni": { codLezione: parseInt(req.body.idLez) }
@@ -3043,7 +3230,7 @@ app.post("/api/rimuoviLezione", function (req, res) {
         }).catch(err => {
             error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
         });
-    }).exec().catch(err => {
+    }).catch(err => {
         error(req, res, err, JSON.stringify(new ERRORS.QUERY_EXECUTE({})));
     });
 });
@@ -3555,6 +3742,7 @@ app.post("/api/salvaRisultatoEsame", function (req, res) {
 });
 //#endregion
 
+//#region MODERAZIONE MATERIE
 app.post("/api/elMatModerate", function (req, res) {
     if (JSON.parse(JSON.stringify(req.payload))._id) { 
         materie.find({ $and: [{ "moderatore": parseInt(JSON.parse(JSON.stringify(req.payload))._id) }, {"validita":"true"}]}).exec().then(results => {
@@ -3686,12 +3874,12 @@ app.post("/api/modificaMateria", function (req, res) {
     }
 });
 
-app.post("/api/approvaArgomento", function (req, res) {
+app.post("/api/approvaArgomento", function (req, res) { // da notificare cambiamento a Giacca
     if (req.body.codArgomento) {
         argomentiTemp.findOne({ "_id": parseInt(req.body.codArgomento) }).exec().then(resultsArgTemp =>{
             if (resultsArgTemp) {
-                argomenti.count({ $and: [{ "descrizione": req.body.descArgomento }, { "codMateria": parseInt(req.body.codMateria) }] }).exec().then(nArgs=>{
-                    if (nArgs > 0) {
+                argomenti.count({ $and: [{ "descrizione": resultsArgTemp.descrizione }, { "codMateria": parseInt(resultsArgTemp.codMateria) }] }).exec().then(nArgs=>{
+                    if (nArgs == 0) {
                         argomenti.find({}).exec().then(results => {
                             let vet = JSON.parse(JSON.stringify(results));
                             const addArgomento = new argomenti({
@@ -3750,7 +3938,9 @@ app.post("/api/rifiutoArgomento", function (req, res) {
         gestErrorePar(req, res);
     }
 });
+//#endregion
 
+//#region MODERAZIONE ARGOMENTI
 app.post("/api/elArgomentiModerati", function (req, res) {
     if (JSON.parse(JSON.stringify(req.payload))._id) {
         argomenti.aggregate([
@@ -4149,6 +4339,7 @@ app.post("/api/rifiutaModulo", function (req, res) {
         gestErrorePar(req, res);
     }
 });
+//#endregion
 
 app.post("/api/registraAdmin", function (req, res) {
     if (req.body.nome != "") {

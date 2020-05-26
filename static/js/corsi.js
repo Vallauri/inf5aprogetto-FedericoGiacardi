@@ -46,6 +46,8 @@ $(document).ready(function () {
     $("#btnInviaCorso").on("click", aggiuntaCorso);
     loadTipiModuli();
     loadMaterie();
+    loadArgomenti();
+    document.getElementById('tipoRicerca').selectedIndex = -1;
     $('#tipoRicerca').selectpicker('refresh');
 });
 
@@ -70,9 +72,10 @@ function loadTipiModuli() {
             codHtml += '<option value="' + tipocorso._id + '">' + tipocorso.descrizione + '</option>';
         });
         $("#tipoModuloAdd").html(codHtml);
-        $('#tipoModuloAdd').selectpicker('refresh');
         document.getElementById("tipoModuloAdd").selectedIndex = -1;
-        $("#tipoCorso").html("<option value='none' selected>-----------------</option>" + codHtml);
+        $('#tipoModuloAdd').selectpicker('refresh');
+        $("#tipoCorso").html(codHtml);
+        document.getElementById("tipoCorso").selectedIndex = -1;
         $('#tipoCorso').selectpicker('refresh');
     });
 }
@@ -94,36 +97,59 @@ function loadMaterie() {
     });
 }
 
+//Carcamento Combobox Argomenti per Inserimento Corso
+function loadArgomenti() {
+    let elArgomenti = inviaRichiesta('/api/elencoArgomenti', 'POST', {});
+    elArgomenti.fail(function (jqXHR, test_status, str_error) {
+        printErrors(jqXHR, "#msgAddCorso");
+    });
+    elArgomenti.done(function (data) {
+        let codHtml = '';
+        data.forEach(argomento => {
+            codHtml += '<option value="' + argomento._id + '">' + argomento.descrizione + '</option>';
+        });
+        $("#argomentiCorso").html(codHtml);
+        document.getElementById("argomentiCorso").selectedIndex = -1;
+        $('#argomentiCorso').selectpicker('refresh');
+    });
+}
+
 //Inserimento Nuovo Corso
 function aggiuntaCorso(){
     $("#descCorso").removeClass("alert-danger");
     $("#tipoModuloAdd").removeClass("alert-danger");
     $("#materiaCorso").removeClass("alert-danger");
+    $("#argomentiCorso").removeClass("alert-danger");
     $("#msgAddCorso").removeClass("alert alert-danger").text("");
 
     //Controllo dati di input
     if ($("#descCorso").val() != "") {
         if (document.getElementById("tipoModuloAdd").selectedIndex != -1) {
             if (document.getElementById("materiaCorso").selectedIndex != -1) {
-                let formData = {
-                    'descrizione' : $("#descCorso").val(),
-                    'tipoCorso' : $("#tipoModuloAdd").val(),
-                    'materia' : $("#materiaCorso").val()
-                };
+                if (document.getElementById("argomentiCorso").selectedIndex != -1) {
+                    let formData = {
+                        'descrizione' : $("#descCorso").val(),
+                        'tipoCorso' : $("#tipoModuloAdd").val(),
+                        'materia' : $("#materiaCorso").val(),
+                        'argomenti': $("#argomentiCorso").val()
+                    };
 
-                let aggCorso = inviaRichiesta('/api/aggiungiCorso', 'POST', formData);
-                aggCorso.fail(function (jqXHR, test_status, str_error) {
-                    if (jqXHR.status == 603) {
-                        $("#msgAddCorso").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
-                    }
-                    else {
-                        printErrors(jqXHR, "#msgAddCorso");
-                    }
-                });
-                aggCorso.done(function (data) {
-                    $("#msgAddCorso").text("Corso aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success");
-                    clearInputFields();
-                });
+                    let aggCorso = inviaRichiesta('/api/aggiungiCorso', 'POST', formData);
+                    aggCorso.fail(function (jqXHR, test_status, str_error) {
+                        if (jqXHR.status == 603) {
+                            $("#msgAddCorso").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
+                        }
+                        else {
+                            printErrors(jqXHR, "#msgAddCorso");
+                        }
+                    });
+                    aggCorso.done(function (data) {
+                        $("#msgAddCorso").text("Corso aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success");
+                        clearInputFields();
+                    });
+                } else {
+                    gestErrori("Selezionare almeno un Argomento", $("#argomentiCorso"), "#msgAddCorso");
+                }
             } else {
                 gestErrori("Selezionare una Materia", $("#materiaCorso"), "#msgAddCorso");
             }
@@ -142,12 +168,15 @@ function clearInputFields() {
     $('#tipoModuloAdd').selectpicker('refresh');
     document.getElementById("materiaCorso").selectedIndex = -1;
     $('#materiaCorso').selectpicker('refresh');
+    document.getElementById("argomentiCorso").selectedIndex = -1;
+    $('#argomentiCorso').selectpicker('refresh');
 }
 
 //Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
     $(target).html(msg).addClass("alert alert-danger");
-    controllo.addClass("alert-danger");
+    if(controllo)
+        controllo.addClass("alert-danger");
 }
 
 //Stampo i corsi trovati con la ricerca

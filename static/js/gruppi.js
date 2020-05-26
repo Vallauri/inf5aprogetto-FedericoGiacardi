@@ -69,9 +69,10 @@ function loadTipiGruppi() {
             codHtml += '<option value="' + tipogruppo._id + '">' + tipogruppo.descrizione + '</option>';
         });
         $("#tipoGruppoAdd").html(codHtml);
-        $('#tipoGruppoAdd').selectpicker('refresh');
         document.getElementById("tipoGruppoAdd").selectedIndex = -1;
-        $("#tipoGruppo").html("<option value='none' selected>-----------------</option>" + codHtml);
+        $('#tipoGruppoAdd').selectpicker('refresh');
+        $("#tipoGruppo").html(codHtml);
+        document.getElementById("tipoGruppo").selectedIndex = -1;
         $('#tipoGruppo').selectpicker('refresh');
     });
 }

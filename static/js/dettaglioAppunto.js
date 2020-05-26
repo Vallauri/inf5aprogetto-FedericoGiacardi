@@ -309,9 +309,8 @@ function gestModifica() {
 //Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
     $(target).html(msg).addClass("alert alert-danger");
-    if (controllo) {
+    if(controllo)
         controllo.addClass("alert-danger");
-    }
 }
 
 //Pulizia Campi di input
@@ -324,7 +323,7 @@ function clearInputFields() {
     $('#allegatiModAppunto').selectpicker('refresh');
     $('#argomentiModAppunto').selectpicker('refresh');
     $("#newAllegatiModAppunto").val("");
-    $("#msgModAppunto").text("");
+    $("#msgModAppunto").text("").removeClass("alert alert-danger");
     window.location.reload();
 }
 
@@ -462,7 +461,7 @@ function gestRqTTS() {
             if (document.getElementById("linguaTTSAppunto").selectedIndex != 0) {
                 if (document.getElementById("voceTTSAppunto").selectedIndex != 0) {
                     $("#sezStatoOp").css("display", "unset");
-                    $("#msgTTSAppunto").html("");
+                    $("#msgTTSAppunto").html("").removeClass("alert alert-danger");
                     setCardStatoOp("InCorso");
                     let rqTTS = inviaRichiestaTTS('/api/TTS', 'POST', { "elencoAllegati": $("#allegatiTTSAppunto").val(), "voce": $("#voceTTSAppunto").val() });
                     rqTTS.fail(function (jqXHR, test_status, str_error) {
@@ -523,7 +522,7 @@ function setCardStatoOp(stato, msgErrore) {
     }else if(stato == "opOk"){
         $("#btnTTSAppunto").removeAttr("disabled");
         $("#btnLetturaAppunto").removeAttr("disabled");
-        testoOp = "<h3>Lettura completata</h3><div id='msgDownloadAppunto' class='msg'> </div>";
+        testoOp = "<h3>Lettura completata</h3><div class='row'><divclass='col-sm-12 col-md-7 col-lg-7 mx-auto'><div id='msgDownloadAppunto' role='alert' style='text-align: center;'></div></div></div>";
         codHtmlBtn = '<button id="btnStatoOp" onclick="gestDownloadAudio();" class="btn btn-primary" type="button"><i class="fa fa-download" aria-hidden="true"></i> Download Audio</button>';
     } else if (stato == "errore" && msgErrore != undefined){
         $("#btnTTSAppunto").removeAttr("disabled");
