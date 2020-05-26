@@ -314,7 +314,7 @@ const TIMEOUT = 3000; // 60 SEC
 let pageNotFound;
 
 var httpsServer = HTTPS.createServer(credentials, app);
-httpsServer.listen(port, '127.0.0.1', function () {
+httpsServer.listen(port, function () {
     fs.readFile("./static/error.html", function (err, content) {
         if (err)
             content = JSON.stringify(new ERRORS.PAGE_NOT_FOUND({}));
