@@ -8,7 +8,7 @@ function loadPagina() {
     let lez = par[0].split('=');
     let corso = par[1].split('='); // da cambiare in caso la lezione non venga aperta da un corso
 
-    // Controllo sui parametri in GET (controllare se hanno senso o no ??)
+    // Controllo sui parametri in GET
     if(lez[0] == "lezione" && !isNaN(parseInt(lez[1]))){
         let chkToken = inviaRichiesta('/api/datiLezioneById', 'POST', {"idLezione" : lez[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {

@@ -28,7 +28,7 @@ $(document).ready(function () {
 
 function loadPagina() {
     let par = window.location.search.substring(1).split('=');
-    // Controllo sui parametri in GET (controllare se hanno senso o no ??)
+    // Controllo sui parametri in GET
     if (par[0] == "esame" && !isNaN(parseInt(par[1]))){
         let chkToken = inviaRichiesta('/api/datiEsameById', 'POST', { "idEsame": par[1] });
         chkToken.fail(function (jqXHR, test_status, str_error) {

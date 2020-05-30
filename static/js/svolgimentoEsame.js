@@ -16,7 +16,7 @@ function loadPagina() {
     let par = window.location.search.substring(1).split('&');
     let esame = par[0].split('=');
     let corso = par[1].split('=');
-    // Controllo sui parametri in GET (controllare se hanno senso o no ??)
+    // Controllo sui parametri in GET
     if (esame[0] == "esame" && !isNaN(parseInt(esame[1])) && corso[0] == "corso" && !isNaN(parseInt(corso[1]))){
         let chkToken = inviaRichiesta('/api/datiEsameById', 'POST', {"idEsame" : esame[1], "idCorso" : corso[1]});
         chkToken.fail(function (jqXHR, test_status, str_error) {
