@@ -57,7 +57,7 @@ function loadPagina() {
     chkToken.fail(function (jqXHR, test_status, str_error) {
         window.location.href = "login.html";
     });
-    chkToken.done(function (data) {});
+    chkToken.done(function (data) { });
 }
 
 //Caricamento Combo Tipi Moduli per ricerca e inserimento nuovo modulo
@@ -115,8 +115,9 @@ function loadArgomenti() {
 }
 
 //Inserimento Nuovo Corso
-function aggiuntaCorso(){
+function aggiuntaCorso() {
     $("#descCorso").removeClass("alert-danger");
+    $("#dataScadCorso").removeClass("alert-danger");
     $("#tipoModuloAdd").removeClass("alert-danger");
     $("#materiaCorso").removeClass("alert-danger");
     $("#argomentiCorso").removeClass("alert-danger");
@@ -124,37 +125,50 @@ function aggiuntaCorso(){
 
     //Controllo dati di input
     if ($("#descCorso").val() != "") {
-        if (document.getElementById("tipoModuloAdd").selectedIndex != -1) {
-            if (document.getElementById("materiaCorso").selectedIndex != -1) {
-                if (document.getElementById("argomentiCorso").selectedIndex != -1) {
-                    let formData = {
-                        'descrizione' : $("#descCorso").val(),
-                        'tipoCorso' : $("#tipoModuloAdd").val(),
-                        'materia' : $("#materiaCorso").val(),
-                        'argomenti': $("#argomentiCorso").val()
-                    };
+        if ($("#dataScadCorso").val() != "") {
+            if (new Date($("#dataScadCorso").val()) > new Date()) {
+                if (document.getElementById("tipoModuloAdd").selectedIndex != -1) {
+                    if (document.getElementById("materiaCorso").selectedIndex != -1) {
+                        if (document.getElementById("argomentiCorso").selectedIndex != -1) {
+                            let formData = {
+                                'descrizione': $("#descCorso").val(),
+                                'dataScadenza': $("#dataScadCorso").val(),
+                                'tipoCorso': $("#tipoModuloAdd").val(),
+                                'materia': $("#materiaCorso").val(),
+                                'argomenti': $("#argomentiCorso").val()
+                            };
 
-                    let aggCorso = inviaRichiesta('/api/aggiungiCorso', 'POST', formData);
-                    aggCorso.fail(function (jqXHR, test_status, str_error) {
-                        if (jqXHR.status == 603) {
-                            $("#msgAddCorso").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
+                            let aggCorso = inviaRichiesta('/api/aggiungiCorso', 'POST', formData);
+                            aggCorso.fail(function (jqXHR, test_status, str_error) {
+                                if (jqXHR.status == 603) {
+                                    $("#msgAddCorso").text("Parametri Errati o Mancanti").addClass("alert alert-danger");
+                                }
+                                else {
+                                    printErrors(jqXHR, "#msgAddCorso");
+                                }
+                            });
+                            aggCorso.done(function (data) {
+                                if (data == "aggCorsoOk") {
+                                    $("#msgAddCorso").text("Corso aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success");
+                                    clearInputFields();
+                                }
+                                else
+                                    $("#msgAddCorso").text("Errore durante l'aggiunta del corso").addClass("alert alert-danger");
+                            });
+                        } else {
+                            gestErrori("Selezionare almeno un Argomento", $("#argomentiCorso"), "#msgAddCorso");
                         }
-                        else {
-                            printErrors(jqXHR, "#msgAddCorso");
-                        }
-                    });
-                    aggCorso.done(function (data) {
-                        $("#msgAddCorso").text("Corso aggiunto con successo").removeClass("alert alert-danger").addClass("alert alert-success");
-                        clearInputFields();
-                    });
+                    } else {
+                        gestErrori("Selezionare una Materia", $("#materiaCorso"), "#msgAddCorso");
+                    }
                 } else {
-                    gestErrori("Selezionare almeno un Argomento", $("#argomentiCorso"), "#msgAddCorso");
+                    gestErrori("Selezionare un Tipo di Corso", $("#tipoModuloAdd"), "#msgAddCorso");
                 }
             } else {
-                gestErrori("Selezionare una Materia", $("#materiaCorso"), "#msgAddCorso");
+                gestErrori("La Data di Scadenza del Corso deve essere successiva a quella odierna", $("#dataScadCorso"), "#msgAddCorso");
             }
         } else {
-            gestErrori("Selezionare un Tipo di Corso", $("#tipoModuloAdd"), "#msgAddCorso");
+            gestErrori("Devi inserire la Data di Scadenza del Corso", $("#dataScadCorso"), "#msgAddCorso");
         }
     } else {
         gestErrori("Inserire la Descrizione del Corso", $("#descCorso"), "#msgAddCorso");
@@ -164,6 +178,7 @@ function aggiuntaCorso(){
 //Pulizia Campi di input
 function clearInputFields() {
     $("#descCorso").val("");
+    $("#dataScadCorso").val("");
     document.getElementById("tipoModuloAdd").selectedIndex = -1;
     $('#tipoModuloAdd').selectpicker('refresh');
     document.getElementById("materiaCorso").selectedIndex = -1;
@@ -175,7 +190,7 @@ function clearInputFields() {
 //Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
     $(target).html(msg).addClass("alert alert-danger");
-    if(controllo)
+    if (controllo)
         controllo.addClass("alert-danger");
 }
 
@@ -185,8 +200,8 @@ function creazioneElencoCorsi(tipimodulo) {
     $("#msgErrRicAvanzata").removeClass("alert alert-danger").html("");
     $("#msgRicerca").removeClass("alert alert-danger").html("");
     let codHtml = "";
-    
-    if (tipimodulo == undefined || tipimodulo.length == 0){
+
+    if (tipimodulo == undefined || tipimodulo.length == 0) {
         codHtml += '<div class="row justify-content-center">';
         codHtml += '<div class="col-xl-12">';
         codHtml += '<div class="section_tittle text-center">';
@@ -195,7 +210,7 @@ function creazioneElencoCorsi(tipimodulo) {
         codHtml += '</div>';
         codHtml += '</div>';
     }
-    else{
+    else {
         codHtml += '<div class="row justify-content-center">';
         codHtml += '<div class="col-xl-5">';
         codHtml += '<div class="section_tittle text-center">';
@@ -203,7 +218,7 @@ function creazioneElencoCorsi(tipimodulo) {
         codHtml += '</div>';
         codHtml += '</div>';
         codHtml += '</div>';
-        
+
         tipimodulo.forEach(tipomodulo => {
             codHtml += '<div class="row justify-content-center">';
             codHtml += '<div class="col-xl-5">';
@@ -212,13 +227,13 @@ function creazioneElencoCorsi(tipimodulo) {
             codHtml += '</div>';
             codHtml += '</div>';
             codHtml += '</div>';
-            
-            if (tipomodulo["moduli"] != undefined && tipomodulo["moduli"].length > 0){
+
+            if (tipomodulo["moduli"] != undefined && tipomodulo["moduli"].length > 0) {
                 codHtml += '<div class="row">';
                 for (let i = 0; i < tipomodulo["moduli"].length; i++) {
                     codHtml += '<div class="col-sm-12 col-md-4 col-lg-4 col-xs-4 mx-auto">';
                     codHtml += '<div class="single_special_cource">';
-                    
+
                     //codHtml += '<img src="img/special_cource_1.png" class="special_img" alt="">'; // manca immagine corso su db
                     codHtml += '<div class="special_cource_text">';
                     codHtml += '<a href="dettaglioCorso.html?corso=' + tipomodulo["moduli"][i]._id + '">' + tipomodulo["moduli"][i].descrizione + '</a>';
@@ -226,20 +241,20 @@ function creazioneElencoCorsi(tipimodulo) {
                     codHtml += '<p>Data Creazione: ' + new Date(tipomodulo["moduli"][i].dataCreazione).toLocaleDateString() + '</p>';
                     codHtml += '<p>Autore: ' + tipomodulo["moduli"][i].autore[0].cognome + ' ' + tipomodulo["moduli"][i].autore[0].nome + '</p>';
                     codHtml += '</div>';
-                    
+
                     codHtml += '</div>';
                     codHtml += '</div>';
                 }
-                codHtml += '</div>';  
+                codHtml += '</div>';
             }
-            else{
+            else {
                 codHtml += '<div class="row justify-content-center">';
                 codHtml += '<div class="col-xl-5">';
                 codHtml += '<div class="text-center">';
-                codHtml += "<h4>Non ci sono ancora dei corsi nella categoria</h4>";  
+                codHtml += "<h4>Non ci sono ancora dei corsi nella categoria</h4>";
                 codHtml += '</div>';
                 codHtml += '</div>';
-                codHtml += '</div>';          
+                codHtml += '</div>';
             }
         });
     }

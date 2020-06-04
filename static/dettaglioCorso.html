@@ -33,9 +33,10 @@
     <header class="main_menu home_menu">
         <div class="container" style="max-width: 100%!important;">
             <div class="row align-items-center">
-                <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
                     <nav class="navbar navbar-expand-lg navbar-light">
-                        <a class="navbar-brand logo_2" href="index.html"> <img src="img/LogoFinale/Logo.png" alt="logo"> </a>
+                        <a class="navbar-brand logo_2" href="index.html"> <img src="img/LogoFinale/Logo.png" alt="logo">
+                        </a>
                         <button class="navbar-toggler" type="button" data-toggle="collapse"
                             data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +45,7 @@
 
                         <div class="collapse navbar-collapse main-menu-item justify-content-end"
                             id="navbarSupportedContent">
-                            <ul id="ulNavBar" class="navbar-nav align-items-center">
+                            <ul class="navbar-nav align-items-center">
                                 <li class="nav-item">
                                     <a class="nav-link" href="index.html">Home</a>
                                 </li>
@@ -83,21 +84,25 @@
     <!--================ Start Course Details Area =================-->
     <section class="course_details_area section_padding">
         <div class="container">
-            <div class="row">
-                <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
-                    <div id="msgDetCorso" role="alert" style="text-align: center;"> </div>
-                </div>
+            <div class="section_tittle text-center">
+                <h2>Dettagli del Corso</h2>
             </div>
             <div class="row" id="contCorso">
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xl-7 mx-auto">
+                    <div id="msgDetCorso" role="alert" style="text-align: center;"> </div>
+                </div>
             </div>
         </div>
     </section>
     <!--================ End Course Details Area =================-->
 
-    <!-- Modal For Adding, Updating and Removing -->
-    <div class="modal fade" style="margin-top: 80px;" id="dettCorsoMod" tabindex="1" role="dialog"
-        aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <!-- Modale per gestione corso (aggiunta, rimozione, ecc...) -->
+    <div class="modal fade" id="dettCorsoMod" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg"
+            style="overflow-y: scroll; max-height:85%; margin-top: 100px; margin-bottom:50px;">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"></h5>
@@ -107,18 +112,24 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-sm-12 col-md-7 col-lg-7 mx-auto">
+                        <div class="col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xl-7 mx-auto">
                             <div id="msgModalCorso" role="alert" style="text-align: center;"> </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="btnSalvaModifiche" class="genric-btn success radius">Salva Modifiche</button>
+                    <button type="button" id="btnSalvaModifiche" class="genric-btn success radius">Salva
+                        Modifiche</button>
                     <button type="button" class="genric-btn danger radius" data-dismiss="modal">Annulla</button>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Fine Modale per gestione corso -->
+
+    <!-- Sezione per Inserimento Lezione -->
+    <section class="section_padding" id="sezInsLez"></section>
+    <!-- Fine Sezione per Inserimento Lezione -->
 
     <!-- footer part start-->
     <footer class="footer-area">
@@ -144,7 +155,7 @@
                     </div>
                 </div>
             </div>
-    
+
         </div>
         <div class="container-fluid">
             <div class="row">
@@ -155,7 +166,8 @@
                                 <p class="footer-text m-0">
                                     <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                                     Copyright &copy;
-                                    <script>document.write(new Date().getFullYear());</script> All rights reserved | This
+                                    <script>document.write(new Date().getFullYear());</script> All rights reserved |
+                                    This
                                     template is made with <i class="ti-heart" aria-hidden="true"></i> by <a
                                         href="https://colorlib.com" target="_blank">Colorlib</a>
                                     <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
