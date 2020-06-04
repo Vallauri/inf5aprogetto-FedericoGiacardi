@@ -88,6 +88,15 @@ function creazioneCalendario() {
             let stato;
             //Salvo sul calendario i moduli affrontati singolarmente
             for (I = 0; I < utente.moduli.length; I++) {
+                // controllo se il modulo è tra quelli validi
+                let val = false;
+                for (let j = 0; j < utente.datiModuli.length; j++)
+                    if (utente.datiModuli[j]._id == utente.moduli[I].codModulo)
+                        val = true;
+
+                if (!val) // se non è valido passo al prossimo modulo
+                    continue;
+
                 evento = {};
                 evento["id"] = String(utente.moduli[I].codModulo);
                 evento["calendarId"] = String(contEventi);
@@ -125,7 +134,16 @@ function creazioneCalendario() {
                 vetEventi.push(evento);
             }
             //Salvo sul calendario i moduli affrontati in gruppo
-            for ( I = 0; I < utente.moduliGruppi.length; I++) {
+            for (I = 0; I < utente.moduliGruppi.length; I++) {
+                // controllo se il modulo è tra quelli validi
+                let val = false;
+                for (let j = 0; j < utente.datiModuliGruppi.length; j++)
+                    if (utente.datiModuliGruppi[j]._id == utente.moduliGruppi[I].codModulo)
+                        val = true;
+
+                if (!val) // se non è valido passo al prossimo modulo
+                    continue;
+
                 evento = {};
                 evento["id"] = String(utente.moduliGruppi[I].codModulo) + "_" + String(utente.moduliGruppi[I].codModulo);
                 evento["calendarId"] = String(contEventi);
@@ -140,7 +158,7 @@ function creazioneCalendario() {
                 evento["start"] = utente.moduliGruppi[I].dataInizio;
                 evento["end"] = '';
                 stato = "inCorso";
-                if (utente.moduliGruppi[I].dataFine != undefined) {
+                if (utente.moduliGruppi[I].dataFine != null) {
                     evento["end"] = utente.moduliGruppi[I].dataFine;
                     stato = "completato";
                     if (utente.moduliGruppi[I].scadenza != undefined) {
@@ -165,6 +183,15 @@ function creazioneCalendario() {
 
             //Salvo sul calendario gli esami affrontati singolarmente
             for (I = 0; I < utente.esami.length; I++) {
+                // controllo se l'esame è tra quelli validi
+                let val = false;
+                for (let j = 0; j < utente.datiEsami.length; j++)
+                    if (utente.datiEsami[j]._id == utente.esami[I].codEsame)
+                        val = true;
+
+                if (!val) // se non è valido passo al prossimo esame
+                    continue;
+
                 evento = {};
                 evento["id"] = String(utente.esami[I].codEsame);
                 evento["calendarId"] = String(contEventi);
@@ -189,6 +216,15 @@ function creazioneCalendario() {
 
             //Salvo sul calendario gli esami affrontati in gruppo
             for (I = 0; I < utente.esamiGruppi.length; I++) {
+                // controllo se l'esame è tra quelli validi
+                let val = false;
+                for (let j = 0; j < utente.datiEsamiGruppo.length; j++)
+                    if (utente.datiEsamiGruppo[j]._id == utente.esamiGruppo[I].codEsame)
+                        val = true;
+
+                if (!val) // se non è valido passo al prossimo esame
+                    continue;
+
                 evento = {};
                 evento["id"] = String(utente.esamiGruppi[I].codEsame) + "_" + String(utente.esamiGruppi[I].codGruppo);
                 evento["calendarId"] = String(contEventi);
@@ -212,6 +248,15 @@ function creazioneCalendario() {
 
             //Salvo sul calendario le lezioni in programma
             for (I = 0; I < utente.lezioni.length; I++) {
+                // controllo se la lezione è tra quelle valide
+                let val = false;
+                for (let j = 0; j < utente.datiLezione.length; j++)
+                    if (utente.datiLezione[j]._id == utente.lezioni[I].codLez)
+                        val = true;
+
+                if (!val) // se non è valida passo alla prossima lezione
+                    continue;
+                
                 evento = {};
                 evento["id"] = String(utente.lezioni[I].codLez);
                 evento["calendarId"] = String(contEventi);
