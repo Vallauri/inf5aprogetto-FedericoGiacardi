@@ -1,8 +1,11 @@
 "use strict";
+
+// Routine principale
 $(document).ready(function () {
     loadPagina();
 });
 
+// Caricamento Pagina
 function loadPagina() {
     let par = window.location.search.substring(1).split('=');
     // Controllo sui parametri in GET
@@ -22,12 +25,11 @@ function loadPagina() {
     }
 }
 
+// Funzione che carica i dati del gruppo dinamicamente
 function caricamentoDatiGruppo(gruppo) {
     $("#contGruppo").html("");
     let codHtml = "";
     let aus;
-    
-    console.log(gruppo);
     
     if (gruppo == undefined || gruppo.length == 0){
         codHtml += '<div class="row justify-content-center">';
@@ -101,6 +103,7 @@ function caricamentoDatiGruppo(gruppo) {
     }
 }
 
+// Controllo privilegi utente
 function chkModeratore(idGruppo) {
     // Solo se utente loggato = moderatore gruppo
     let chkToken = inviaRichiesta('/api/chkModGruppo', 'POST', { "idGruppo": idGruppo });
@@ -129,8 +132,10 @@ function chkModeratore(idGruppo) {
                             printErrors(jqXHR, "#msgModGruppo");
                         });
                         chkToken.done(function (data) {
-                            if (data.ok == 1)
-                                window.location.reload();
+                            if (data == "modGrpOk"){
+                                $("#msgDetGruppo").text("Modifica del gruppo effettuata correttamente").removeClass("alert alert-danger").addClass("alert alert-success");
+                                loadPagina();
+                            }
                             else
                                 $("#msgModGruppo").text("Si è verificato un errore durante l'aggiornamento dei dati. Riprovare").addClass("alert alert-danger");
                         });
@@ -151,7 +156,6 @@ function chkModeratore(idGruppo) {
             });
 
             $("#btnAddMember").on("click", function () {
-                console.log("Aggiunta membro");
                 $("#dettGruppoMod .modal-title").html("Aggiunta Membro al Gruppo");
                 $("#dettGruppoMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").hide();
@@ -186,7 +190,6 @@ function chkModeratore(idGruppo) {
                             printErrors(jqXHR, "#msgCercaUt");
                         });
                         ricerca.done(function (data) {
-                            console.log(data);
                             dettaglioUtente(data);
                         });
                     }
@@ -220,7 +223,6 @@ function chkModeratore(idGruppo) {
             });
 
             $("#btnModGroup").on("click", function () {
-                console.log("Modifica gruppo");
                 $("#dettGruppoMod .modal-title").html("Modifica del Gruppo");
                 $("#dettGruppoMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").show().html("Salva Modifiche");
@@ -230,13 +232,11 @@ function chkModeratore(idGruppo) {
                     printErrors(jqXHR, "#msgModGruppo");
                 });
                 chkToken.done(function (data) {
-                    console.log(data);
                     modificaGruppo(data);
                 });
             });
             
             $("#btnRemGroup").on("click", function () {
-                console.log("Elimina gruppo");
                 $("#dettGruppoMod .modal-title").html("Rimozione del Gruppo");
                 $("#dettGruppoMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").show().html("Conferma Rimozione");
@@ -257,8 +257,8 @@ function chkModeratore(idGruppo) {
     });
 }
 
+// Funzione di visualizzazione dei risultati della ricerca in aggiunta di utente al gruppo
 function dettaglioUtente(utenti) {
-    console.log(utenti);
     let codHtml = "";
     $("#msgCercaUt").html("").removeClass("alert alert-danger");
     $("#risultato").remove();
@@ -291,6 +291,7 @@ function dettaglioUtente(utenti) {
     $("#dettGruppoMod .modal-body").append(codHtml);
 }
 
+// Funzione per aggiungere un utente al gruppo
 function addIscrittoGruppo(idUtente) {
     $("#msgCercaUt").text("").removeClass("alert alert-danger");
 
@@ -309,6 +310,7 @@ function addIscrittoGruppo(idUtente) {
     });
 }
 
+// Funzione per gestione modifica del gruppo
 function modificaGruppo(dettGruppo){
     let cod = "";
     cod += '<div class="row">';
@@ -384,6 +386,7 @@ function modificaGruppo(dettGruppo){
     });
 }
 
+// Funzione per controllo dei campi di input
 function chkCorrettezzaDati() {
     $("#msgModGruppo").text("").removeClass("alert alert-danger");
 
@@ -399,6 +402,7 @@ function chkCorrettezzaDati() {
     return false;
 }
 
+// Funzione per rimozione dell'utente dal gruppo
 function removeIscrittoGruppo(idUtente) {
     $("#msgModGruppo").text("").removeClass("alert alert-danger");
 

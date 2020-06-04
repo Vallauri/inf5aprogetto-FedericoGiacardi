@@ -7,8 +7,9 @@ let tipoDom = "";
 let timer;
 let start = 0;
 
+// Routine iniziale
 $(document).ready(function () {
-    if (window.opener != null && window.opener.location.href.substring(23, 45) == "svolgimentoEsame.html?"){
+    if (window.opener != null && window.opener.location.href.includes("svolgimentoEsame.html?")){
         let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
         chkToken.fail(function (jqXHR, test_status, str_error) {
             window.opener.location.href = "login.html";
@@ -26,17 +27,16 @@ $(document).ready(function () {
     }
 });
 
+// Caricamento pagina
 function loadPagina() {
     let par = window.location.search.substring(1).split('=');
     // Controllo sui parametri in GET
     if (par[0] == "esame" && !isNaN(parseInt(par[1]))){
         let chkToken = inviaRichiesta('/api/datiEsameById', 'POST', { "idEsame": par[1] });
         chkToken.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
             printErrors(jqXHR, "#msgGenEsame");
         });
         chkToken.done(function (data) {
-            console.log(data);
             let cod = '';
             numDomande = data.numDomande;
             idEsame = par[1];
@@ -175,6 +175,7 @@ function loadPagina() {
     }
 }
 
+// Funzione di visualizzazione della domanda e caricamento risultato
 function getDomanda(posDomanda, when){
     if(when != "load")
         salvaRisposta();
@@ -197,11 +198,9 @@ function getDomanda(posDomanda, when){
 
     let domande = inviaRichiesta('/api/getDomandaEsame', 'POST', { "idEsame": idEsame, "pos": posDomanda });
     domande.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
         printErrors(jqXHR, "#msgGenEsame");
     });
     domande.done(function (data) {
-        console.log(data);
         caricamentoDomandaEsame(data);
 
         let risp = sessionStorage.getItem("rispDomanda_" + (posDomanda + 1));
@@ -240,18 +239,21 @@ function getDomanda(posDomanda, when){
     });
 }
 
+// Funzione per passare a domanda precedente
 function precDomanda(){
     let posDom = parseInt($("#numDomanda").html().split(' ')[2])-1;
     if (posDom > 0)
         getDomanda(--posDom, "exec");
 }
 
+// Funzione per passare a domanda successiva
 function succDomanda(){
     let posDom = parseInt($("#numDomanda").html().split(' ')[2])-1;
     if (posDom < numDomande-1)
         getDomanda(++posDom, "exec");
 }
 
+// Funzione per la visualizzazione della domanda
 function caricamentoDomandaEsame(domanda) {
     if (domanda != "domandaNonEsiste"){
         $("#risposteDomanda").html("");
@@ -343,6 +345,7 @@ function caricamentoDomandaEsame(domanda) {
     }
 }
 
+// Funzione per salvataggio risposta nel session storage
 function salvaRisposta() {
     let posDom = parseInt($("#numDomanda").html().split(' ')[2]);
     let risp = "";
@@ -376,12 +379,14 @@ function salvaRisposta() {
     sessionStorage.setItem("rispDomanda_" + posDom, risp);
 }
 
+// Funzione per la conversione dei millisecondi nel formato hh:mm:ss
 function calcolaDurata(s){
     let measuredTime = new Date(null);
     measuredTime.setSeconds(s); 
     return measuredTime.toISOString().substr(11, 8);
 }
 
+// Funzione per visualizzazione modale per conferma fine esame
 function confFineEsame(){
     $("#dettEsame .modal-title").html("Fine Esame");
     $("#dettEsame .modal-body").children().remove();
@@ -399,8 +404,8 @@ function confFineEsame(){
     clickSalvaModifiche();
 }
 
+// Funzione per salvataggio risposte e calcolo risultato esame
 function fineEsame(){
-    console.log("Fine Esame");
     clearInterval(timer);
     salvaRisposta();
 
@@ -408,15 +413,11 @@ function fineEsame(){
     for(let i = 1; i <=  numDomande; i++)
         risposte.push(sessionStorage.getItem("rispDomanda_" + i));
 
-    console.log(risposte);
-
     let domande = inviaRichiesta('/api/getDomandeCorrezioneEsame', 'POST', { "idEsame": idEsame });
     domande.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR);
         printErrors(jqXHR, "#msgGenEsame");
     });
     domande.done(function (elDom) {
-        console.log(elDom);
         let voto = 0;
         for(let i = 0; i < elDom.length; i++){
             let corretta = false;
@@ -496,7 +497,6 @@ function fineEsame(){
 
         let getMaxMin = inviaRichiesta('/api/getMaxMinVotoEsame', 'POST', {"idEsame" : idEsame});
         getMaxMin.fail(function (jqXHR, test_status, str_error) {
-            console.log(jqXHR);
             printErrors(jqXHR, "#msgGenEsame");
         });
         getMaxMin.done(function (data) {
@@ -510,7 +510,6 @@ function fineEsame(){
             
             let salvaRisultati = inviaRichiesta('/api/salvaRisultatoEsame', 'POST', datiRisultatoEsame);
             salvaRisultati.fail(function (jqXHR, test_status, str_error) {
-                console.log(jqXHR);
                 printErrors(jqXHR, "#msgGenEsame");
             });
             salvaRisultati.done(function (data) {
@@ -524,6 +523,7 @@ function fineEsame(){
     // da qui devo fare calcolo risultato, salvataggio voto e salvataggio risposte date
 }
 
+// Funzione per la gestione del pulsante di salvataggio della modale
 function clickSalvaModifiche(){
     $("#btnSalvaModifiche").on("click", function () {
         if ($(this).html() == "Consegna") {

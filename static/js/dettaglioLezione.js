@@ -1,8 +1,11 @@
 "use strict";
+
+// Routine iniziale
 $(document).ready(function () {
     loadPagina();
 });
 
+// Caricamento pagina
 function loadPagina() {
     let par = window.location.search.substring(1).split('&');
     let lez = par[0].split('=');
@@ -29,12 +32,11 @@ function loadPagina() {
     }
 }
 
+// Funzione che carica i dati della lezione dinamicamente
 function caricamentoDatiLezione(lezione) {
     $("#contLezione").html("");
     let codHtml = "";
     let aus;
-    
-    console.log(lezione);
     
     if (lezione == undefined || lezione.length == 0){
         codHtml += '<div class="row justify-content-center">';
@@ -108,7 +110,7 @@ function caricamentoDatiLezione(lezione) {
             codHtml += '</a>';
             codHtml += '</li>';
             codHtml += '</ul>';
-            if (lezione[0]["dataScadenza"] == null && lezione[0]["dataScadenza"] == undefined && data.ris != "iscritto" && data.ris != "autore"){
+            if (lezione[0]["dataScadenza"] != null && new Date(lezione[0]["dataScadenza"]) >= new Date()  && data.ris != "iscritto" && data.ris != "autore"){
                 codHtml += '<div class="col-lg-12 text-center">';
                 codHtml += '<button id="btnPartecipaLezione" class="genric-btn success radius">Partecipa alla Lezione</button>';
                 codHtml += '</div>';
@@ -118,7 +120,7 @@ function caricamentoDatiLezione(lezione) {
 
             $("#contLezione").html(codHtml);
 
-            if (lezione[0]["dataScadenza"] == null && lezione[0]["dataScadenza"] == undefined && data.ris != "iscritto" && data.ris != "autore") {
+            if (lezione[0]["dataScadenza"] == null && new Date(lezione[0]["dataScadenza"]) >= new Date() && data.ris != "iscritto" && data.ris != "autore") {
                 $("#btnPartecipaLezione").on("click", function () {
                     let chkToken = inviaRichiesta('/api/partecipaLezione', 'POST', { "idLez": $("#descLezione").attr("idLez") });
                     chkToken.fail(function (jqXHR, test_status, str_error) {
@@ -128,12 +130,12 @@ function caricamentoDatiLezione(lezione) {
                             printErrors(jqXHR, "#msgDetLezione");
                     });
                     chkToken.done(function (data) {
-                        if (data.nModified == 1) {
-                            alert("Ora partecipi alla lezione!"); // cambiare con modal
-                            window.location.reload();
+                        if (data == "parLezOk") {
+                            $("#msgDetLezione").text("Ora partecipi alla lezione").removeClass("alert alert-danger").addClass("alert alert-success");
+                            loadPagina();
                         }
                         else
-                            $("#msgDetLezione").text("Si è verificato un errore durante l'iscrizione al corso").addClass("alert alert-danger");
+                            $("#msgDetLezione").text("Si è verificato un errore durante l'iscrizione alla lezione").addClass("alert alert-danger");
                     });
                 });
             }
@@ -141,6 +143,7 @@ function caricamentoDatiLezione(lezione) {
     }
 }
 
+// Controllo privilegi utente
 function chkModeratore(idLez) {
     // Solo se utente loggato = moderatore lezione
     let chkToken = inviaRichiesta('/api/chkModLezione', 'POST', { "idLez": idLez });
@@ -190,7 +193,6 @@ function chkModeratore(idLez) {
             });
 
             $("#btnAddAppunto").on("click", function () {
-                console.log("Aggiunta appunto");
                 $("#dettLezioneMod .modal-title").html("Aggiunta Appunto alla Lezione");
                 $("#dettLezioneMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").hide();
@@ -225,7 +227,6 @@ function chkModeratore(idLez) {
                             printErrors(jqXHR, "#msgAddAppunto");
                         });
                         ricerca.done(function (data) {
-                            console.log(data);
                             dettaglioAppunto(data);
                         });
                     }
@@ -259,7 +260,6 @@ function chkModeratore(idLez) {
             });
 
             $("#btnModLezione").on("click", function () {
-                console.log("Modifica Lezione");
                 $("#dettLezioneMod .modal-title").html("Modifica della Lezione");
                 $("#dettLezioneMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").show().html("Salva Modifiche");
@@ -269,13 +269,11 @@ function chkModeratore(idLez) {
                     printErrors(jqXHR, "#msgModLez");
                 });
                 chkToken.done(function (data) {
-                    console.log(data);
                     modificaLezione(data);
                 });
             });
             
             $("#btnRemLezione").on("click", function () {
-                console.log("Elimina Lezione");
                 $("#dettLezioneMod .modal-title").html("Rimozione della Lezione");
                 $("#dettLezioneMod .modal-body").children().remove();
                 $("#btnSalvaModifiche").show().html("Conferma Rimozione");
@@ -296,8 +294,8 @@ function chkModeratore(idLez) {
     });
 }
 
+// Funzione per visualizzazione dati appunti in aggiunta appunti alla lezione
 function dettaglioAppunto(appunti) {
-    console.log(appunti);
     let codHtml = "";
     $("#msgAddAppunto").html("").removeClass("alert alert-danger");
     $("#risultato").remove();
@@ -330,6 +328,7 @@ function dettaglioAppunto(appunti) {
     $("#dettLezioneMod .modal-body").append(codHtml);
 }
 
+// Funzione per l'aggiunta di un appunto alla lezione
 function addAppuntoLez(idAppunto) {
     $("#msgAddAppunto").text("").removeClass("alert alert-danger");
 
@@ -341,13 +340,14 @@ function addAppuntoLez(idAppunto) {
             printErrors(jqXHR, "#msgAddAppunto");
     });
     chkToken.done(function (data) {
-        if(data.nModified == 1)
+        if (data == "insLezOk")
             window.location.reload();
         else
             $("#msgAddAppunto").text("Si è verificato un errore durante l'aggiunta alla lezione").addClass("alert alert-danger");
     });
 }
 
+// Funzione per gestione modifica della lezione
 function modificaLezione(dettLezione){
     let cod = "";
     cod += '<div class="row">';
@@ -412,13 +412,14 @@ function modificaLezione(dettLezione){
     });
 }
 
+// Funzione per controllo dei campi di input
 function chkCorrettezzaDati() {
     $("#msgModLez").text("").removeClass("alert alert-danger");
 
     if($("#titolo").val().trim() == ""){
         $("#msgModLez").text("Devi inserire il titolo della lezione").addClass("alert alert-danger");
     }
-    else if ($("#dataScadenza").val().trim() != "" && new Date($("#dataScadenza").val()) < new Date()) {
+    else if ($("#dataScadenza").val().trim() != "" && new Date($("#dataScadenza").val()) <= new Date()) {
         $("#msgModLez").text("Devi scegliere una data di scadenza della lezione successiva a quella odierna").addClass("alert alert-danger");
     }
     else{
@@ -427,6 +428,7 @@ function chkCorrettezzaDati() {
     return false;
 }
 
+// Funzione per rimozione dell'appunto dalla lezione
 function removeAppuntoLezione(idAppunto) {
     $("#msgModLez").text("").removeClass("alert alert-danger");
 
@@ -435,7 +437,7 @@ function removeAppuntoLezione(idAppunto) {
         printErrors(jqXHR, "#msgModLez");
     });
     chkToken.done(function (data) {
-        if (data.nModified == 1){
+        if (data == "remAppLezOk"){
             $("#msgModLez").text("Appunto rimosso dalla lezione").addClass("alert alert-success");
             $("#tabAppuntiLez").children().remove();
 

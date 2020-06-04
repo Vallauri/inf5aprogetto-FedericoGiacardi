@@ -1,6 +1,7 @@
 "use strict";
 let codUt = -1;
 
+// Routine principale
 $(document).ready(function () {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
@@ -12,6 +13,7 @@ $(document).ready(function () {
     });
 });
 
+// Caricamento Pagina
 function loadPagina() {
     let par = window.location.search.substring(1).split('&');
     let esame = par[0].split('=');
@@ -46,6 +48,7 @@ function loadPagina() {
     }
 }
 
+// Funzione che carica i dati dell'esame dinamicamente
 function caricamentoDatiEsame(esame) {
     $("#contEsami").html("");
     let codHtml = "";
@@ -170,17 +173,20 @@ function caricamentoDatiEsame(esame) {
     }
 }
 
+// Funzione per la conversione dei millisecondi nel formato hh:mm:ss
 function calcolaDurata(s){
     let measuredTime = new Date(null);
     measuredTime.setSeconds(s); 
     return measuredTime.toISOString().substr(11, 8);
 }
 
+// Funzione per apertura pagina di svolgimento esame
 function eseguiEsame(idEsame){
     // parte per finestra esame
     let myWin = window.open("https://localhost:8888/svolgiEsame.html?esame=" + idEsame, "windowTakeExam", "width=" + screen.width + ",height=" + screen.height + ",menubar=no,scrollbars=yes,status=no,toolbar=no,titlebar=no");
 }
 
+// Controllo privilegi utente
 function chkModeratore(idCorso) {
     let chkToken = inviaRichiesta('/api/chkModCorso', 'POST', { "idCorso": idCorso });
     chkToken.fail(function (jqXHR, test_status, str_error) {
@@ -343,10 +349,8 @@ function chkModeratore(idCorso) {
                                                 dati.domande.push(vet.join(';'));
                                             }
 
-                                            console.log(dati);
                                             let chkToken = inviaRichiesta('/api/aggiungiEsame', 'POST', dati);
                                             chkToken.fail(function (jqXHR, test_status, str_error) {
-                                                console.log(jqXHR);
                                                 printErrors(jqXHR, "#msgAddEsame");
                                             });
                                             chkToken.done(function (data) {
@@ -403,13 +407,14 @@ function chkModeratore(idCorso) {
     });
 }
 
-//Funzione di stampa errori
+// Funzione di stampa errori
 function gestErrori(msg, controllo, target) {
     $(target).html(msg).addClass("alert alert-danger");
     if (controllo)
         controllo.addClass("alert-danger");
 }
 
+// Funzione per la gestione del pulsante di salvataggio della modale
 function clickSalvaModifiche(){
     $("#btnSalvaModifiche").on("click", function () {
         if($(this).html() == "Chiudi"){

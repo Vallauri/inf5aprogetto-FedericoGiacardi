@@ -51,7 +51,6 @@ $(document).ready(function () {
 function loadPagina() {
     let chkToken = inviaRichiesta('/api/chkToken', 'POST', {});
     chkToken.fail(function (jqXHR, test_status, str_error) {
-        console.log(jqXHR + " " + test_status + " " + str_error);
         window.location.href = "login.html";
     });
     chkToken.done(function (data) {});
