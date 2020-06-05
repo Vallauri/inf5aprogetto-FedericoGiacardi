@@ -143,3 +143,4 @@ In sostanza, quando il server di Heroku riceve del traffico HTTPS lo blocca e ap
 In questo modo non dovremo impostare alcun certificato sul nostro Dyno e, dato che esso riceverà soltanto traffico HTTP, dovremo utilizzare il modulo HTTP nel nostro server.
 Con il meccanismo descritto in precedenza Heroku garantirà comunque la sicurezza dell'applicazione.
 In conclusione, possiamo dire di aver implementato, pur con alcune riduzioni concernenti soprattutto la parte di text to speech, tutte le funzionalità previste inizialmente senza che si rendessero necessari variazioni significative.
+![](/Immagini/HerokuSchema.PNG)
