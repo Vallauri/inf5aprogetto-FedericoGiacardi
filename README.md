@@ -130,9 +130,6 @@ Infine, è presente un form per l'aggiunta di una nuova materia.
 ![](/Immagini/Materie_2.PNG)
 ![](/Immagini/Materie_3.PNG)
 
-## Aggiunte Previste fino al 10/05/2020
-* Aggiunta sezione per svolgimento esame.
-
 ## Considerazioni finali
 La relizzazione della funzionalità di lettura automatica del file si è rivelata molto ostica.
 Non essendo disponibile un modulo per l'estrazione del contenuto del file capace di offrire buone prestazioni su tipi di file diversi si è dovuto scrivere un nostro modulo, FileReader, che combini un modulo per la lettura di PDF con uno per la lettura dei DOCX. Particolarmente complicata si è poi rivelata la combinazione dell'estrazione del file con la sua lettura tramite IBM Watson a causa delle molte operazioni asincrone da coordinare. Il meccanismo risulta ad oggi funzionante, tuttavia siamo consci del fatto che sia piuttosto limitato, soprattuto per i pochi tipi di file supportati.
